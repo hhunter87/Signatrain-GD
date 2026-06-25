@@ -1,0 +1,55 @@
+%% J07 - Private Company Cohort Lifecycle
+%% Domain: Signatrain Cohorts
+%% Source requirements: ST-COH-01/03-06; ST-LIVE-03-10; ST-COMP-02/04; ST-CMS-10
+flowchart LR
+  subgraph OPS["Signatrain Operations"]
+    direction TB
+    O1(["Create private cohort for one organization"])
+    O2["Set dates, faculty, program rules, and company-only access"]
+    O3["Assign live sessions and private scenarios / materials"]
+    O4["Review roster, no-shows, completion, and overrides"]
+  end
+  subgraph COMP["Company HR Admin"]
+    direction TB
+    C1["Select eligible company users"]
+    C2["View company-scoped progress and export CSV"]
+  end
+  subgraph LEARN["Cohort Learner"]
+    direction TB
+    L1["Open cohort workspace"]
+    L2["Access private materials and scenarios"]
+    L3["Register for assigned cohort sessions"]
+    L4["Attend sessions and complete assigned content"]
+  end
+  subgraph PORTAL["Platform / Zoom"]
+    direction TB
+    D1{"User belongs to cohort company and has required access?"}
+    P1["Add learner to cohort roster and send notification"]
+    P2[["Create Zoom registrations and provide join links"]]
+    P3["Calculate attendance and program completion"]
+    END(["Cohort completed with organization-scoped records"])
+  end
+  O1 --> O2
+  O2 --> O3
+  O3 --> C1
+  C1 --> D1
+  D1 -->|"Yes"| P1
+  D1 -->|"No - choose eligible user"| C1
+  P1 --> L1
+  L1 --> L2
+  L2 --> L3
+  L3 --> P2
+  P2 --> L4
+  L4 --> P3
+  P3 --> O4
+  O4 --> C2
+  C2 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class O1,END startend;
+  class O2,O3,C1,P1,L1,L2,L3,L4,P3,O4,C2 action;
+  class D1 decision;
+  class P2 integration;

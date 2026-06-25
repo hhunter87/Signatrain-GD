@@ -1,0 +1,99 @@
+{
+  "enrollments": [
+    {
+      "id": "enr_elena_hr",
+      "userId": "user_elena",
+      "courseId": "course_hr_bootcamp",
+      "status": "in_progress",
+      "startedAt": "2026-06-01"
+    },
+    {
+      "id": "enr_maya_hr",
+      "userId": "user_maya",
+      "courseId": "course_hr_bootcamp",
+      "status": "not_started"
+    },
+    {
+      "id": "enr_marcus_mgr",
+      "userId": "user_marcus",
+      "courseId": "course_manager_decisions",
+      "status": "in_progress",
+      "startedAt": "2026-05-15"
+    }
+  ],
+  "videoProgress": [
+    {
+      "id": "vp_elena_hr1",
+      "userId": "user_elena",
+      "videoId": "video_hr_1",
+      "watchedIntervals": [
+        [
+          0,
+          480
+        ]
+      ],
+      "uniqueSeconds": 480,
+      "percent": 1.0,
+      "completed": true
+    },
+    {
+      "id": "vp_elena_hr2",
+      "userId": "user_elena",
+      "videoId": "video_hr_2",
+      "watchedIntervals": [
+        [
+          0,
+          250
+        ],
+        [
+          270,
+          507
+        ]
+      ],
+      "uniqueSeconds": 487,
+      "percent": 0.9019,
+      "completed": false
+    },
+    {
+      "id": "vp_marcus_mgr1",
+      "userId": "user_marcus",
+      "videoId": "video_mgr_1",
+      "watchedIntervals": [
+        [
+          0,
+          360
+        ]
+      ],
+      "uniqueSeconds": 360,
+      "percent": 1.0,
+      "completed": true
+    },
+    {
+      "id": "vp_marcus_mgr2",
+      "userId": "user_marcus",
+      "videoId": "video_mgr_2",
+      "watchedIntervals": [
+        [
+          0,
+          420
+        ]
+      ],
+      "uniqueSeconds": 420,
+      "percent": 1.0,
+      "completed": true
+    }
+  ],
+  "evaluations": [],
+  "certificates": [
+    {
+      "id": "CERT-ST-2026-0007",
+      "userId": "user_marcus",
+      "title": "Manager Core: Better Workplace Decisions",
+      "courseId": "course_manager_decisions",
+      "issuedAt": "2026-05-30",
+      "status": "issued",
+      "verificationSlug": "CERT-ST-2026-0007",
+      "creditMetadata": null
+    }
+  ]
+}

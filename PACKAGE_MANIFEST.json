@@ -1,0 +1,323 @@
+{
+  "package": "GD_Signatrain_Codex_Demo_Spec",
+  "version": "1.0",
+  "createdDate": "2026-06-25",
+  "fileCount": 63,
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 2808,
+      "sha256": "00c465f6883587beee6f9ca1a5a5b336031c6baa95e34c326e9a4a1daa065ace"
+    },
+    {
+      "path": "CHECKLIST.md",
+      "bytes": 455,
+      "sha256": "80be2ed915d2be1c0579dbd1913051d1cedb48c0bfd0c077648a3ffb4825733a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2877,
+      "sha256": "68957a8ff50896526a2cf833a88ca3a67b05191389c79cbb4f44603f14e3e462"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 1309,
+      "sha256": "a72327a38e34ea06d4184d67833c33e93d1c28de87a9d75f6f6e82d8cd1998e5"
+    },
+    {
+      "path": "config/capability-map.json",
+      "bytes": 2409,
+      "sha256": "b4d567e8a486ccc96644ff2e4c7e31b0f791b97b82b8306eb5a74720a7645162"
+    },
+    {
+      "path": "config/demo-config.json",
+      "bytes": 595,
+      "sha256": "2f312ddcd7c4bca2170f66a8777c8bfabfa286229e4a953fbca85581d2208dee"
+    },
+    {
+      "path": "config/demo-personas.json",
+      "bytes": 3478,
+      "sha256": "6bc5d0ec32ce400215d23668f08c278a2ac18f485a5bee43529bbb885b35ab86"
+    },
+    {
+      "path": "config/feature-matrix.json",
+      "bytes": 2907,
+      "sha256": "e947e070ca21b147d7ccea6e2e1bd964fbee15270d7b9427b7206c629fb13c2d"
+    },
+    {
+      "path": "config/route-manifest.json",
+      "bytes": 29541,
+      "sha256": "c2318473117d92b48821a89ff964f5874cead207d2ce62c9ef3aafed3afe8657"
+    },
+    {
+      "path": "config/state-machines.json",
+      "bytes": 4998,
+      "sha256": "e8d3a8b53652e71c42f337f7d66708a016b5c2323f5e0aaf0869890cca94fddd"
+    },
+    {
+      "path": "docs/01_DEMO_SCOPE.md",
+      "bytes": 3870,
+      "sha256": "404b9ca1fcce2b569cee0760b03fe91440f9d73d3486be97a467ecdf5c9242c0"
+    },
+    {
+      "path": "docs/02_INFORMATION_ARCHITECTURE.md",
+      "bytes": 3100,
+      "sha256": "a1cfd66792b9fb98cfdb927c8e7b3a9f78708035f730cf6aaa93df3fbc404ac3"
+    },
+    {
+      "path": "docs/03_ROLES_AND_PERMISSIONS.md",
+      "bytes": 4062,
+      "sha256": "635318ce63233e387e3efa3a554f006f97df28cced2a00e402f54adacc1f0830"
+    },
+    {
+      "path": "docs/04_SCREEN_SPECIFICATIONS.md",
+      "bytes": 10664,
+      "sha256": "5abb6584d8a4347adf8fe49c65d8856247f345d6c8b5ff4d9ae4d002b5daf5cf"
+    },
+    {
+      "path": "docs/05_WORKFLOWS_AND_STATE_MACHINES.md",
+      "bytes": 3071,
+      "sha256": "be57a694ba401fb4759eed89b69f30c12f597df9ce924c61eb3c2addf079e9ba"
+    },
+    {
+      "path": "docs/06_DOMAIN_AND_MOCK_DATA_MODEL.md",
+      "bytes": 3316,
+      "sha256": "86d583f4e876de82acd71d72cfa4f2e9d6cc857b1eec84a433abea118d793f65"
+    },
+    {
+      "path": "docs/07_MOCK_INTEGRATIONS.md",
+      "bytes": 2799,
+      "sha256": "85dc1f2b2093d47d3f35a59a9616bfa2277a20d923f462024806cf327330f571"
+    },
+    {
+      "path": "docs/08_VISUAL_DESIGN_SYSTEM.md",
+      "bytes": 2314,
+      "sha256": "dea21b6fb0fbd0e9bef72d77ca67e7386bf99e24099ed674bff8c83d1eae1ecb"
+    },
+    {
+      "path": "docs/09_ACCEPTANCE_CRITERIA.md",
+      "bytes": 3968,
+      "sha256": "845ddbeed0e55029cd698a0f892b71f65d42667ec1aae3ab5b2a27c2b88ecdb1"
+    },
+    {
+      "path": "docs/10_TEST_SCENARIOS.md",
+      "bytes": 2782,
+      "sha256": "197e7b0857e61c88c599ab802227fddee7b8b2646803e3929536c65bd652ec3f"
+    },
+    {
+      "path": "docs/11_BUILD_SEQUENCE.md",
+      "bytes": 1909,
+      "sha256": "350e5d557fc24bd54bfa1cc19a5c487ba56619d6ca21c576dc5e6ea84d81ed0c"
+    },
+    {
+      "path": "docs/12_DEMO_PRESENTATION_SCRIPT.md",
+      "bytes": 1920,
+      "sha256": "96e650cc1a8c52c5bddeddbbb7bbf7bc01d61b26fbc4277f13696a0c699e5509"
+    },
+    {
+      "path": "docs/13_DECISION_LOG.md",
+      "bytes": 1198,
+      "sha256": "61c1756bd78105e1668dbc628375e9127a9e2bb0fc95317466e54fad83a4b9d3"
+    },
+    {
+      "path": "mock-data/commerce.json",
+      "bytes": 5967,
+      "sha256": "589d26f02a18c9a6921af29489f839ca58a161b21fc853ac378acd13ac4ca92d"
+    },
+    {
+      "path": "mock-data/gd-data.json",
+      "bytes": 6834,
+      "sha256": "109e53095d370817d01880735bb7d67a4b288e75944d45f5c45c3d1d12ee39fd"
+    },
+    {
+      "path": "mock-data/learning-progress.json",
+      "bytes": 2010,
+      "sha256": "142db61e4b5868dc01ce3d421486b633a78cee80372056df9a83ca9b9966fb4b"
+    },
+    {
+      "path": "mock-data/legislative-alerts.json",
+      "bytes": 5455,
+      "sha256": "203eda22e7c6b18057fb98f177577dcc13996878a8b60fd0707fae9c63eac37b"
+    },
+    {
+      "path": "mock-data/organizations.json",
+      "bytes": 1627,
+      "sha256": "11da0a0a55b5d98ba772ef97816cde61bfd4fc659e6f411855665502b2d2ed6a"
+    },
+    {
+      "path": "mock-data/sessions-cohorts.json",
+      "bytes": 2733,
+      "sha256": "6fa4750d5761fce7aca53d06b3707d9226a92f9bfb05761b4ef3a32e70d6a0c5"
+    },
+    {
+      "path": "mock-data/signatrain-content.json",
+      "bytes": 5889,
+      "sha256": "83526d2b4dd60a9d7610b1fd78b15c2dff320c760da2bce6bb777af9cbc34322"
+    },
+    {
+      "path": "mock-data/system.json",
+      "bytes": 2280,
+      "sha256": "9d3a67a8428595f74614f4e3e7fd90b5a5470fbb8a6ac1264c3ccccf6e1f4407"
+    },
+    {
+      "path": "mock-data/users.json",
+      "bytes": 4408,
+      "sha256": "f188e9a18d4ca2f6cfd1ef6fe34366f9e2a1c7b0e6122b117ff49e13059bc787"
+    },
+    {
+      "path": "prompts/00_MASTER_PROMPT.md",
+      "bytes": 1191,
+      "sha256": "46e624e90a24b89d0b6688776d3097cc9d7d48ef08c75532b0a523255446fe33"
+    },
+    {
+      "path": "prompts/01_BOOTSTRAP_AND_SHELL.md",
+      "bytes": 535,
+      "sha256": "052b61923a7959d5c8e04edf0ee913f92978337cffa4a5151f25d4b6d462e084"
+    },
+    {
+      "path": "prompts/02_SHARED_CORE_AND_CHECKOUT.md",
+      "bytes": 648,
+      "sha256": "4427af1098ab50bcb8f2163803102441edf53dcebf7dfa54e0b0229aa0684a18"
+    },
+    {
+      "path": "prompts/03_SIGNATRAIN.md",
+      "bytes": 727,
+      "sha256": "b227e2cf3930cdd863019bc0212339998aebe3cc77c234458232d2438b081354"
+    },
+    {
+      "path": "prompts/04_GD_PORTAL.md",
+      "bytes": 633,
+      "sha256": "486f25777542d878fa433558e2200285afb25b142acb76dc3c823856afdfe028"
+    },
+    {
+      "path": "prompts/05_LEGISLATIVE_TRACKING.md",
+      "bytes": 552,
+      "sha256": "b016d92d80f8543cdfe00bc923d01d9638f573990cd712dbb0e957eccffbac3d"
+    },
+    {
+      "path": "prompts/06_POLISH_AND_ACCEPTANCE.md",
+      "bytes": 574,
+      "sha256": "20facdd6bf068b5991b029b7e8c9c1e91a9b4de158ef74ccad149996e4f6bebe"
+    },
+    {
+      "path": "reference/README.md",
+      "bytes": 421,
+      "sha256": "f3a481eaf7a77a93ab0d14cc43fd5034654930c55fe0ea1c0fc70f054937cdfb"
+    },
+    {
+      "path": "reference/artifacts/GD_Signatrain_Functional_Map_v1.0.xlsx",
+      "bytes": 95465,
+      "sha256": "abf84c18dae268dd302210ecf99c1d25bddba124461fb7fc57ecf44107c0010b"
+    },
+    {
+      "path": "reference/artifacts/GD_Signatrain_Product_Definition_v1.0.docx",
+      "bytes": 59792,
+      "sha256": "f561557cf3198d2a227211b4d5cd602cd66d4cd655aaa620c0bd5f275623152b"
+    },
+    {
+      "path": "reference/artifacts/GD_Signatrain_Role_Permission_Matrix_v1.0.xlsx",
+      "bytes": 26045,
+      "sha256": "8b8cf7cb12c97b6d1dd99684792f67cfc2ca7e187dbb9c6b488fae882c6cd39f"
+    },
+    {
+      "path": "reference/user-journeys/GD_Signatrain_User_Journeys_v1.0.md",
+      "bytes": 49337,
+      "sha256": "6393c34b42c5839295dc2cfe0942dfd3ab108b97ab2a8bad4ed84b102ed4bafe"
+    },
+    {
+      "path": "reference/user-journeys/journey_catalog.json",
+      "bytes": 14588,
+      "sha256": "fad5b932ef6de4fec1f1a4f8a0e171a2c58b514ddf6e9082847080e098fc0289"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J00_journey_landscape.mmd",
+      "bytes": 1903,
+      "sha256": "2f18a9336ca7b41715b463fa0994422f44034cb534b0ac0c55807befececf357"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J01_invitation_and_cross_product_access.mmd",
+      "bytes": 1905,
+      "sha256": "fe3364652ac4bc6faed00c2582ca40bd8f13e8a6805d428d177501c71c160be6"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J02_company_setup_and_manual_seat_provisioning.mmd",
+      "bytes": 1904,
+      "sha256": "372ad1639a9d4efeae25867ccf79e8add01d7ab708e2a070cc6e33e592de1ca9"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J03_online_purchase_and_entitlement_activation.mmd",
+      "bytes": 1988,
+      "sha256": "a583fa57d7f5fc0df83ba0c91f754c21a00ed21bbae722ba08a103d25b0e4dab"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J04_cancellation_archive_and_reactivation.mmd",
+      "bytes": 1808,
+      "sha256": "dac4c814b9c826e32046ba9c9aa59d95c7e0850d04ed7bb193a6353b9b1dd1f8"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J05_signatrain_hr_subscriber_learning.mmd",
+      "bytes": 2151,
+      "sha256": "b86a6a6ba2c18f71dd20dc7bea3d0b8c12c114dd1e18ca38260e67e212c29747"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J06_manager_program_completion.mmd",
+      "bytes": 1988,
+      "sha256": "b89d6531864bc9aafd88c9de1f4f01aef21d005dec2de726ef434299a4f974a3"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J07_private_company_cohort_lifecycle.mmd",
+      "bytes": 1982,
+      "sha256": "64f77f913bb5819d115c25762327cb02258536d31dfb918a143e3f18556630dc"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J08_live_session_attendance_and_recording.mmd",
+      "bytes": 2346,
+      "sha256": "4a22c4e28f8680397f00bf8f094da873649cb6594e0565b375b593b6c56664fd"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J09_content_authoring_review_and_publication.mmd",
+      "bytes": 2045,
+      "sha256": "fcd2d31bf79d5eb3d623d0a42ae5d778e12fb523538048a5b4a0db587c051689"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J10_certificate_eligibility_issue_and_verification.mmd",
+      "bytes": 2027,
+      "sha256": "638b56f0dd23fe0214a4295f3c5e170372a6bcf132f0c02093fe17a1b503a395"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J11_gd_client_onboarding.mmd",
+      "bytes": 1916,
+      "sha256": "bf3a02356efbfae65b46b36f8ccaf03a9f80f03aba661f394a61f678475f6662"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J12_gd_legal_request_triage_and_matter_conversion.mmd",
+      "bytes": 2339,
+      "sha256": "412518f62226106bcef4c72b0f185f82966c3aafb98996e0a8b738edb96e4691"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J13_gd_flat_fee_project_and_adobe_sign.mmd",
+      "bytes": 1881,
+      "sha256": "ab6f1c3942a6c68868a6a606bce064db1bc22ec5c25f12e40aac4f46d61bee3a"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J14_gd_included_signatrain_seat.mmd",
+      "bytes": 1771,
+      "sha256": "9f6618730ff006a118effd1e0b203243592f5b9b122e3acbe042202dbfa78436"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J15_legislative_alert_authoring_review_and_distribution.mmd",
+      "bytes": 2230,
+      "sha256": "b332ed128004e78460fd34e831b8eb7ffe4282f6793c1eb51d31595f9a178410"
+    },
+    {
+      "path": "reference/user-journeys/mmd/J16_legislative_jurisdiction_coverage_change.mmd",
+      "bytes": 1696,
+      "sha256": "78b24703bdb564295b6e6dfa5e8f4838274492af3604999d108c79f39355ab3c"
+    },
+    {
+      "path": "schemas/domain-types.ts",
+      "bytes": 5220,
+      "sha256": "edc6205ee78202474e487a6acb93dad140983e8ab5b8069a804ac97a098b7804"
+    }
+  ]
+}

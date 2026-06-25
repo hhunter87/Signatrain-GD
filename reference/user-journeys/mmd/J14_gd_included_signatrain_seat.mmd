@@ -1,0 +1,52 @@
+%% J14 - GD-Included Signatrain HR Seat Provisioning
+%% Domain: Cross-product GD to Signatrain
+%% Source requirements: CORE-ENT-08; GD-XP-01/02; GD-PLAN-05; CORE-IAM-08; CORE-ENT-06
+flowchart LR
+  subgraph GD["GD Operations"]
+    direction TB
+    G1(["Activate or change GD plan"])
+  end
+  subgraph COMP["Company Administrator"]
+    direction TB
+    C1["View included seat pool"]
+    C2["Select existing user or send invitation"]
+    C3["Archive user and transfer seat when needed"]
+  end
+  subgraph PLAT["Shared Platform"]
+    direction TB
+    P1["Determine included HR seat quantity"]
+    D1{"Plan tier"}
+    P2["Create one GD_INCLUDED HR seat by default"]
+    P3["Create two GD_INCLUDED HR seats by default"]
+    P4["Apply approved commercial override when configured"]
+    P5["Assign seat and activate SIGNATRAIN_HR entitlement"]
+    P6["Show Signatrain in My Products"]
+  end
+  subgraph USER["Seat Recipient"]
+    direction TB
+    U1["Activate account or sign in"]
+    END(["User enters Signatrain HR without user payment"])
+  end
+  G1 --> P1
+  P1 --> D1
+  D1 -->|"Concierge"| P2
+  D1 -->|"All Access"| P3
+  D1 -->|"Custom"| P4
+  P2 --> C1
+  P3 --> C1
+  P4 --> C1
+  C1 --> C2
+  C2 --> P5
+  P5 --> U1
+  U1 --> P6
+  P6 --> END
+  END -.->|"Seat transfer"| C3
+  C3 --> C2
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class G1,END startend;
+  class P1,P2,P3,P4,C1,C2,P5,U1,P6,C3 action;
+  class D1 decision;

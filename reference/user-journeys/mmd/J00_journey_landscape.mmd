@@ -1,0 +1,56 @@
+%% J00 - Integrated Journey Landscape
+%% Domain: Cross-platform
+%% Source requirements: Product Definition v1.0; Functional Map v1.0
+flowchart TB
+  subgraph LAND["Journey Domains"]
+    direction TB
+    A(["Shared Platform Core"])
+    B["J01 Invitation and cross-product access"]
+    C["J02 Company setup and manual seat provisioning"]
+    D["J03 Online purchase and entitlement activation"]
+    E["J04 Cancellation, archive, and reactivation"]
+    F(["Signatrain"])
+    G["J05 HR subscriber learning journey"]
+    H["J06 Manager program journey"]
+    I["J07 Private company cohort lifecycle"]
+    J["J08 Live session and recording lifecycle"]
+    K["J09 Content authoring, review, and publication"]
+    L["J10 Certificate lifecycle"]
+    M(["Greenwald Doherty"])
+    N["J11 GD client onboarding"]
+    O["J12 Legal request, triage, and matter conversion"]
+    P["J13 Flat-fee project and Adobe Sign"]
+    Q["J14 GD-included Signatrain seat"]
+    R(["Legislative Tracking MVP-Lite"])
+    S["J15 Alert authoring, review, and distribution"]
+    T["J16 Jurisdiction coverage change"]
+  end
+  A --> B
+  A --> C
+  A --> D
+  A --> E
+  F --> G
+  F --> H
+  F --> I
+  F --> J
+  F --> K
+  F --> L
+  M --> N
+  M --> O
+  M --> P
+  M --> Q
+  R --> S
+  R --> T
+  C -.->|"provisions access"| G
+  C -.->|"provisions access"| H
+  N -.->|"included benefit"| Q
+  O -.->|"project path"| P
+  S -.->|"HR add-on feed"| G
+  S -.->|"GD plan feed"| N
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class A,F,M,R startend;
+  class B,C,D,E,G,H,I,J,K,L,N,O,P,Q,S,T action;

@@ -1,0 +1,56 @@
+%% J13 - GD Flat-Fee Project Request and Adobe Sign Handoff
+%% Domain: GD Portal
+%% Source requirements: GD-PROJ-01-04; GD-MAT-01-04; Adobe Sign integration map
+flowchart LR
+  subgraph CLIENT["GD Client"]
+    direction TB
+    C1(["Submit flat-fee project request"])
+    C2["Provide additional information"]
+    C3["Review and sign or decline"]
+  end
+  subgraph GD["GD Operations / Attorney"]
+    direction TB
+    G1["Review eligibility, complexity, and scope"]
+    D1{"More information required?"}
+    G2["Prepare quote and engagement terms"]
+  end
+  subgraph PORTAL["GD Portal"]
+    direction TB
+    P1["Create Requested project record"]
+    P2["Request clarification through secure portal"]
+    P3["Update status to Quoted / Sent for Signature"]
+    P4["Record declined / expired state and close or rescope"]
+    P5["Show limited project status and responsible attorney"]
+    END(["Project accepted or closed with status history"])
+  end
+  subgraph EXT["Adobe Sign / Centerbase"]
+    direction TB
+    E1[["Create or open Adobe Sign agreement"]]
+    D2{"Agreement signed?"}
+    E2[["Create or link Centerbase project / matter"]]
+  end
+  C1 --> P1
+  P1 --> G1
+  G1 --> D1
+  D1 -->|"Yes"| P2
+  P2 --> C2
+  C2 --> G1
+  D1 -->|"No"| G2
+  G2 --> P3
+  P3 --> E1
+  E1 --> C3
+  C3 --> D2
+  D2 -->|"No"| P4
+  P4 --> END
+  D2 -->|"Yes"| E2
+  E2 --> P5
+  P5 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class C1,END startend;
+  class P1,G1,P2,C2,G2,P3,C3,P4,P5 action;
+  class D1,D2 decision;
+  class E1,E2 integration;

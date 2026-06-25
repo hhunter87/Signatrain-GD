@@ -1,0 +1,243 @@
+{
+  "topics": [
+    "Hiring",
+    "Performance Management",
+    "Leave and Accommodation",
+    "Harassment",
+    "Retaliation",
+    "Termination",
+    "Wage and Hour"
+  ],
+  "scenarios": [
+    {
+      "id": "scenario_accommodation",
+      "title": "The Accommodation Request That Arrived as a Text Message",
+      "audiences": [
+        "HR",
+        "MANAGER"
+      ],
+      "topic": "Leave and Accommodation",
+      "status": "published",
+      "durationMinutes": 8,
+      "summary": "A manager receives an informal request and must decide what to do next."
+    },
+    {
+      "id": "scenario_retaliation",
+      "title": "Performance Issue or Protected Activity?",
+      "audiences": [
+        "HR"
+      ],
+      "topic": "Retaliation",
+      "status": "published",
+      "durationMinutes": 11,
+      "summary": "HR evaluates timing, documentation, and decision risk."
+    },
+    {
+      "id": "scenario_feedback",
+      "title": "The Feedback Conversation That Went Sideways",
+      "audiences": [
+        "MANAGER"
+      ],
+      "topic": "Performance Management",
+      "status": "published",
+      "durationMinutes": 7,
+      "summary": "A manager practices a structured response under pressure."
+    },
+    {
+      "id": "scenario_acme_shift",
+      "title": "Acme Shift-Swap Escalation",
+      "audiences": [
+        "MANAGER"
+      ],
+      "topic": "Leave and Accommodation",
+      "status": "published",
+      "durationMinutes": 6,
+      "summary": "Company-specific scenario for the Acme private cohort.",
+      "cohortId": "cohort_acme_2026"
+    }
+  ],
+  "courses": [
+    {
+      "id": "course_hr_bootcamp",
+      "title": "New HR Bootcamp",
+      "audience": "HR",
+      "status": "published",
+      "topic": "HR Foundations",
+      "moduleIds": [
+        "module_hr_1",
+        "module_hr_2",
+        "module_hr_3"
+      ],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_hr_bootcamp"
+    },
+    {
+      "id": "course_manager_decisions",
+      "title": "Manager Core: Better Workplace Decisions",
+      "audience": "MANAGER",
+      "status": "published",
+      "topic": "Management Foundations",
+      "moduleIds": [
+        "module_mgr_1",
+        "module_mgr_2",
+        "module_mgr_3"
+      ],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": false
+      },
+      "certificateTemplate": "cert_manager_core"
+    },
+    {
+      "id": "course_hiring_firing",
+      "title": "Hiring and Firing: Decision Points",
+      "audience": "MANAGER",
+      "status": "approved",
+      "topic": "Hiring",
+      "moduleIds": [
+        "module_hf_1"
+      ],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": false
+      },
+      "certificateTemplate": null
+    }
+  ],
+  "modules": [
+    {
+      "id": "module_hr_1",
+      "courseId": "course_hr_bootcamp",
+      "order": 1,
+      "title": "The HR Decision Framework",
+      "contentBlocks": [
+        "video_hr_1",
+        "text_hr_1"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_hr_2",
+      "courseId": "course_hr_bootcamp",
+      "order": 2,
+      "title": "Recognizing When Facts Are Incomplete",
+      "contentBlocks": [
+        "video_hr_2",
+        "doc_hr_2"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_hr_3",
+      "courseId": "course_hr_bootcamp",
+      "order": 3,
+      "title": "Escalation and Documentation",
+      "contentBlocks": [
+        "video_hr_3",
+        "eval_hr_3"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_mgr_1",
+      "courseId": "course_manager_decisions",
+      "order": 1,
+      "title": "Pause Before You Act",
+      "contentBlocks": [
+        "video_mgr_1"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_mgr_2",
+      "courseId": "course_manager_decisions",
+      "order": 2,
+      "title": "Ask Better Questions",
+      "contentBlocks": [
+        "video_mgr_2"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_mgr_3",
+      "courseId": "course_manager_decisions",
+      "order": 3,
+      "title": "Document the Decision",
+      "contentBlocks": [
+        "video_mgr_3"
+      ],
+      "status": "published"
+    },
+    {
+      "id": "module_hf_1",
+      "courseId": "course_hiring_firing",
+      "order": 1,
+      "title": "Decision Map",
+      "contentBlocks": [
+        "video_hf_1"
+      ],
+      "status": "approved"
+    }
+  ],
+  "videos": [
+    {
+      "id": "video_hr_1",
+      "title": "Decision Framework",
+      "durationSeconds": 480,
+      "poster": "/demo/video/hr-1.jpg"
+    },
+    {
+      "id": "video_hr_2",
+      "title": "Incomplete Facts",
+      "durationSeconds": 540,
+      "poster": "/demo/video/hr-2.jpg"
+    },
+    {
+      "id": "video_hr_3",
+      "title": "Escalation and Documentation",
+      "durationSeconds": 420,
+      "poster": "/demo/video/hr-3.jpg"
+    },
+    {
+      "id": "video_mgr_1",
+      "title": "Pause Before You Act",
+      "durationSeconds": 360,
+      "poster": "/demo/video/mgr-1.jpg"
+    },
+    {
+      "id": "video_mgr_2",
+      "title": "Ask Better Questions",
+      "durationSeconds": 420,
+      "poster": "/demo/video/mgr-2.jpg"
+    },
+    {
+      "id": "video_mgr_3",
+      "title": "Document the Decision",
+      "durationSeconds": 390,
+      "poster": "/demo/video/mgr-3.jpg"
+    },
+    {
+      "id": "video_hf_1",
+      "title": "Hiring and Firing Decision Map",
+      "durationSeconds": 600,
+      "poster": "/demo/video/hf-1.jpg"
+    }
+  ],
+  "programs": [
+    {
+      "id": "program_manager_core",
+      "title": "Manager Core Program",
+      "audience": "MANAGER",
+      "requiredCourseIds": [
+        "course_manager_decisions"
+      ],
+      "requiredSessionTypes": [
+        "MANAGER_CORE"
+      ],
+      "certificateTemplate": "cert_manager_program"
+    }
+  ]
+}

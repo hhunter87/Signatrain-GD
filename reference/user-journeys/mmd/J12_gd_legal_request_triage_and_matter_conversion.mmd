@@ -1,0 +1,63 @@
+%% J12 - GD Legal Request, Triage, and Matter Conversion
+%% Domain: GD Portal
+%% Source requirements: GD-REQ-01-09; GD-COMM-01-04; GD-MAT-01-04; GD-SCH-01-03; GD-AUD-01
+flowchart LR
+  subgraph CLIENT["GD Client"]
+    direction TB
+    C1(["Start New Legal Request"])
+    C2["Enter category, subject, description, urgency, contact preference, and attachments"]
+    C3["Choose company-visible or restricted privacy scope"]
+    C4["Reply and upload additional information"]
+  end
+  subgraph OPS["GD Operations / Attorney"]
+    direction TB
+    O1["Triage category, priority, plan scope, and service path"]
+    D1{"More information needed?"}
+    O2["Assign attorney and permitted participants"]
+    D2{"Disposition"}
+    O3["Provide general guidance in secure thread"]
+    O4["Mark request as requiring matter-level work"]
+    O5["Answer and close request or continue through matter reference"]
+  end
+  subgraph PORTAL["GD Portal"]
+    direction TB
+    P1["Show emergency / legal disclaimers and create Submitted request"]
+    P2["Send secure clarification request"]
+    P3["Create limited portal matter reference and approved summary fields"]
+    P4["Maintain secure client-visible messages, internal notes, attachments, and status history"]
+    END(["Outcome recorded with request-level privacy and audit"])
+  end
+  subgraph EXT["Calendly / Centerbase"]
+    direction TB
+    E1[["Launch Calendly scheduling when a call is needed"]]
+    E2[["Create / link authoritative Centerbase matter"]]
+  end
+  C1 --> C2
+  C2 --> C3
+  C3 --> P1
+  P1 --> O1
+  O1 --> D1
+  D1 -->|"Yes"| P2
+  P2 --> C4
+  C4 --> O1
+  D1 -->|"No"| O2
+  O2 --> D2
+  D2 -->|"General guidance"| O3
+  O3 --> P4
+  D2 -->|"Schedule call"| E1
+  E1 --> P4
+  D2 -->|"Matter-level work"| O4
+  O4 --> E2
+  E2 --> P3
+  P3 --> P4
+  P4 --> O5
+  O5 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class C1,END startend;
+  class C2,C3,P1,O1,P2,C4,O2,O3,O4,P3,P4,O5 action;
+  class D1,D2 decision;
+  class E1,E2 integration;

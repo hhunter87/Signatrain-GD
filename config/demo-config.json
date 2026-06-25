@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "storageKey": "gd-signatrain-demo-v1",
+  "defaultPersonaId": "persona_maya",
+  "defaultOrganizationId": "org_acme",
+  "showDemoBanner": true,
+  "enablePersonaSwitcher": true,
+  "enableProductSwitcher": true,
+  "enableReset": true,
+  "enablePermissionDiagnostics": true,
+  "enableMockCheckout": true,
+  "enableRealIntegrations": false,
+  "simulateLatencyMs": 250,
+  "clockDate": "2026-06-25",
+  "videoCompletionThreshold": 0.95,
+  "liveAttendanceCompletionThreshold": 0.9,
+  "signatrainRecordRetentionYears": 5,
+  "gdRetentionBehavior": "not_simulated_policy_pending"
+}

@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "roles": {
+    "PSA": [
+      "platform.manage_organizations",
+      "platform.view_safe_audit",
+      "platform.manage_integration_metadata",
+      "shared.view_products"
+    ],
+    "SSA": [
+      "signatrain.manage_all",
+      "shared.manage_signatrain_entitlements",
+      "shared.manage_users",
+      "shared.view_products"
+    ],
+    "SOC": [
+      "signatrain.manage_content",
+      "signatrain.manage_sessions",
+      "signatrain.manage_cohorts",
+      "signatrain.manage_completion",
+      "shared.manage_users",
+      "shared.view_products"
+    ],
+    "FCR": [
+      "signatrain.review_assigned_content",
+      "signatrain.manage_assigned_sessions",
+      "shared.view_products"
+    ],
+    "GDO": [
+      "gd.manage_plans",
+      "gd.manage_onboarding",
+      "gd.manage_requests",
+      "gd.manage_projects",
+      "gd.manage_benefits",
+      "legislative.publish",
+      "shared.manage_users",
+      "shared.view_products"
+    ],
+    "GDA": [
+      "gd.view_assigned_requests",
+      "gd.manage_assigned_requests",
+      "gd.create_internal_notes",
+      "gd.convert_to_matter",
+      "legislative.approve",
+      "shared.view_products"
+    ],
+    "GDC": [
+      "gd.manage_templates",
+      "legislative.draft",
+      "legislative.manage_taxonomy",
+      "legislative.publish",
+      "shared.view_products"
+    ],
+    "CO": [
+      "shared.manage_company",
+      "shared.manage_users",
+      "shared.manage_seats",
+      "shared.view_billing",
+      "shared.purchase",
+      "shared.view_company_reports",
+      "shared.view_products"
+    ],
+    "CHA": [
+      "shared.manage_company",
+      "shared.manage_users",
+      "shared.manage_seats",
+      "shared.view_company_reports",
+      "shared.view_products"
+    ],
+    "HRS": [
+      "signatrain.access_hr",
+      "signatrain.learn",
+      "signatrain.register_live",
+      "signatrain.view_own_progress",
+      "signatrain.view_own_certificates",
+      "shared.view_products"
+    ],
+    "MGR": [
+      "signatrain.access_manager",
+      "signatrain.learn",
+      "signatrain.register_live",
+      "signatrain.view_own_progress",
+      "signatrain.view_own_certificates",
+      "shared.view_products"
+    ],
+    "GDCU": [
+      "gd.access",
+      "gd.submit_request",
+      "gd.view_permitted_requests",
+      "gd.secure_message",
+      "gd.view_benefits",
+      "gd.onboarding",
+      "shared.view_products"
+    ]
+  }
+}

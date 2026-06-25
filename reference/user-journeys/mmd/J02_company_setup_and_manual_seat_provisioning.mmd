@@ -1,0 +1,53 @@
+%% J02 - Company Setup and Manual Seat Provisioning
+%% Domain: Shared Platform Core
+%% Source requirements: CORE-ORG-01/05; CORE-USR-02/04; CORE-ENT-02/03/04/05/06; CORE-AUD-01
+flowchart LR
+  subgraph INT["Internal Administrator"]
+    direction TB
+    I1(["Create customer organization"])
+    I2["Set company profile, status, plan references, and jurisdictions"]
+    I3["Assign Company Owner and optional Company HR Admin"]
+    I4["Grant product entitlement with source and effective dates"]
+    I5["Create purchased or included seat inventory"]
+  end
+  subgraph PLAT["Shared Platform"]
+    direction TB
+    P1["Record audit events and available seat counts"]
+    P2[["Reserve seats and send invitations"]]
+    D1{"Seat available and user eligible?"}
+    P3["Activate user entitlement"]
+    END(["Users can access assigned products"])
+  end
+  subgraph COMP["Company Administrator"]
+    direction TB
+    C1["Open company user and seat administration"]
+    C2["Invite eligible users"]
+    C3["Assign available HR or Manager seats"]
+    C4["Archive departing user"]
+    C5["Transfer seat to another eligible user"]
+  end
+  I1 --> I2
+  I2 --> I3
+  I3 --> I4
+  I4 --> I5
+  I5 --> P1
+  P1 --> C1
+  C1 --> C2
+  C2 --> P2
+  P2 --> C3
+  C3 --> D1
+  D1 -->|"Yes"| P3
+  P3 --> END
+  D1 -->|"No - correct inventory or assignment"| C3
+  END -.->|"Employee leaves"| C4
+  C4 --> C5
+  C5 --> D1
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class I1,END startend;
+  class I2,I3,I4,I5,P1,C1,C2,C3,P3,C4,C5 action;
+  class P2 integration;
+  class D1 decision;

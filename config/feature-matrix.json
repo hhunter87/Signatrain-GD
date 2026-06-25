@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "features": [
+    {
+      "feature": "Shared persona and product switching",
+      "priority": "P0",
+      "journeys": [
+        "J01"
+      ],
+      "routes": [
+        "/",
+        "/app/products"
+      ]
+    },
+    {
+      "feature": "Company setup, users, seats",
+      "priority": "P0",
+      "journeys": [
+        "J02",
+        "J14"
+      ],
+      "routes": [
+        "/app/company/users",
+        "/app/company/seats",
+        "/app/gd/signatrain-seats"
+      ]
+    },
+    {
+      "feature": "Online purchase and cancellation",
+      "priority": "P0/P1",
+      "journeys": [
+        "J03",
+        "J04"
+      ],
+      "routes": [
+        "/pricing",
+        "/checkout/[sku]",
+        "/app/company/billing"
+      ]
+    },
+    {
+      "feature": "HR learning and certificate",
+      "priority": "P0",
+      "journeys": [
+        "J05",
+        "J10"
+      ],
+      "routes": [
+        "/app/signatrain/courses/[courseId]",
+        "/app/signatrain/learn/[courseId]/[moduleId]",
+        "/app/signatrain/certificates"
+      ]
+    },
+    {
+      "feature": "Manager program",
+      "priority": "P0",
+      "journeys": [
+        "J06"
+      ],
+      "routes": [
+        "/app/signatrain/programs/[programId]"
+      ]
+    },
+    {
+      "feature": "Private cohort",
+      "priority": "P1",
+      "journeys": [
+        "J07"
+      ],
+      "routes": [
+        "/app/signatrain/cohorts/[cohortId]",
+        "/admin/signatrain/cohorts"
+      ]
+    },
+    {
+      "feature": "Live sessions",
+      "priority": "P0",
+      "journeys": [
+        "J08"
+      ],
+      "routes": [
+        "/app/signatrain/live",
+        "/admin/signatrain/sessions"
+      ]
+    },
+    {
+      "feature": "Training content workflow",
+      "priority": "P0",
+      "journeys": [
+        "J09"
+      ],
+      "routes": [
+        "/admin/signatrain/content/[contentId]"
+      ]
+    },
+    {
+      "feature": "GD onboarding",
+      "priority": "P0",
+      "journeys": [
+        "J11"
+      ],
+      "routes": [
+        "/app/gd/onboarding"
+      ]
+    },
+    {
+      "feature": "GD legal request and matter reference",
+      "priority": "P0",
+      "journeys": [
+        "J12"
+      ],
+      "routes": [
+        "/app/gd/requests/new",
+        "/admin/gd/requests/[requestId]"
+      ]
+    },
+    {
+      "feature": "GD project and Adobe Sign",
+      "priority": "P1",
+      "journeys": [
+        "J13"
+      ],
+      "routes": [
+        "/app/gd/projects",
+        "/admin/gd/projects"
+      ]
+    },
+    {
+      "feature": "Legislative alert lifecycle",
+      "priority": "P0",
+      "journeys": [
+        "J15"
+      ],
+      "routes": [
+        "/admin/alerts/[alertId]",
+        "/app/alerts/[alertId]"
+      ]
+    },
+    {
+      "feature": "Jurisdiction coverage",
+      "priority": "P1",
+      "journeys": [
+        "J16"
+      ],
+      "routes": [
+        "/app/alerts/coverage"
+      ]
+    }
+  ]
+}

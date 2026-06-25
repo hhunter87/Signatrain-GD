@@ -1,0 +1,296 @@
+{
+  "version": "1.0",
+  "machines": {
+    "invitation": {
+      "initial": "draft",
+      "states": [
+        "draft",
+        "pending",
+        "accepted",
+        "active",
+        "expired",
+        "revoked",
+        "archived"
+      ],
+      "transitions": [
+        [
+          "draft",
+          "pending"
+        ],
+        [
+          "pending",
+          "accepted"
+        ],
+        [
+          "accepted",
+          "active"
+        ],
+        [
+          "pending",
+          "expired"
+        ],
+        [
+          "pending",
+          "revoked"
+        ],
+        [
+          "expired",
+          "pending"
+        ],
+        [
+          "active",
+          "archived"
+        ],
+        [
+          "archived",
+          "active"
+        ]
+      ]
+    },
+    "organization": {
+      "initial": "prospect",
+      "states": [
+        "prospect",
+        "active",
+        "archived"
+      ],
+      "transitions": [
+        [
+          "prospect",
+          "active"
+        ],
+        [
+          "active",
+          "archived"
+        ],
+        [
+          "archived",
+          "active"
+        ]
+      ]
+    },
+    "entitlement": {
+      "initial": "pending",
+      "states": [
+        "pending",
+        "active",
+        "cancel_at_period_end",
+        "expired",
+        "suspended",
+        "revoked",
+        "archived"
+      ],
+      "transitions": [
+        [
+          "pending",
+          "active"
+        ],
+        [
+          "active",
+          "cancel_at_period_end"
+        ],
+        [
+          "cancel_at_period_end",
+          "expired"
+        ],
+        [
+          "active",
+          "suspended"
+        ],
+        [
+          "suspended",
+          "active"
+        ],
+        [
+          "active",
+          "revoked"
+        ],
+        [
+          "expired",
+          "active"
+        ]
+      ]
+    },
+    "content": {
+      "initial": "draft",
+      "states": [
+        "draft",
+        "in_review",
+        "approved",
+        "published",
+        "rejected",
+        "archived"
+      ],
+      "transitions": [
+        [
+          "draft",
+          "in_review"
+        ],
+        [
+          "in_review",
+          "approved"
+        ],
+        [
+          "in_review",
+          "rejected"
+        ],
+        [
+          "rejected",
+          "draft"
+        ],
+        [
+          "approved",
+          "published"
+        ],
+        [
+          "published",
+          "archived"
+        ]
+      ]
+    },
+    "legalRequest": {
+      "initial": "submitted",
+      "states": [
+        "submitted",
+        "triage",
+        "assigned",
+        "in_progress",
+        "waiting_for_client",
+        "resolved",
+        "converted_to_matter",
+        "closed"
+      ],
+      "transitions": [
+        [
+          "submitted",
+          "triage"
+        ],
+        [
+          "triage",
+          "assigned"
+        ],
+        [
+          "assigned",
+          "in_progress"
+        ],
+        [
+          "triage",
+          "waiting_for_client"
+        ],
+        [
+          "assigned",
+          "waiting_for_client"
+        ],
+        [
+          "in_progress",
+          "waiting_for_client"
+        ],
+        [
+          "waiting_for_client",
+          "in_progress"
+        ],
+        [
+          "in_progress",
+          "resolved"
+        ],
+        [
+          "assigned",
+          "converted_to_matter"
+        ],
+        [
+          "in_progress",
+          "converted_to_matter"
+        ],
+        [
+          "resolved",
+          "closed"
+        ],
+        [
+          "converted_to_matter",
+          "closed"
+        ]
+      ]
+    },
+    "alert": {
+      "initial": "draft",
+      "states": [
+        "draft",
+        "in_review",
+        "approved",
+        "rejected",
+        "published",
+        "archived"
+      ],
+      "transitions": [
+        [
+          "draft",
+          "in_review"
+        ],
+        [
+          "in_review",
+          "approved"
+        ],
+        [
+          "in_review",
+          "rejected"
+        ],
+        [
+          "rejected",
+          "draft"
+        ],
+        [
+          "approved",
+          "published"
+        ],
+        [
+          "published",
+          "archived"
+        ]
+      ]
+    },
+    "project": {
+      "initial": "submitted",
+      "states": [
+        "submitted",
+        "scoping",
+        "proposal_ready",
+        "sent_for_signature",
+        "signed",
+        "active",
+        "completed",
+        "declined",
+        "cancelled"
+      ],
+      "transitions": [
+        [
+          "submitted",
+          "scoping"
+        ],
+        [
+          "scoping",
+          "proposal_ready"
+        ],
+        [
+          "proposal_ready",
+          "sent_for_signature"
+        ],
+        [
+          "sent_for_signature",
+          "signed"
+        ],
+        [
+          "sent_for_signature",
+          "declined"
+        ],
+        [
+          "signed",
+          "active"
+        ],
+        [
+          "active",
+          "completed"
+        ]
+      ]
+    }
+  }
+}

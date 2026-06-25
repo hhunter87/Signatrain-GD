@@ -1,0 +1,55 @@
+%% J01 - Invitation, Account Activation, and Cross-Product Access
+%% Domain: Shared Platform Core
+%% Source requirements: CORE-IAM-01/02/08; CORE-USR-02/03; CORE-ENT-05; CORE-NOT-02
+flowchart LR
+  subgraph ADMIN["Inviting Administrator"]
+    direction TB
+    A1(["Select organization, user email, roles, and products"])
+    A2["Confirm seat or entitlement availability"]
+    A3["Resend or revoke invitation"]
+  end
+  subgraph PLAT["Shared Platform"]
+    direction TB
+    P1["Validate organization scope and administrator authority"]
+    P2["Reserve seat and create pending invitation"]
+    P3[["Send time-limited invitation email"]]
+    D1{"Invitation valid?"}
+    P4["Activate account and assigned roles"]
+    P5["Evaluate active entitlements and product permissions"]
+    D2{"Access to both public products?"}
+  end
+  subgraph USER["Invited User"]
+    direction TB
+    U1["Open invitation link"]
+    U2["Set credentials and accept required terms"]
+    U3["Sign in"]
+    U4["Open My Products switcher"]
+    U5["Enter entitled portal directly"]
+    END(["User reaches authorized dashboard"])
+  end
+  A1 --> A2
+  A2 --> P1
+  P1 --> P2
+  P2 --> P3
+  P3 --> U1
+  U1 --> D1
+  D1 -->|"Yes"| U2
+  D1 -->|"No / expired"| A3
+  A3 -->|"Resend"| P3
+  U2 --> P4
+  P4 --> U3
+  U3 --> P5
+  P5 --> D2
+  D2 -->|"Yes"| U4
+  D2 -->|"No"| U5
+  U4 -->|"Select GD or Signatrain"| END
+  U5 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class A1,END startend;
+  class A2,P1,P2,U1,U2,P4,U3,P5,U4,U5,A3 action;
+  class P3 integration;
+  class D1,D2 decision;

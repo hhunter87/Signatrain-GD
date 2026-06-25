@@ -1,0 +1,1368 @@
+{
+  "version": "1.0",
+  "routes": [
+    {
+      "path": "/",
+      "name": "Demo landing",
+      "domain": "Public",
+      "priority": "P0",
+      "allowedRoles": [],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Select a persona",
+        "Open pricing",
+        "Review demo disclaimer"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/pricing",
+      "name": "Pricing and plan comparison",
+      "domain": "Public",
+      "priority": "P0",
+      "allowedRoles": [],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Select HR, Manager, or GD Concierge",
+        "Open simulated checkout"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/checkout/[sku]",
+      "name": "Simulated checkout",
+      "domain": "Public/Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Choose monthly/annual where available",
+        "Choose card, ACH, or invoice",
+        "Complete simulated purchase"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/certificate/[certificateId]",
+      "name": "Public certificate verification",
+      "domain": "Public",
+      "priority": "P0",
+      "allowedRoles": [],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Verify certificate status and limited metadata"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/products",
+      "name": "My Products",
+      "domain": "Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "HRS",
+        "MGR",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Open GD or Signatrain according to active entitlements"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/profile",
+      "name": "Profile and notification preferences",
+      "domain": "Shared",
+      "priority": "P1",
+      "allowedRoles": [
+        "ALL_ACTIVE"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Edit fictional profile",
+        "Toggle notification preferences"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/company",
+      "name": "Company overview",
+      "domain": "Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "View profile, products, seats, and status"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/company/users",
+      "name": "Company users",
+      "domain": "Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Invite, resend, archive, reactivate users",
+        "Assign additive roles"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/company/seats",
+      "name": "Seats and entitlements",
+      "domain": "Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Assign and transfer HR/Manager seats",
+        "View entitlement source"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/company/billing",
+      "name": "Billing overview",
+      "domain": "Shared",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "View subscriptions and invoices",
+        "Add seats",
+        "Cancel at period end"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/company/reports",
+      "name": "Company reports",
+      "domain": "Shared",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "View training metrics",
+        "Export CSV"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/signatrain",
+      "name": "Signatrain dashboard",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "HRS",
+        "MGR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Continue learning",
+        "Open sessions, scenarios, progress"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/library",
+      "name": "Content library",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "HRS",
+        "MGR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Filter by topic/type/audience",
+        "Open eligible content"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/scenarios/[scenarioId]",
+      "name": "Standalone scenario detail",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR",
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Play video",
+        "View discussion prompts and resources"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/courses/[courseId]",
+      "name": "Course overview",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR",
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Enroll or continue",
+        "View ordered modules and rules"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/learn/[courseId]/[moduleId]",
+      "name": "Learning player",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Watch video",
+        "Read material",
+        "Complete optional evaluation",
+        "Advance in sequence"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/programs/[programId]",
+      "name": "Program progress",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "MGR",
+        "HRS"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "View required courses and completion"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/live",
+      "name": "Live-session catalog",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR",
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Select date",
+        "Register self or eligible company user"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/live/[sessionId]",
+      "name": "Live-session detail",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR",
+        "CO",
+        "CHA",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "Register",
+        "Join simulated Zoom",
+        "View attendance/recording state"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/cohorts/[cohortId]",
+      "name": "Private cohort",
+      "domain": "Signatrain",
+      "priority": "P1",
+      "allowedRoles": [
+        "MGR",
+        "CHA",
+        "CO",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "View roster-safe information",
+        "Open company materials and sessions"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/signatrain/progress",
+      "name": "My progress",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "View course, video, session, and program progress"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/certificates",
+      "name": "My certificates",
+      "domain": "Signatrain",
+      "priority": "P0",
+      "allowedRoles": [
+        "HRS",
+        "MGR"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "SIGNATRAIN_MANAGER"
+      ],
+      "primaryActions": [
+        "View/download certificate",
+        "Open public verification link"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/signatrain/bot",
+      "name": "HR Bot mock embed",
+      "domain": "Signatrain",
+      "priority": "P1",
+      "allowedRoles": [
+        "HRS"
+      ],
+      "requiredEntitlementsAny": [
+        "SIGNATRAIN_HR",
+        "BOT_ACCESS"
+      ],
+      "primaryActions": [
+        "Open third-party-style widget",
+        "Submit fictional general question"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/signatrain",
+      "name": "Signatrain operations dashboard",
+      "domain": "Signatrain Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "SSA",
+        "SOC"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Review queues, sessions, cohorts, and exceptions"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/content",
+      "name": "Content catalog administration",
+      "domain": "Signatrain Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "SSA",
+        "SOC",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Filter by status",
+        "Create/open assigned content"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/content/[contentId]",
+      "name": "Content editor and review",
+      "domain": "Signatrain Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "SSA",
+        "SOC",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Edit metadata/modules",
+        "Submit, approve/reject, publish/archive"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/sessions",
+      "name": "Session administration",
+      "domain": "Signatrain Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "SSA",
+        "SOC",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Create/reschedule/cancel",
+        "Manage roster",
+        "Import simulated attendance",
+        "Approve recording"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/cohorts",
+      "name": "Cohort administration",
+      "domain": "Signatrain Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "SSA",
+        "SOC",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Create private cohort",
+        "Assign users and company-specific materials"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/learners",
+      "name": "Learner administration",
+      "domain": "Signatrain Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "SSA",
+        "SOC"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Inspect progress",
+        "Record audited completion override"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/signatrain/certificates",
+      "name": "Certificate administration",
+      "domain": "Signatrain Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "SSA",
+        "SOC",
+        "FCR"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Issue/reissue/revoke with audit reason"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd",
+      "name": "GD client dashboard",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View plan, benefits, onboarding, requests, alerts, and included seats"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/onboarding",
+      "name": "GD onboarding checklist",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "Complete tasks",
+        "Attach mock files"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/benefits",
+      "name": "Plan and benefit usage",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View available/used/renewal states"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/requests",
+      "name": "Legal request list",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View own and permitted company-visible requests"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/requests/new",
+      "name": "Submit legal request",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "Enter topic/urgency/details",
+        "Choose privacy",
+        "Attach mock files"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/requests/[requestId]",
+      "name": "Legal request thread",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU",
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View permitted status",
+        "Send secure message",
+        "Upload/download permitted attachments"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/gd/matters",
+      "name": "Limited matter references",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_ALL_ACCESS",
+        "GD_CONCIERGE"
+      ],
+      "primaryActions": [
+        "View approved matter summaries only"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/matters/[matterId]",
+      "name": "Matter summary",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU",
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_ALL_ACCESS",
+        "GD_CONCIERGE"
+      ],
+      "primaryActions": [
+        "View limited Centerbase reference and approved status"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/schedule",
+      "name": "Attorney scheduling",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "Open simulated Calendly",
+        "Create appointment reference"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/templates",
+      "name": "GD template library",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "Filter and download fictional templates"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/projects",
+      "name": "Flat-fee project requests",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View project request and agreement status"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/projects/new",
+      "name": "Submit project request",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "Choose project type",
+        "Describe scope",
+        "Submit"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/billing",
+      "name": "GD billing references",
+      "domain": "GD",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View subscription and external invoice references"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/gd/signatrain-seats",
+      "name": "Included Signatrain seats",
+      "domain": "GD",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "GDO"
+      ],
+      "requiredEntitlementsAny": [
+        "GD_CONCIERGE",
+        "GD_ALL_ACCESS"
+      ],
+      "primaryActions": [
+        "View allowance",
+        "Assign included HR seats"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/gd",
+      "name": "GD operations dashboard",
+      "domain": "GD Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "GDO",
+        "GDA",
+        "GDC"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Review onboarding, request, project, and alert queues"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/gd/clients",
+      "name": "GD client administration",
+      "domain": "GD Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "GDO"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Open company plan, benefits, users, and references"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/gd/onboarding",
+      "name": "Onboarding operations",
+      "domain": "GD Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "GDO",
+        "GDA",
+        "GDC"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Create, assign, waive, reopen tasks"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/gd/requests",
+      "name": "Legal request work queue",
+      "domain": "GD Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Filter by status/priority/assignee/privacy"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/gd/requests/[requestId]",
+      "name": "Legal request triage workspace",
+      "domain": "GD Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Triage, assign, message, internal note, convert to matter"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/gd/projects",
+      "name": "Project request administration",
+      "domain": "GD Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Scope proposal",
+        "Send simulated Adobe Sign",
+        "Update status"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/gd/templates",
+      "name": "Template administration",
+      "domain": "GD Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "GDC",
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Create/edit/publish/archive fictional templates"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/app/alerts",
+      "name": "Eligible legislative alerts",
+      "domain": "Legislative",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "HRS",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "LEGISLATIVE_TRACKING"
+      ],
+      "primaryActions": [
+        "Filter and open targeted alerts",
+        "See unread count"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/alerts/[alertId]",
+      "name": "Legislative alert detail",
+      "domain": "Legislative",
+      "priority": "P0",
+      "allowedRoles": [
+        "CO",
+        "CHA",
+        "HRS",
+        "GDCU"
+      ],
+      "requiredEntitlementsAny": [
+        "LEGISLATIVE_TRACKING"
+      ],
+      "primaryActions": [
+        "Read attorney-reviewed alert",
+        "Mark read/unread"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/app/alerts/coverage",
+      "name": "Jurisdiction coverage",
+      "domain": "Legislative",
+      "priority": "P1",
+      "allowedRoles": [
+        "CO",
+        "CHA"
+      ],
+      "requiredEntitlementsAny": [
+        "LEGISLATIVE_TRACKING"
+      ],
+      "primaryActions": [
+        "View active jurisdictions",
+        "Request coverage change"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/alerts",
+      "name": "Alert pipeline",
+      "domain": "Legislative Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "GDC",
+        "GDO",
+        "GDA",
+        "SSA",
+        "SOC"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Filter drafts/review/approved/published/archived"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/alerts/[alertId]",
+      "name": "Alert editor and legal review",
+      "domain": "Legislative Admin",
+      "priority": "P0",
+      "allowedRoles": [
+        "GDC",
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Draft, submit, approve/reject, target, publish, archive"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "restricted",
+        "recoverable_error"
+      ]
+    },
+    {
+      "path": "/admin/alerts/distribution",
+      "name": "Alert distribution report",
+      "domain": "Legislative Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "GDC",
+        "GDO",
+        "GDA"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "View targeted companies, delivery, and read state"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/platform/organizations",
+      "name": "Organization administration",
+      "domain": "Platform Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "PSA",
+        "SSA",
+        "GDO"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Create/archive/reactivate organization",
+        "Manage technical entitlement metadata"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    },
+    {
+      "path": "/admin/platform/audit",
+      "name": "Audit event viewer",
+      "domain": "Platform Admin",
+      "priority": "P1",
+      "allowedRoles": [
+        "PSA",
+        "SSA",
+        "GDO"
+      ],
+      "requiredEntitlementsAny": [],
+      "primaryActions": [
+        "Filter safe event metadata; exclude privileged body content"
+      ],
+      "states": [
+        "default",
+        "empty",
+        "restricted"
+      ]
+    }
+  ]
+}

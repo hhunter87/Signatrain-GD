@@ -1,0 +1,51 @@
+%% J11 - Greenwald Doherty Client Onboarding
+%% Domain: GD Portal
+%% Source requirements: GD-PLAN-02-05; GD-ONB-01-05; GD-XP-01; CORE-USR-02
+flowchart LR
+  subgraph GD["GD Operations"]
+    direction TB
+    G1(["Create or activate GD plan record"])
+    G2["Configure benefits, exclusions, renewal data, and named contacts"]
+    G3["Build onboarding checklist with owners, due dates, and required documents"]
+    G4["Review submissions and task status"]
+    D1{"More information or correction needed?"}
+    G5["Complete, waive, or close remaining internal tasks"]
+  end
+  subgraph CLIENT["Client Company"]
+    direction TB
+    C1["Activate account and open onboarding workspace"]
+    C2["Complete eligible tasks and upload requested documents"]
+    END(["Client can use entitled GD services and linked products"])
+  end
+  subgraph PORTAL["GD Portal"]
+    direction TB
+    P1["Create included Legislative Tracking and Signatrain seat allocations"]
+    P2[["Invite Company Owner and client users"]]
+    P3["Notify client of reopened or additional task"]
+    D2{"All required onboarding tasks complete?"}
+    P4["Activate onboarding completion and benefit dashboard"]
+  end
+  G1 --> G2
+  G2 --> P1
+  P1 --> G3
+  G3 --> P2
+  P2 --> C1
+  C1 --> C2
+  C2 --> G4
+  G4 --> D1
+  D1 -->|"Yes"| P3
+  P3 --> C2
+  D1 -->|"No"| G5
+  G5 --> D2
+  D2 -->|"No - remaining tasks"| G3
+  D2 -->|"Yes"| P4
+  P4 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class G1,END startend;
+  class G2,P1,G3,C1,C2,G4,P3,G5,P4 action;
+  class P2 integration;
+  class D1,D2 decision;

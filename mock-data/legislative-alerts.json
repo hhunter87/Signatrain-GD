@@ -1,0 +1,212 @@
+{
+  "jurisdictions": [
+    {
+      "id": "US-FED",
+      "name": "United States — Federal",
+      "type": "federal",
+      "parentId": null
+    },
+    {
+      "id": "US-NY",
+      "name": "New York",
+      "type": "state",
+      "parentId": "US-FED"
+    },
+    {
+      "id": "US-NJ",
+      "name": "New Jersey",
+      "type": "state",
+      "parentId": "US-FED"
+    },
+    {
+      "id": "US-CA",
+      "name": "California",
+      "type": "state",
+      "parentId": "US-FED"
+    },
+    {
+      "id": "US-NY-NYC",
+      "name": "New York City",
+      "type": "city",
+      "parentId": "US-NY"
+    },
+    {
+      "id": "US-CA-SF",
+      "name": "San Francisco",
+      "type": "city",
+      "parentId": "US-CA"
+    },
+    {
+      "id": "US-CA-LA",
+      "name": "Los Angeles",
+      "type": "city",
+      "parentId": "US-CA"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert_nyc_safe_time",
+      "title": "NYC Safe and Sick Time Amendment — Demo",
+      "summary": "Fictional demonstration summary of a local leave-law change.",
+      "impact": "Employers should review policy language and manager communications.",
+      "recommendedAction": "Review current policy and confirm implementation owners.",
+      "topic": "Leave and Accommodation",
+      "jurisdictionIds": [
+        "US-NY-NYC"
+      ],
+      "effectiveDate": "2026-09-01",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "Demo municipal source reference"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-18T15:00:00Z",
+      "publishedAt": "2026-06-19T14:00:00Z"
+    },
+    {
+      "id": "alert_ca_wpvp",
+      "title": "California Workplace Violence Plan Update — Demo",
+      "summary": "Fictional demonstration update for California employers.",
+      "impact": "Employers should confirm plan ownership and training records.",
+      "recommendedAction": "Review current plan and responsible roles.",
+      "topic": "Workplace Safety",
+      "jurisdictionIds": [
+        "US-CA"
+      ],
+      "effectiveDate": "2026-08-15",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "Demo California source reference"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-10T12:00:00Z",
+      "publishedAt": "2026-06-11T12:00:00Z"
+    },
+    {
+      "id": "alert_nj_pay_transparency",
+      "title": "New Jersey Pay Transparency Amendment — Demo",
+      "summary": "Draft fictional alert for workflow demonstration.",
+      "impact": "Job posting and record practices may require updates.",
+      "recommendedAction": "Prepare a review of recruiting templates.",
+      "topic": "Hiring",
+      "jurisdictionIds": [
+        "US-NJ"
+      ],
+      "effectiveDate": "2026-10-01",
+      "status": "draft",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "Demo New Jersey source reference"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": null,
+      "approvedAt": null,
+      "publishedAt": null
+    },
+    {
+      "id": "alert_ny_monitoring",
+      "title": "New York Electronic Monitoring Notice — Demo",
+      "summary": "Fictional alert awaiting attorney review.",
+      "impact": "Notice language and acknowledgment practices may need review.",
+      "recommendedAction": "Confirm current notice and onboarding process.",
+      "topic": "Privacy",
+      "jurisdictionIds": [
+        "US-NY"
+      ],
+      "effectiveDate": "2026-11-01",
+      "status": "in_review",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "Demo New York source reference"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": null,
+      "approvedAt": null,
+      "publishedAt": null
+    }
+  ],
+  "coverage": [
+    {
+      "id": "cov_acme",
+      "organizationId": "org_acme",
+      "jurisdictionIds": [
+        "US-NY",
+        "US-NJ",
+        "US-CA",
+        "US-NY-NYC",
+        "US-CA-SF"
+      ],
+      "status": "active"
+    },
+    {
+      "id": "cov_harbor",
+      "organizationId": "org_harbor",
+      "jurisdictionIds": [
+        "US-NJ",
+        "US-NY"
+      ],
+      "status": "active"
+    },
+    {
+      "id": "cov_northstar",
+      "organizationId": "org_northstar",
+      "jurisdictionIds": [
+        "US-CA",
+        "US-CA-LA",
+        "US-CA-SF"
+      ],
+      "status": "active"
+    }
+  ],
+  "coverageRequests": [],
+  "recipients": [
+    {
+      "id": "rec_nyc_elena",
+      "alertId": "alert_nyc_safe_time",
+      "organizationId": "org_acme",
+      "userId": "user_elena",
+      "deliveryStatus": "delivered",
+      "readAt": null
+    },
+    {
+      "id": "rec_nyc_maya",
+      "alertId": "alert_nyc_safe_time",
+      "organizationId": "org_acme",
+      "userId": "user_maya",
+      "deliveryStatus": "delivered",
+      "readAt": "2026-06-20T09:00:00Z"
+    },
+    {
+      "id": "rec_ca_elena",
+      "alertId": "alert_ca_wpvp",
+      "organizationId": "org_acme",
+      "userId": "user_elena",
+      "deliveryStatus": "delivered",
+      "readAt": "2026-06-12T10:00:00Z"
+    },
+    {
+      "id": "rec_ca_omar",
+      "alertId": "alert_ca_wpvp",
+      "organizationId": "org_northstar",
+      "userId": "user_omar",
+      "deliveryStatus": "delivered",
+      "readAt": null
+    }
+  ]
+}

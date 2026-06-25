@@ -1,0 +1,76 @@
+{
+  "notifications": [
+    {
+      "id": "not_elena_alert",
+      "userId": "user_elena",
+      "type": "legislative_alert",
+      "title": "New legislative alert",
+      "body": "A new NYC alert is available.",
+      "href": "/app/alerts/alert_nyc_safe_time",
+      "readAt": null,
+      "createdAt": "2026-06-19T14:01:00Z"
+    },
+    {
+      "id": "not_elena_session",
+      "userId": "user_elena",
+      "type": "session_registration",
+      "title": "Risk Roundtable registration confirmed",
+      "body": "Your demo registration is confirmed.",
+      "href": "/app/signatrain/live/session_roundtable_retaliation",
+      "readAt": "2026-06-20T08:00:00Z",
+      "createdAt": "2026-06-18T11:00:00Z"
+    }
+  ],
+  "emailOutbox": [
+    {
+      "id": "email_demo_1",
+      "recipient": "elena.ruiz@acme-demo.example",
+      "subject": "Demo: Risk Roundtable registration confirmed",
+      "templateKey": "session_registration",
+      "body": "Your fictional registration is confirmed. Open the demo portal for details.",
+      "createdAt": "2026-06-18T11:00:00Z"
+    },
+    {
+      "id": "email_demo_2",
+      "recipient": "maya.patel@acme-demo.example",
+      "subject": "Demo: New legislative alert available",
+      "templateKey": "legislative_alert",
+      "body": "A new fictional legislative alert is available in the portal.",
+      "createdAt": "2026-06-19T14:01:00Z"
+    }
+  ],
+  "auditEvents": [
+    {
+      "id": "audit_001",
+      "actorUserId": "user_dana",
+      "action": "gd.request.status_changed",
+      "objectType": "LegalRequest",
+      "objectId": "req_acme_001",
+      "metadata": {
+        "from": "assigned",
+        "to": "in_progress"
+      },
+      "createdAt": "2026-06-20T15:00:00Z"
+    },
+    {
+      "id": "audit_002",
+      "actorUserId": "user_rachel",
+      "action": "gd.internal_note.created",
+      "objectType": "LegalRequest",
+      "objectId": "req_acme_001",
+      "metadata": {
+        "contentIncluded": false
+      },
+      "createdAt": "2026-06-20T16:12:00Z"
+    },
+    {
+      "id": "audit_003",
+      "actorUserId": "user_rachel",
+      "action": "legislative.alert.approved",
+      "objectType": "LegislativeAlert",
+      "objectId": "alert_nyc_safe_time",
+      "metadata": {},
+      "createdAt": "2026-06-18T15:00:00Z"
+    }
+  ]
+}

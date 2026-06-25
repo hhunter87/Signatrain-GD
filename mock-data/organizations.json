@@ -1,0 +1,75 @@
+{
+  "organizations": [
+    {
+      "id": "org_internal",
+      "name": "Enterprise Internal Team",
+      "slug": "internal",
+      "status": "active",
+      "type": "internal",
+      "jurisdictions": []
+    },
+    {
+      "id": "org_acme",
+      "name": "Acme Manufacturing",
+      "slug": "acme",
+      "status": "active",
+      "type": "customer",
+      "industry": "Manufacturing",
+      "employeeCount": 420,
+      "primaryState": "NY",
+      "jurisdictions": [
+        "US-NY",
+        "US-NJ",
+        "US-CA",
+        "US-NY-NYC",
+        "US-CA-SF"
+      ],
+      "gdPlanId": "plan_acme_concierge"
+    },
+    {
+      "id": "org_harbor",
+      "name": "Harbor Logistics",
+      "slug": "harbor",
+      "status": "active",
+      "type": "customer",
+      "industry": "Logistics",
+      "employeeCount": 860,
+      "primaryState": "NJ",
+      "jurisdictions": [
+        "US-NJ",
+        "US-NY",
+        "US-PA"
+      ],
+      "gdPlanId": "plan_harbor_all_access"
+    },
+    {
+      "id": "org_northstar",
+      "name": "Northstar Health",
+      "slug": "northstar",
+      "status": "active",
+      "type": "customer",
+      "industry": "Healthcare",
+      "employeeCount": 310,
+      "primaryState": "CA",
+      "jurisdictions": [
+        "US-CA",
+        "US-CA-LA",
+        "US-CA-SF"
+      ]
+    },
+    {
+      "id": "org_brightline",
+      "name": "Brightline Retail",
+      "slug": "brightline",
+      "status": "prospect",
+      "type": "customer",
+      "industry": "Retail",
+      "employeeCount": 150,
+      "primaryState": "NY",
+      "jurisdictions": [
+        "US-NY",
+        "US-NY-NYC"
+      ]
+    }
+  ]
+}

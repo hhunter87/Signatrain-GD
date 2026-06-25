@@ -1,0 +1,104 @@
+{
+  "liveSessions": [
+    {
+      "id": "session_masterclass_termination",
+      "title": "Termination Decisions Under Uncertainty",
+      "type": "HR_MASTERCLASS",
+      "audience": "HR",
+      "startsAt": "2026-07-09T16:00:00Z",
+      "durationMinutes": 90,
+      "status": "registration_open",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-1001",
+      "recordingStatus": "none"
+    },
+    {
+      "id": "session_roundtable_retaliation",
+      "title": "Risk Roundtable: Retaliation Case Movie",
+      "type": "RISK_ROUNDTABLE",
+      "audience": "HR",
+      "startsAt": "2026-07-16T17:00:00Z",
+      "durationMinutes": 75,
+      "status": "registration_open",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-1002",
+      "recordingStatus": "none"
+    },
+    {
+      "id": "session_manager_feedback",
+      "title": "Manager Core Session 2: Feedback Under Pressure",
+      "type": "MANAGER_CORE",
+      "audience": "MANAGER",
+      "startsAt": "2026-07-14T15:00:00Z",
+      "durationMinutes": 120,
+      "status": "registration_open",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-2001",
+      "recordingStatus": "none"
+    },
+    {
+      "id": "session_past_masterclass",
+      "title": "Hiring Decisions and Hidden Risk",
+      "type": "HR_MASTERCLASS",
+      "audience": "HR",
+      "startsAt": "2026-05-20T16:00:00Z",
+      "durationMinutes": 90,
+      "status": "completed",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-0900",
+      "recordingStatus": "recording_pending"
+    }
+  ],
+  "cohorts": [
+    {
+      "id": "cohort_acme_2026",
+      "name": "Acme Manager Cohort — Summer 2026",
+      "organizationId": "org_acme",
+      "status": "active",
+      "participantUserIds": [
+        "user_marcus"
+      ],
+      "sessionIds": [
+        "session_manager_feedback"
+      ],
+      "specialScenarioIds": [
+        "scenario_acme_shift"
+      ],
+      "brandingMode": "signatrain"
+    }
+  ],
+  "registrations": [
+    {
+      "id": "reg_elena_roundtable",
+      "sessionId": "session_roundtable_retaliation",
+      "userId": "user_elena",
+      "status": "registered",
+      "zoomRegistrationId": "zreg-demo-01"
+    },
+    {
+      "id": "reg_marcus_manager",
+      "sessionId": "session_manager_feedback",
+      "userId": "user_marcus",
+      "status": "registered",
+      "zoomRegistrationId": "zreg-demo-02"
+    }
+  ],
+  "attendance": [
+    {
+      "id": "att_marcus_core_1",
+      "sessionId": "session_manager_feedback",
+      "userId": "user_marcus",
+      "scheduledMinutes": 120,
+      "attendedMinutes": 108,
+      "completion": true
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+%% J03 - Online Company Purchase and Entitlement Activation
+%% Domain: Shared Platform Core / Optional Billing
+%% Source requirements: CORE-BILL-01-08/10/11; CORE-ENT-03/04/05; CORE-NOT-02
+flowchart LR
+  subgraph OWNER["Company Owner"]
+    direction TB
+    O1(["Select product, cadence, and seat quantity"])
+    O2["Choose card, ACH, or invoice / PO path"]
+    O3["Invite users and assign seats"]
+    O4["Add seats mid-period"]
+  end
+  subgraph PORTAL["Portal"]
+    direction TB
+    P1["Show approved standard or custom commercial terms"]
+    D1{"Self-service payment?"}
+    P2["Create or update company subscription reference"]
+    P3["Create active product entitlements and seat inventory"]
+    END(["Company has active portal access"])
+    P4["Show pending / failed payment state and no new access"]
+  end
+  subgraph STRIPE["Stripe"]
+    direction TB
+    S1[["Complete hosted checkout or payment setup"]]
+    D2{"Payment or subscription active?"}
+    S2[["Charge prorated amount immediately"]]
+  end
+  subgraph OPS["Internal Operations"]
+    direction TB
+    OP1["Review enterprise contract or PO"]
+    OP2["Approve manual activation and payment reference"]
+  end
+  O1 --> P1
+  P1 --> O2
+  O2 --> D1
+  D1 -->|"Card / ACH"| S1
+  S1 --> D2
+  D1 -->|"Invoice / PO"| OP1
+  OP1 --> OP2
+  OP2 --> P2
+  D2 -->|"Yes"| P2
+  D2 -->|"No"| P4
+  P4 -->|"Retry or resolve"| S1
+  P2 --> P3
+  P3 --> O3
+  O3 --> END
+  END -.->|"Additional seats"| O4
+  O4 --> S2
+  S2 --> P3
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class O1,END startend;
+  class P1,O2,OP1,OP2,P2,P3,O3,P4,O4 action;
+  class D1,D2 decision;
+  class S1,S2 integration;

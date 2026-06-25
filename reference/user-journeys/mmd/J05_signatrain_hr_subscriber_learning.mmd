@@ -1,0 +1,59 @@
+%% J05 - Signatrain HR Subscriber Learning Journey
+%% Domain: Signatrain HR
+%% Source requirements: ST-ACC-01; ST-LIB-01-04; ST-CRS-01/03-08; ST-VID-01-04; ST-BOT-01/02; ST-CERT
+flowchart LR
+  subgraph USER["HR Subscriber"]
+    direction TB
+    U1(["Open HR dashboard"])
+    U2["Choose learning or service path"]
+    U3["Browse and self-enroll in eligible course"]
+    U4["Complete text, downloads, and optional evaluation"]
+    U5["View standalone scenario or approved recording"]
+    U6["Choose and register for live session"]
+    U7["Open HR Bot"]
+    U8["View targeted legislative alerts when add-on is active"]
+    END(["Return to dashboard with updated progress"])
+  end
+  subgraph PORTAL["Signatrain Portal"]
+    direction TB
+    P1["Show HR courses, Masterclasses, Risk Roundtable, library, progress, and entitled add-ons"]
+    D1{"Selected path"}
+    P2["Enforce ordered modules and unlock next required item"]
+    P3["Mark video complete at 95% unique watch time"]
+    P4["Evaluate course completion and certificate eligibility"]
+  end
+  subgraph EXT["External Services"]
+    direction TB
+    E1[["Stream gated video and report watched intervals"]]
+    E2[["Zoom registration and attendance workflow - see J08"]]
+    E3[["Load authenticated third-party Bot embed"]]
+  end
+  U1 --> P1
+  P1 --> U2
+  U2 --> D1
+  D1 -->|"Course"| U3
+  U3 --> P2
+  P2 --> E1
+  E1 --> P3
+  P3 --> U4
+  U4 --> P4
+  P4 --> END
+  D1 -->|"Scenario / recording"| U5
+  U5 --> END
+  D1 -->|"Masterclass / Roundtable"| U6
+  U6 --> E2
+  E2 --> END
+  D1 -->|"Bot"| U7
+  U7 --> E3
+  E3 --> END
+  D1 -->|"Legislative Tracking"| U8
+  U8 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class U1,END startend;
+  class P1,U2,U3,P2,P3,U4,P4,U5,U6,U7,U8 action;
+  class D1 decision;
+  class E1,E2,E3 integration;

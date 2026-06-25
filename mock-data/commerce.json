@@ -1,0 +1,233 @@
+{
+  "entitlements": [
+    {
+      "id": "ent_acme_gd",
+      "organizationId": "org_acme",
+      "code": "GD_CONCIERGE",
+      "status": "active",
+      "source": "enterprise_contract",
+      "startsAt": "2026-01-01",
+      "endsAt": "2026-12-31"
+    },
+    {
+      "id": "ent_acme_hr",
+      "organizationId": "org_acme",
+      "code": "SIGNATRAIN_HR",
+      "status": "active",
+      "source": "gd_included",
+      "startsAt": "2026-01-01",
+      "endsAt": "2026-12-31"
+    },
+    {
+      "id": "ent_acme_mgr",
+      "organizationId": "org_acme",
+      "code": "SIGNATRAIN_MANAGER",
+      "status": "active",
+      "source": "enterprise_contract",
+      "startsAt": "2026-01-01",
+      "endsAt": "2026-12-31"
+    },
+    {
+      "id": "ent_acme_lt",
+      "organizationId": "org_acme",
+      "code": "LEGISLATIVE_TRACKING",
+      "status": "active",
+      "source": "gd_included",
+      "startsAt": "2026-01-01",
+      "endsAt": "2026-12-31"
+    },
+    {
+      "id": "ent_acme_bot",
+      "organizationId": "org_acme",
+      "code": "BOT_ACCESS",
+      "status": "active",
+      "source": "gd_included",
+      "startsAt": "2026-01-01",
+      "endsAt": "2026-12-31"
+    },
+    {
+      "id": "ent_harbor_gd",
+      "organizationId": "org_harbor",
+      "code": "GD_ALL_ACCESS",
+      "status": "active",
+      "source": "enterprise_contract",
+      "startsAt": "2026-02-01",
+      "endsAt": "2027-01-31"
+    },
+    {
+      "id": "ent_harbor_hr",
+      "organizationId": "org_harbor",
+      "code": "SIGNATRAIN_HR",
+      "status": "active",
+      "source": "gd_included",
+      "startsAt": "2026-02-01",
+      "endsAt": "2027-01-31"
+    },
+    {
+      "id": "ent_harbor_lt",
+      "organizationId": "org_harbor",
+      "code": "LEGISLATIVE_TRACKING",
+      "status": "active",
+      "source": "gd_included",
+      "startsAt": "2026-02-01",
+      "endsAt": "2027-01-31"
+    },
+    {
+      "id": "ent_northstar_hr",
+      "organizationId": "org_northstar",
+      "code": "SIGNATRAIN_HR",
+      "status": "active",
+      "source": "stripe",
+      "startsAt": "2026-03-15",
+      "endsAt": "2027-03-14"
+    },
+    {
+      "id": "ent_northstar_lt",
+      "organizationId": "org_northstar",
+      "code": "LEGISLATIVE_TRACKING",
+      "status": "active",
+      "source": "manual",
+      "startsAt": "2026-03-15",
+      "endsAt": "2027-03-14"
+    },
+    {
+      "id": "ent_northstar_bot",
+      "organizationId": "org_northstar",
+      "code": "BOT_ACCESS",
+      "status": "active",
+      "source": "stripe",
+      "startsAt": "2026-03-15",
+      "endsAt": "2027-03-14"
+    }
+  ],
+  "seatPools": [
+    {
+      "id": "pool_acme_hr",
+      "organizationId": "org_acme",
+      "entitlementCode": "SIGNATRAIN_HR",
+      "capacity": 1,
+      "source": "gd_included"
+    },
+    {
+      "id": "pool_acme_mgr",
+      "organizationId": "org_acme",
+      "entitlementCode": "SIGNATRAIN_MANAGER",
+      "capacity": 5,
+      "source": "enterprise_contract"
+    },
+    {
+      "id": "pool_harbor_hr",
+      "organizationId": "org_harbor",
+      "entitlementCode": "SIGNATRAIN_HR",
+      "capacity": 2,
+      "source": "gd_included"
+    },
+    {
+      "id": "pool_northstar_hr",
+      "organizationId": "org_northstar",
+      "entitlementCode": "SIGNATRAIN_HR",
+      "capacity": 3,
+      "source": "stripe"
+    }
+  ],
+  "seatAssignments": [
+    {
+      "id": "seat_acme_hr_maya",
+      "seatPoolId": "pool_acme_hr",
+      "userId": "user_maya",
+      "status": "active",
+      "assignedAt": "2026-01-02"
+    },
+    {
+      "id": "seat_acme_mgr_marcus",
+      "seatPoolId": "pool_acme_mgr",
+      "userId": "user_marcus",
+      "status": "active",
+      "assignedAt": "2026-01-05"
+    },
+    {
+      "id": "seat_harbor_hr_nina",
+      "seatPoolId": "pool_harbor_hr",
+      "userId": "user_nina",
+      "status": "active",
+      "assignedAt": "2026-02-02"
+    },
+    {
+      "id": "seat_northstar_hr_omar",
+      "seatPoolId": "pool_northstar_hr",
+      "userId": "user_omar",
+      "status": "active",
+      "assignedAt": "2026-03-15"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_acme_gd",
+      "organizationId": "org_acme",
+      "product": "GD_CONCIERGE",
+      "status": "active",
+      "cadence": "monthly",
+      "amountDisplay": "$1,000/month + $2,500 setup",
+      "source": "enterprise_contract",
+      "renewsAt": "2026-07-01"
+    },
+    {
+      "id": "sub_acme_mgr",
+      "organizationId": "org_acme",
+      "product": "SIGNATRAIN_MANAGER",
+      "status": "active",
+      "cadence": "annual",
+      "amountDisplay": "$1,000/manager/year",
+      "source": "enterprise_contract",
+      "renewsAt": "2027-01-01"
+    },
+    {
+      "id": "sub_northstar_hr",
+      "organizationId": "org_northstar",
+      "product": "SIGNATRAIN_HR",
+      "status": "active",
+      "cadence": "annual",
+      "amountDisplay": "$3,500 first seat; $2,000 additional",
+      "source": "stripe",
+      "renewsAt": "2027-03-15"
+    }
+  ],
+  "catalogSkus": [
+    {
+      "id": "st_hr_annual",
+      "name": "Signatrain HR Subscription",
+      "product": "SIGNATRAIN_HR",
+      "priceDisplay": "$3,500 first seat / year",
+      "additionalSeatDisplay": "$2,000 / year",
+      "selfService": true
+    },
+    {
+      "id": "st_manager_annual",
+      "name": "Signatrain Manager Subscription",
+      "product": "SIGNATRAIN_MANAGER",
+      "priceDisplay": "$1,000 per manager / year",
+      "selfService": true
+    },
+    {
+      "id": "gd_concierge_monthly",
+      "name": "GD Concierge",
+      "product": "GD_CONCIERGE",
+      "priceDisplay": "$1,000/month + $2,500 setup",
+      "selfService": true
+    },
+    {
+      "id": "gd_all_access",
+      "name": "GD All Access",
+      "product": "GD_ALL_ACCESS",
+      "priceDisplay": "From $3,500/month",
+      "selfService": false
+    },
+    {
+      "id": "legislative_addon",
+      "name": "Legislative Tracking Add-On",
+      "product": "LEGISLATIVE_TRACKING",
+      "priceDisplay": "Price to be confirmed",
+      "selfService": false
+    }
+  ]
+}

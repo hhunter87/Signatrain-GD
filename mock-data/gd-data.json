@@ -1,0 +1,247 @@
+{
+  "plans": [
+    {
+      "id": "plan_acme_concierge",
+      "organizationId": "org_acme",
+      "tier": "CONCIERGE",
+      "status": "active",
+      "startsAt": "2026-01-01",
+      "renewsAt": "2027-01-01",
+      "includedHrSeats": 1
+    },
+    {
+      "id": "plan_harbor_all_access",
+      "organizationId": "org_harbor",
+      "tier": "ALL_ACCESS",
+      "status": "active",
+      "startsAt": "2026-02-01",
+      "renewsAt": "2027-02-01",
+      "includedHrSeats": 2
+    }
+  ],
+  "benefits": [
+    {
+      "id": "benefit_acme_checkin",
+      "organizationId": "org_acme",
+      "name": "Annual compliance check-in",
+      "allowance": 1,
+      "used": 0,
+      "renewsAt": "2027-01-01"
+    },
+    {
+      "id": "benefit_acme_level_a",
+      "organizationId": "org_acme",
+      "name": "Discounted Level A flat-fee project",
+      "allowance": 1,
+      "used": 0,
+      "renewsAt": "2027-01-01"
+    },
+    {
+      "id": "benefit_acme_lt",
+      "organizationId": "org_acme",
+      "name": "Legislative tracking",
+      "allowance": null,
+      "used": null,
+      "renewsAt": "2027-01-01"
+    },
+    {
+      "id": "benefit_acme_hrseat",
+      "organizationId": "org_acme",
+      "name": "Included Signatrain HR seat",
+      "allowance": 1,
+      "used": 1,
+      "renewsAt": "2027-01-01"
+    }
+  ],
+  "onboardingTasks": [
+    {
+      "id": "onb_acme_1",
+      "organizationId": "org_acme",
+      "title": "Confirm company contacts",
+      "status": "accepted",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-10",
+      "attachments": []
+    },
+    {
+      "id": "onb_acme_2",
+      "organizationId": "org_acme",
+      "title": "Upload current handbook",
+      "status": "accepted",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-12",
+      "attachments": [
+        {
+          "id": "file_demo_handbook",
+          "name": "Acme_Handbook_Demo.pdf",
+          "size": 428000,
+          "type": "application/pdf"
+        }
+      ]
+    },
+    {
+      "id": "onb_acme_3",
+      "organizationId": "org_acme",
+      "title": "Upload hiring documents",
+      "status": "submitted",
+      "assignedToUserId": "user_jordan",
+      "dueAt": "2026-01-15",
+      "attachments": [
+        {
+          "id": "file_demo_hiring",
+          "name": "Hiring_Documents_Demo.zip",
+          "size": 812000,
+          "type": "application/zip"
+        }
+      ]
+    },
+    {
+      "id": "onb_acme_4",
+      "organizationId": "org_acme",
+      "title": "Upload termination documents",
+      "status": "in_progress",
+      "assignedToUserId": "user_jordan",
+      "dueAt": "2026-01-15",
+      "attachments": []
+    },
+    {
+      "id": "onb_acme_5",
+      "organizationId": "org_acme",
+      "title": "Schedule kickoff call",
+      "status": "not_started",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-20",
+      "attachments": []
+    }
+  ],
+  "legalRequests": [
+    {
+      "id": "req_acme_001",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "subject": "Termination decision review — fictional",
+      "topic": "Termination",
+      "description": "Fictional demo request concerning a planned termination and documentation review.",
+      "urgency": "standard",
+      "privacy": "company_visible",
+      "status": "in_progress",
+      "priority": "medium",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-06-20T14:00:00Z",
+      "clientVisibleSummary": "Attorney review is in progress.",
+      "participantUserIds": [
+        "user_maya",
+        "user_jordan"
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg_req_001_1",
+      "requestId": "req_acme_001",
+      "authorUserId": "user_maya",
+      "visibility": "client_visible",
+      "body": "We have uploaded the fictional timeline and would like a review.",
+      "createdAt": "2026-06-20T14:05:00Z"
+    },
+    {
+      "id": "msg_req_001_2",
+      "requestId": "req_acme_001",
+      "authorUserId": "user_rachel",
+      "visibility": "client_visible",
+      "body": "Thank you. I am reviewing the materials and will send next steps.",
+      "createdAt": "2026-06-20T16:10:00Z"
+    },
+    {
+      "id": "msg_req_001_3",
+      "requestId": "req_acme_001",
+      "authorUserId": "user_rachel",
+      "visibility": "internal_only",
+      "body": "Demo-only internal note: confirm timeline before external guidance.",
+      "createdAt": "2026-06-20T16:12:00Z"
+    }
+  ],
+  "matterReferences": [
+    {
+      "id": "matter_demo_0142",
+      "organizationId": "org_acme",
+      "requestId": "req_acme_001",
+      "externalReference": "CB-DEMO-2026-0142",
+      "type": "Employment advice",
+      "status": "Open — attorney review",
+      "responsibleAttorneyUserId": "user_rachel",
+      "approvedSummary": "Limited fictional matter summary for portal demonstration.",
+      "updatedAt": "2026-06-21T09:00:00Z"
+    }
+  ],
+  "appointments": [],
+  "templates": [
+    {
+      "id": "tpl_termination",
+      "title": "Termination Preparation Checklist — Demo",
+      "category": "Termination",
+      "status": "published",
+      "fileName": "Termination_Checklist_Demo.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ]
+    },
+    {
+      "id": "tpl_accommodation",
+      "title": "Accommodation Intake Worksheet — Demo",
+      "category": "Leave and Accommodation",
+      "status": "published",
+      "fileName": "Accommodation_Worksheet_Demo.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ]
+    },
+    {
+      "id": "tpl_handbook",
+      "title": "Handbook Review Preparation Guide — Demo",
+      "category": "Handbook",
+      "status": "published",
+      "fileName": "Handbook_Preparation_Demo.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ]
+    }
+  ],
+  "projectRequests": [
+    {
+      "id": "project_acme_001",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "type": "Handbook update",
+      "title": "New Jersey handbook update — fictional",
+      "description": "Demo request for scoping a handbook update.",
+      "status": "proposal_ready",
+      "assignedAttorneyUserId": "user_rachel",
+      "adobeSignReference": null,
+      "createdAt": "2026-06-10"
+    }
+  ],
+  "invoiceReferences": [
+    {
+      "id": "invref_acme_subscription",
+      "organizationId": "org_acme",
+      "kind": "subscription",
+      "label": "June 2026 GD Concierge",
+      "status": "paid",
+      "amountDisplay": "$1,000.00",
+      "externalSystem": "Demo billing reference"
+    },
+    {
+      "id": "invref_acme_matter",
+      "organizationId": "org_acme",
+      "kind": "matter",
+      "label": "CB-DEMO-2026-0142 invoice reference",
+      "status": "open",
+      "amountDisplay": "View in Centerbase (simulated)",
+      "externalSystem": "Centerbase"
+    }
+  ]
+}

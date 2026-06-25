@@ -1,0 +1,273 @@
+[
+  {
+    "id": "J00",
+    "title": "Integrated Journey Landscape",
+    "domain": "Cross-platform",
+    "primary_actors": "All external and internal roles",
+    "trigger": "Product discovery and platform planning",
+    "outcome": "Traceable index of detailed journeys",
+    "integrations": "Shared Core, Signatrain, GD Portal, Legislative Tracking",
+    "sources": "Product Definition v1.0; Functional Map v1.0",
+    "mmd": "mmd/J00_journey_landscape.mmd",
+    "svg": "svg/J00_journey_landscape.svg",
+    "notes": [
+      "This diagram is an index. Detailed behavior is defined in J01-J16."
+    ]
+  },
+  {
+    "id": "J01",
+    "title": "Invitation, Account Activation, and Cross-Product Access",
+    "domain": "Shared Platform Core",
+    "primary_actors": "Inviting administrator; invited user; platform",
+    "trigger": "Administrator invites a user and assigns permitted product access",
+    "outcome": "Active account with role- and entitlement-based access to GD, Signatrain, or both",
+    "integrations": "Authentication provider; email provider",
+    "sources": "CORE-IAM-01/02/08; CORE-USR-02/03; CORE-ENT-05; CORE-NOT-02",
+    "mmd": "mmd/J01_invitation_and_cross_product_access.mmd",
+    "svg": "svg/J01_invitation_and_cross_product_access.svg",
+    "notes": [
+      "Permissions are additive when a user holds multiple roles.",
+      "Company 3 is never shown as a user-facing product."
+    ]
+  },
+  {
+    "id": "J02",
+    "title": "Company Setup and Manual Seat Provisioning",
+    "domain": "Shared Platform Core",
+    "primary_actors": "Internal domain administrator; Company Owner; Company HR Admin; platform",
+    "trigger": "A contract or approved commercial relationship requires manual provisioning",
+    "outcome": "Active organization, administrators, seat inventory, assigned users, and product entitlements",
+    "integrations": "Email provider; optional contract/CRM references",
+    "sources": "CORE-ORG-01/05; CORE-USR-02/04; CORE-ENT-02/03/04/05/06; CORE-AUD-01",
+    "mmd": "mmd/J02_company_setup_and_manual_seat_provisioning.mmd",
+    "svg": "svg/J02_company_setup_and_manual_seat_provisioning.svg",
+    "notes": [
+      "Manual provisioning is the default launch model.",
+      "Historical learning and legal records remain with the archived user after a seat transfer."
+    ]
+  },
+  {
+    "id": "J03",
+    "title": "Online Company Purchase and Entitlement Activation",
+    "domain": "Shared Platform Core / Optional Billing",
+    "primary_actors": "Company Owner; platform; Stripe; internal operations",
+    "trigger": "Company Owner chooses an eligible subscription or additional seats",
+    "outcome": "Paid or approved subscription creates active entitlements and seat inventory",
+    "integrations": "Stripe; email provider",
+    "sources": "CORE-BILL-01-08/10/11; CORE-ENT-03/04/05; CORE-NOT-02",
+    "mmd": "mmd/J03_online_purchase_and_entitlement_activation.mmd",
+    "svg": "svg/J03_online_purchase_and_entitlement_activation.svg",
+    "notes": [
+      "Stripe is authoritative for self-service payment state.",
+      "The portal stores references and status, never raw card or bank details."
+    ]
+  },
+  {
+    "id": "J04",
+    "title": "Cancellation, Organization Archive, and Reactivation",
+    "domain": "Shared Platform Core",
+    "primary_actors": "Company Owner; internal administrator; platform; Stripe",
+    "trigger": "Cancellation, contract expiry, suspension, or later reactivation",
+    "outcome": "Access ends at the correct time without deleting historical records, and may later be restored",
+    "integrations": "Stripe for online subscriptions",
+    "sources": "CORE-BILL-08/11; CORE-ORG-04; CORE-USR-04; CORE-ENT-07; PD cancellation rules",
+    "mmd": "mmd/J04_cancellation_archive_and_reactivation.mmd",
+    "svg": "svg/J04_cancellation_archive_and_reactivation.svg",
+    "notes": [
+      "Cancellation stops renewal but does not revoke access before the paid period ends.",
+      "Archived records are retained according to domain-specific retention rules."
+    ]
+  },
+  {
+    "id": "J05",
+    "title": "Signatrain HR Subscriber Learning Journey",
+    "domain": "Signatrain HR",
+    "primary_actors": "HR Subscriber; Signatrain portal; video provider; optional Bot and Legislative Tracking services",
+    "trigger": "HR subscriber enters Signatrain with active HR entitlement",
+    "outcome": "Subscriber consumes entitled learning, attends live sessions, and completes eligible courses",
+    "integrations": "Secure video provider; Zoom; third-party Bot; Legislative Tracking",
+    "sources": "ST-ACC-01; ST-LIB-01-04; ST-CRS-01/03-08; ST-VID-01-04; ST-BOT-01/02; ST-CERT",
+    "mmd": "mmd/J05_signatrain_hr_subscriber_learning.mmd",
+    "svg": "svg/J05_signatrain_hr_subscriber_learning.svg",
+    "notes": [
+      "Manager-only users cannot access HR Masterclasses, Risk Roundtable, Bot, or Legislative Tracking.",
+      "Transcript full-text search is outside MVP."
+    ]
+  },
+  {
+    "id": "J06",
+    "title": "Manager Program Enrollment and Completion",
+    "domain": "Signatrain Manager",
+    "primary_actors": "Manager Subscriber; Company HR Admin; Signatrain portal; Zoom; video provider",
+    "trigger": "Manager receives active Manager entitlement and a program assignment or self-enrolls",
+    "outcome": "All configured required courses and core sessions are completed and reported",
+    "integrations": "Secure video provider; Zoom; certificate service",
+    "sources": "ST-ACC-02; ST-CRS-02/03-10; ST-VID-01-05; ST-LIVE-02-08; ST-CERT; ST-COMP-02/04",
+    "mmd": "mmd/J06_manager_program_completion.mmd",
+    "svg": "svg/J06_manager_program_completion.svg",
+    "notes": [
+      "The required courses and sessions are configurable; they are not hard-coded.",
+      "Manager subscribers do not gain access to HR-only features."
+    ]
+  },
+  {
+    "id": "J07",
+    "title": "Private Company Cohort Lifecycle",
+    "domain": "Signatrain Cohorts",
+    "primary_actors": "Signatrain Ops / Content Admin; Company HR Admin; cohort learner; faculty",
+    "trigger": "A private cohort is contracted for one organization",
+    "outcome": "Company-only roster completes assigned sessions and private materials with scoped reporting",
+    "integrations": "Zoom; secure video/file storage; notifications",
+    "sources": "ST-COH-01/03-06; ST-LIVE-03-10; ST-COMP-02/04; ST-CMS-10",
+    "mmd": "mmd/J07_private_company_cohort_lifecycle.mmd",
+    "svg": "svg/J07_private_company_cohort_lifecycle.svg",
+    "notes": [
+      "Company-specific materials and scenarios are supported.",
+      "White-label company branding is deferred; standard Signatrain branding applies."
+    ]
+  },
+  {
+    "id": "J08",
+    "title": "Live Session Registration, Attendance, and Recording Lifecycle",
+    "domain": "Signatrain Live Sessions",
+    "primary_actors": "Signatrain administrator; learner; faculty; platform; Zoom",
+    "trigger": "A Masterclass, Risk Roundtable, course session, or cohort session is scheduled",
+    "outcome": "Eligible users register, attendance is calculated, and approved recordings may enter the library",
+    "integrations": "Zoom; email/in-app notifications; secure video provider",
+    "sources": "ST-LIVE-01-11; ST-VID-07; Zoom integration map",
+    "mmd": "mmd/J08_live_session_attendance_and_recording.mmd",
+    "svg": "svg/J08_live_session_attendance_and_recording.svg",
+    "notes": [
+      "Opening a join link does not count as completion.",
+      "Recordings are never auto-published."
+    ]
+  },
+  {
+    "id": "J09",
+    "title": "Signatrain Content Authoring, Review, and Publication",
+    "domain": "Signatrain Content Administration",
+    "primary_actors": "Signatrain Ops / Content Admin; Faculty / Content Reviewer; platform",
+    "trigger": "A new course, module, scenario, recording, or supporting file is created or revised",
+    "outcome": "Approved content is published to the correct audience with governance metadata and audit history",
+    "integrations": "Secure video provider; file storage; notifications",
+    "sources": "ST-CMS-01-10; ST-VID-06/07; CORE-AUD-01",
+    "mmd": "mmd/J09_content_authoring_review_and_publication.mmd",
+    "svg": "svg/J09_content_authoring_review_and_publication.svg",
+    "notes": [
+      "Full content version rollback is outside MVP; a high-level change log is retained.",
+      "Audience metadata is mandatory for HR / Manager access control."
+    ]
+  },
+  {
+    "id": "J10",
+    "title": "Certificate Eligibility, Issuance, and Verification",
+    "domain": "Signatrain Completion and Certificates",
+    "primary_actors": "Learner; platform; Signatrain administrator; public verifier",
+    "trigger": "Course, live session, or program completion data changes",
+    "outcome": "Eligible learner receives an auditable certificate with limited public verification",
+    "integrations": "Certificate file storage; email provider",
+    "sources": "ST-CERT-01-08; ST-CRS-08/10; ST-VID-04; ST-LIVE-07",
+    "mmd": "mmd/J10_certificate_eligibility_issue_and_verification.mmd",
+    "svg": "svg/J10_certificate_eligibility_issue_and_verification.svg",
+    "notes": [
+      "Direct SHRM/HRCI API reporting is outside launch scope; metadata is manually configured.",
+      "Only limited certificate metadata is exposed publicly."
+    ]
+  },
+  {
+    "id": "J11",
+    "title": "Greenwald Doherty Client Onboarding",
+    "domain": "GD Portal",
+    "primary_actors": "GD Operations Admin; Company Owner / GD Client User; platform",
+    "trigger": "A Concierge, All Access, or custom GD plan is approved",
+    "outcome": "Client completes required setup tasks and gains active access to plan benefits and linked products",
+    "integrations": "File storage; email provider; optional Centerbase and Stripe references",
+    "sources": "GD-PLAN-02-05; GD-ONB-01-05; GD-XP-01; CORE-USR-02",
+    "mmd": "mmd/J11_gd_client_onboarding.mmd",
+    "svg": "svg/J11_gd_client_onboarding.svg",
+    "notes": [
+      "The GD portal is a client front door, not a replacement for Centerbase.",
+      "Client emails link back to the secure portal and omit sensitive document content."
+    ]
+  },
+  {
+    "id": "J12",
+    "title": "GD Legal Request, Triage, and Matter Conversion",
+    "domain": "GD Portal",
+    "primary_actors": "GD Client User; GD Operations Admin; assigned GD Attorney; Centerbase",
+    "trigger": "Client submits an employment-law request through the GD portal",
+    "outcome": "Request is answered, scheduled, converted to matter-level work, or closed with full permission and audit controls",
+    "integrations": "File storage; Calendly; Centerbase; email notifications",
+    "sources": "GD-REQ-01-09; GD-COMM-01-04; GD-MAT-01-04; GD-SCH-01-03; GD-AUD-01",
+    "mmd": "mmd/J12_gd_legal_request_triage_and_matter_conversion.mmd",
+    "svg": "svg/J12_gd_legal_request_triage_and_matter_conversion.svg",
+    "notes": [
+      "Restricted requests are not automatically visible to Company Owners or Company HR Admins.",
+      "Complete matters, work product, time entries, and billing remain in Centerbase."
+    ]
+  },
+  {
+    "id": "J13",
+    "title": "GD Flat-Fee Project Request and Adobe Sign Handoff",
+    "domain": "GD Portal",
+    "primary_actors": "GD client; GD Operations Admin; GD Attorney; Adobe Sign; Centerbase",
+    "trigger": "Client requests a handbook, policy, agreement, audit, or another configured flat-fee project",
+    "outcome": "Proposal is accepted and converted to project / matter work, or declined and closed",
+    "integrations": "Adobe Sign; Centerbase; email notifications",
+    "sources": "GD-PROJ-01-04; GD-MAT-01-04; Adobe Sign integration map",
+    "mmd": "mmd/J13_gd_flat_fee_project_and_adobe_sign.mmd",
+    "svg": "svg/J13_gd_flat_fee_project_and_adobe_sign.svg",
+    "notes": [
+      "Pricing and scope may remain manual while the portal tracks lifecycle status.",
+      "Adobe Sign is authoritative for signature status."
+    ]
+  },
+  {
+    "id": "J14",
+    "title": "GD-Included Signatrain HR Seat Provisioning",
+    "domain": "Cross-product GD to Signatrain",
+    "primary_actors": "GD Operations Admin; Company Owner / Company HR Admin; platform; invited HR user",
+    "trigger": "A GD Concierge or All Access plan becomes active or changes",
+    "outcome": "Included HR seat is assigned without a user Stripe transaction and Signatrain access becomes available",
+    "integrations": "Shared entitlement layer; email provider",
+    "sources": "CORE-ENT-08; GD-XP-01/02; GD-PLAN-05; CORE-IAM-08; CORE-ENT-06",
+    "mmd": "mmd/J14_gd_included_signatrain_seat.mmd",
+    "svg": "svg/J14_gd_included_signatrain_seat.svg",
+    "notes": [
+      "The entitlement source is GD_INCLUDED.",
+      "No Stripe transaction is required for the recipient user."
+    ]
+  },
+  {
+    "id": "J15",
+    "title": "Legislative Alert Authoring, Legal Review, and Distribution",
+    "domain": "Legislative Tracking MVP-Lite",
+    "primary_actors": "Alert editor; GD Attorney / legal reviewer; operations publisher; eligible recipient; platform",
+    "trigger": "An employment-law change is identified through the manual monitoring process",
+    "outcome": "Attorney-approved alert reaches only entitled organizations and jurisdictions, with read and audit records",
+    "integrations": "Email provider; GD and Signatrain portal contexts",
+    "sources": "LT-AUTH-01-04; LT-REV-01-04; LT-DIST-01-04; LT-ACC-01-04; LT-REP-01; LT-AUD-01",
+    "mmd": "mmd/J15_legislative_alert_authoring_review_and_distribution.mmd",
+    "svg": "svg/J15_legislative_alert_authoring_review_and_distribution.svg",
+    "notes": [
+      "Automated crawling, AI monitoring, and automated legal summaries are outside this module.",
+      "Manager-only subscribers are excluded from Legislative Tracking."
+    ]
+  },
+  {
+    "id": "J16",
+    "title": "Legislative Tracking Jurisdiction Coverage Change",
+    "domain": "Legislative Tracking MVP-Lite",
+    "primary_actors": "Company Owner / Company HR Admin; internal operations; platform",
+    "trigger": "Company requests a state or city coverage addition or removal",
+    "outcome": "Approved coverage becomes effective for future alert targeting; rejected requests retain current coverage",
+    "integrations": "Notifications; optional commercial / contract reference",
+    "sources": "LT-COV-01-03; CORE-ORG-06; LT-DIST-01",
+    "mmd": "mmd/J16_legislative_jurisdiction_coverage_change.mmd",
+    "svg": "svg/J16_legislative_jurisdiction_coverage_change.svg",
+    "notes": [
+      "Coverage changes may require contract approval and commercial adjustment.",
+      "Read status is not treated as legal acknowledgment."
+    ]
+  }
+]

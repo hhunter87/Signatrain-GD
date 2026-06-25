@@ -1,0 +1,48 @@
+%% J04 - Cancellation, Organization Archive, and Reactivation
+%% Domain: Shared Platform Core
+%% Source requirements: CORE-BILL-08/11; CORE-ORG-04; CORE-USR-04; CORE-ENT-07; PD cancellation rules
+flowchart LR
+  subgraph ACTOR["Company Owner / Internal Admin"]
+    direction TB
+    A1(["Request cancellation or record contract end"])
+    A2["Approve new contract, payment, or manual reactivation"]
+  end
+  subgraph PLAT["Shared Platform"]
+    direction TB
+    P1["Set cancellation at paid-period end"]
+    P2["Keep access active through paid period"]
+    D1{"Paid period ended?"}
+    P3["Expire or revoke affected entitlements"]
+    P4["Archive company access and external users"]
+    P5["Retain learning, certificate, request, audit, and reference history"]
+    END1(["Organization archived; no grace period"])
+    P6["Reactivate organization and selected users"]
+    P7["Grant new active entitlements and seat inventory"]
+    END2(["Authorized access restored"])
+  end
+  subgraph PAY["Stripe / Contract Source"]
+    direction TB
+    S1[["Stop renewal and retain period-end date"]]
+  end
+  A1 --> P1
+  P1 --> S1
+  S1 --> P2
+  P2 --> D1
+  D1 -->|"No"| P2
+  D1 -->|"Yes"| P3
+  P3 --> P4
+  P4 --> P5
+  P5 --> END1
+  END1 -.->|"Later reactivation"| A2
+  A2 --> P6
+  P6 --> P7
+  P7 --> END2
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class A1,END1,END2 startend;
+  class P1,P2,P3,P4,P5,A2,P6,P7 action;
+  class S1 integration;
+  class D1 decision;

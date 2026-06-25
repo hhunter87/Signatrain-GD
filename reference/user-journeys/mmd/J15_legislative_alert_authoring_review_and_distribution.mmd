@@ -1,0 +1,59 @@
+%% J15 - Legislative Alert Authoring, Legal Review, and Distribution
+%% Domain: Legislative Tracking MVP-Lite
+%% Source requirements: LT-AUTH-01-04; LT-REV-01-04; LT-DIST-01-04; LT-ACC-01-04; LT-REP-01; LT-AUD-01
+flowchart LR
+  subgraph EDITOR["Alert Editor"]
+    direction TB
+    E1(["Create Draft alert"])
+    E2["Enter summary, impact, action, topic, jurisdiction, source, and dates"]
+    E3["Submit for legal review and assign reviewer"]
+    E4["Configure audience, entitlement, organization coverage, and jurisdiction targeting"]
+    E5["Review company delivery and read summary"]
+  end
+  subgraph LEGAL["GD Attorney / Legal Reviewer"]
+    direction TB
+    L1["Review legal accuracy and external wording"]
+    D1{"Approve and sign off?"}
+    L2["Return comments to Draft"]
+  end
+  subgraph PLAT["Legislative Tracking Service"]
+    direction TB
+    P1["Record approval and lock final sign-off metadata"]
+    P2["Publish approved alert"]
+    P3["Calculate eligible GD and Signatrain HR recipients"]
+    P4[["Create in-app notification and limited-metadata email"]]
+    P5["Record user read / unread state and delivery analytics"]
+    P6["Archive alert on action or configured date"]
+    END(["Authoring, sign-off, targeting, delivery, and archive remain audited"])
+  end
+  subgraph RECIP["Eligible Recipient"]
+    direction TB
+    R1["Open secure alert detail"]
+    R2["Read summary, impact, recommended action, and attorney sign-off"]
+  end
+  E1 --> E2
+  E2 --> E3
+  E3 --> L1
+  L1 --> D1
+  D1 -->|"No"| L2
+  L2 -->|"Revise"| E1
+  D1 -->|"Yes"| P1
+  P1 --> E4
+  E4 --> P2
+  P2 --> P3
+  P3 --> P4
+  P4 --> R1
+  R1 --> R2
+  R2 --> P5
+  P5 --> E5
+  E5 -->|"When no longer current"| P6
+  P6 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class E1,END startend;
+  class E2,E3,L1,L2,P1,E4,P2,P3,R1,R2,P5,E5,P6 action;
+  class D1 decision;
+  class P4 integration;

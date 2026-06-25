@@ -1,0 +1,57 @@
+%% J06 - Manager Program Enrollment and Completion
+%% Domain: Signatrain Manager
+%% Source requirements: ST-ACC-02; ST-CRS-02/03-10; ST-VID-01-05; ST-LIVE-02-08; ST-CERT; ST-COMP-02/04
+flowchart LR
+  subgraph ADMIN["Company HR Admin"]
+    direction TB
+    A1(["Assign manager to configured program"])
+    A2["Review progress and export company CSV"]
+  end
+  subgraph MGR["Manager Subscriber"]
+    direction TB
+    M1["Open Manager dashboard"]
+    M2["Complete ordered course modules"]
+    M3["Register for and attend required live sessions"]
+  end
+  subgraph PORTAL["Signatrain Portal"]
+    direction TB
+    P1["Validate active seat and create enrollment"]
+    P2["Show required courses, scenarios, and three core sessions"]
+    P3["Require 95% unique video completion"]
+    P4["Require at least 90% session attendance"]
+    D1{"All configured program requirements complete?"}
+    P5["Show remaining required items"]
+    P6["Mark Manager program complete"]
+    P7["Evaluate and issue certificate when configured"]
+    END(["Program completion recorded and reportable"])
+  end
+  subgraph EXT["Video / Zoom"]
+    direction TB
+    E1[["Track secure video watch intervals"]]
+    E2[["Return aggregated Zoom attendance"]]
+  end
+  A1 --> P1
+  P1 --> M1
+  M1 --> P2
+  P2 --> M2
+  M2 --> E1
+  E1 --> P3
+  P3 --> M3
+  M3 --> E2
+  E2 --> P4
+  P4 --> D1
+  D1 -->|"No"| P5
+  P5 -->|"Complete remaining learning"| M2
+  D1 -->|"Yes"| P6
+  P6 --> P7
+  P7 --> A2
+  A2 --> END
+  classDef action fill:#FFFFFF,stroke:#3A3A3A,stroke-width:1px,color:#222222;
+  classDef startend fill:#F4E4A3,stroke:#5A4A00,stroke-width:1.5px,color:#222222;
+  classDef decision fill:#FFF4CC,stroke:#7A6500,stroke-width:1.5px,color:#222222;
+  classDef integration fill:#EEF3F8,stroke:#3A5872,stroke-width:1px,color:#222222;
+  classDef note fill:#F3F3F3,stroke:#777777,stroke-dasharray: 4 3,color:#333333;
+  class A1,END startend;
+  class P1,M1,P2,M2,P3,M3,P4,P5,P6,P7,A2 action;
+  class E1,E2 integration;
+  class D1 decision;
