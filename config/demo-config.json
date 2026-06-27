@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "storageKey": "gd-signatrain-demo-v1",
   "defaultPersonaId": "persona_maya",
   "defaultOrganizationId": "org_acme",

@@ -67,7 +67,7 @@ export function canAccessRoute(
   if (!route) {
     return {
       allowed: false,
-      reason: "This route is not part of the demo route manifest."
+      reason: "This screen is not available."
     };
   }
 
@@ -79,7 +79,7 @@ export function canAccessRoute(
   if (!user || user.status !== "active") {
     return {
       allowed: false,
-      reason: "Select an active demo persona to continue.",
+      reason: "Select an active persona to continue.",
       requiredRoles: route.allowedRoles,
       requiredEntitlements: route.requiredEntitlementsAny
     };

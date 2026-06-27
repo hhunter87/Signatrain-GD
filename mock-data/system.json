@@ -15,7 +15,7 @@
       "userId": "user_elena",
       "type": "session_registration",
       "title": "Risk Roundtable registration confirmed",
-      "body": "Your demo registration is confirmed.",
+      "body": "Your registration is confirmed.",
       "href": "/app/signatrain/live/session_roundtable_retaliation",
       "readAt": "2026-06-20T08:00:00Z",
       "createdAt": "2026-06-18T11:00:00Z"
@@ -24,18 +24,18 @@
   "emailOutbox": [
     {
       "id": "email_demo_1",
-      "recipient": "elena.ruiz@acme-demo.example",
-      "subject": "Demo: Risk Roundtable registration confirmed",
+      "recipient": "elena.ruiz@acme.example",
+      "subject": "Risk Roundtable registration confirmed",
       "templateKey": "session_registration",
-      "body": "Your fictional registration is confirmed. Open the demo portal for details.",
+      "body": "Your registration is confirmed. Open the portal for details.",
       "createdAt": "2026-06-18T11:00:00Z"
     },
     {
       "id": "email_demo_2",
-      "recipient": "maya.patel@acme-demo.example",
-      "subject": "Demo: New legislative alert available",
+      "recipient": "maya.patel@acme.example",
+      "subject": "New legislative alert available",
       "templateKey": "legislative_alert",
-      "body": "A new fictional legislative alert is available in the portal.",
+      "body": "A new legislative alert is available in the portal.",
       "createdAt": "2026-06-19T14:01:00Z"
     }
   ],

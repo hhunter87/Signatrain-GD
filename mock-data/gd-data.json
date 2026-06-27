@@ -73,7 +73,7 @@
       "attachments": [
         {
           "id": "file_demo_handbook",
-          "name": "Acme_Handbook_Demo.pdf",
+          "name": "Acme_Handbook.pdf",
           "size": 428000,
           "type": "application/pdf"
         }
@@ -89,7 +89,7 @@
       "attachments": [
         {
           "id": "file_demo_hiring",
-          "name": "Hiring_Documents_Demo.zip",
+          "name": "Hiring_Documents.zip",
           "size": 812000,
           "type": "application/zip"
         }
@@ -119,9 +119,9 @@
       "id": "req_acme_001",
       "organizationId": "org_acme",
       "submittedByUserId": "user_maya",
-      "subject": "Termination decision review — fictional",
+      "subject": "Termination decision review",
       "topic": "Termination",
-      "description": "Fictional demo request concerning a planned termination and documentation review.",
+      "description": "Request concerning a planned termination and documentation review.",
       "urgency": "standard",
       "privacy": "company_visible",
       "status": "in_progress",
@@ -141,7 +141,7 @@
       "requestId": "req_acme_001",
       "authorUserId": "user_maya",
       "visibility": "client_visible",
-      "body": "We have uploaded the fictional timeline and would like a review.",
+      "body": "We have uploaded the timeline and would like a review.",
       "createdAt": "2026-06-20T14:05:00Z"
     },
     {
@@ -157,7 +157,7 @@
       "requestId": "req_acme_001",
       "authorUserId": "user_rachel",
       "visibility": "internal_only",
-      "body": "Demo-only internal note: confirm timeline before external guidance.",
+      "body": "Internal note: confirm timeline before external guidance.",
       "createdAt": "2026-06-20T16:12:00Z"
     }
   ],
@@ -166,11 +166,11 @@
       "id": "matter_demo_0142",
       "organizationId": "org_acme",
       "requestId": "req_acme_001",
-      "externalReference": "CB-DEMO-2026-0142",
+      "externalReference": "CB-2026-0142",
       "type": "Employment advice",
       "status": "Open — attorney review",
       "responsibleAttorneyUserId": "user_rachel",
-      "approvedSummary": "Limited fictional matter summary for portal demonstration.",
+      "approvedSummary": "Limited matter summary for client portal review.",
       "updatedAt": "2026-06-21T09:00:00Z"
     }
   ],
@@ -178,10 +178,10 @@
   "templates": [
     {
       "id": "tpl_termination",
-      "title": "Termination Preparation Checklist — Demo",
+      "title": "Termination Preparation Checklist",
       "category": "Termination",
       "status": "published",
-      "fileName": "Termination_Checklist_Demo.pdf",
+      "fileName": "Termination_Checklist.pdf",
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
@@ -189,10 +189,10 @@
     },
     {
       "id": "tpl_accommodation",
-      "title": "Accommodation Intake Worksheet — Demo",
+      "title": "Accommodation Intake Worksheet",
       "category": "Leave and Accommodation",
       "status": "published",
-      "fileName": "Accommodation_Worksheet_Demo.pdf",
+      "fileName": "Accommodation_Worksheet.pdf",
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
@@ -200,10 +200,10 @@
     },
     {
       "id": "tpl_handbook",
-      "title": "Handbook Review Preparation Guide — Demo",
+      "title": "Handbook Review Preparation Guide",
       "category": "Handbook",
       "status": "published",
-      "fileName": "Handbook_Preparation_Demo.pdf",
+      "fileName": "Handbook_Preparation.pdf",
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
@@ -216,8 +216,8 @@
       "organizationId": "org_acme",
       "submittedByUserId": "user_maya",
       "type": "Handbook update",
-      "title": "New Jersey handbook update — fictional",
-      "description": "Demo request for scoping a handbook update.",
+      "title": "New Jersey handbook update",
+      "description": "Request for scoping a handbook update.",
       "status": "proposal_ready",
       "assignedAttorneyUserId": "user_rachel",
       "adobeSignReference": null,
@@ -232,15 +232,15 @@
       "label": "June 2026 GD Concierge",
       "status": "paid",
       "amountDisplay": "$1,000.00",
-      "externalSystem": "Demo billing reference"
+      "externalSystem": "Billing reference"
     },
     {
       "id": "invref_acme_matter",
       "organizationId": "org_acme",
       "kind": "matter",
-      "label": "CB-DEMO-2026-0142 invoice reference",
+      "label": "CB-2026-0142 invoice reference",
       "status": "open",
-      "amountDisplay": "View in Centerbase (simulated)",
+      "amountDisplay": "View in Centerbase",
       "externalSystem": "Centerbase"
     }
   ]

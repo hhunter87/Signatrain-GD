@@ -4,7 +4,7 @@
       "id": "user_maya",
       "personaId": "persona_maya",
       "name": "Maya Patel",
-      "email": "maya.patel@acme-demo.example",
+      "email": "maya.patel@acme.example",
       "organizationId": "org_acme",
       "roles": [
         "CO",
@@ -18,7 +18,7 @@
       "id": "user_jordan",
       "personaId": "persona_jordan",
       "name": "Jordan Lee",
-      "email": "jordan.lee@acme-demo.example",
+      "email": "jordan.lee@acme.example",
       "organizationId": "org_acme",
       "roles": [
         "CHA",
@@ -32,7 +32,7 @@
       "id": "user_elena",
       "personaId": "persona_elena",
       "name": "Elena Ruiz",
-      "email": "elena.ruiz@acme-demo.example",
+      "email": "elena.ruiz@acme.example",
       "organizationId": "org_acme",
       "roles": [
         "HRS"
@@ -44,7 +44,7 @@
       "id": "user_marcus",
       "personaId": "persona_marcus",
       "name": "Marcus Chen",
-      "email": "marcus.chen@acme-demo.example",
+      "email": "marcus.chen@acme.example",
       "organizationId": "org_acme",
       "roles": [
         "MGR"
@@ -56,7 +56,7 @@
       "id": "user_priya",
       "personaId": "persona_priya",
       "name": "Priya Shah",
-      "email": "priya.shah@signatrain-demo.example",
+      "email": "priya.shah@signatrain.example",
       "organizationId": "org_internal",
       "roles": [
         "SSA",
@@ -69,7 +69,7 @@
       "id": "user_alex",
       "personaId": "persona_alex",
       "name": "Alex Morgan",
-      "email": "alex.morgan@signatrain-demo.example",
+      "email": "alex.morgan@signatrain.example",
       "organizationId": "org_internal",
       "roles": [
         "FCR"
@@ -81,7 +81,7 @@
       "id": "user_dana",
       "personaId": "persona_dana",
       "name": "Dana Brooks",
-      "email": "dana.brooks@gd-demo.example",
+      "email": "dana.brooks@gd.example",
       "organizationId": "org_internal",
       "roles": [
         "GDO"
@@ -93,7 +93,7 @@
       "id": "user_rachel",
       "personaId": "persona_rachel",
       "name": "Rachel Kim",
-      "email": "rachel.kim@gd-demo.example",
+      "email": "rachel.kim@gd.example",
       "organizationId": "org_internal",
       "roles": [
         "GDA"
@@ -105,7 +105,7 @@
       "id": "user_sam",
       "personaId": "persona_sam",
       "name": "Sam Carter",
-      "email": "sam.carter@gd-demo.example",
+      "email": "sam.carter@gd.example",
       "organizationId": "org_internal",
       "roles": [
         "GDC"
@@ -117,7 +117,7 @@
       "id": "user_platform",
       "personaId": "persona_platform",
       "name": "Taylor Reed",
-      "email": "taylor.reed@platform-demo.example",
+      "email": "taylor.reed@platform.example",
       "organizationId": "org_internal",
       "roles": [
         "PSA"
@@ -129,18 +129,18 @@
       "id": "user_prospect",
       "personaId": "persona_prospect",
       "name": "Olivia Bennett",
-      "email": "olivia.bennett@brightline-demo.example",
+      "email": "olivia.bennett@brightline.example",
       "organizationId": "org_brightline",
       "roles": [
         "CO"
       ],
       "status": "active",
-      "title": "Prospective company buyer used for simulated checkout"
+      "title": "Prospective company buyer"
     },
     {
       "id": "user_avery",
       "name": "Avery Johnson",
-      "email": "avery.johnson@acme-demo.example",
+      "email": "avery.johnson@acme.example",
       "organizationId": "org_acme",
       "roles": [
         "MGR"
@@ -151,7 +151,7 @@
     {
       "id": "user_nina",
       "name": "Nina Thompson",
-      "email": "nina.thompson@harbor-demo.example",
+      "email": "nina.thompson@harbor.example",
       "organizationId": "org_harbor",
       "roles": [
         "CO",
@@ -164,7 +164,7 @@
     {
       "id": "user_omar",
       "name": "Omar Davis",
-      "email": "omar.davis@northstar-demo.example",
+      "email": "omar.davis@northstar.example",
       "organizationId": "org_northstar",
       "roles": [
         "CHA",

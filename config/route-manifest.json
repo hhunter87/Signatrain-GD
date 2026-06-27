@@ -3,7 +3,7 @@
   "routes": [
     {
       "path": "/",
-      "name": "Demo landing",
+      "name": "Workspace access",
       "domain": "Public",
       "priority": "P0",
       "allowedRoles": [],
@@ -11,7 +11,7 @@
       "primaryActions": [
         "Select a persona",
         "Open pricing",
-        "Review demo disclaimer"
+        "Review workspace access"
       ],
       "states": [
         "default",
@@ -30,7 +30,7 @@
       "requiredEntitlementsAny": [],
       "primaryActions": [
         "Select HR, Manager, or GD Concierge",
-        "Open simulated checkout"
+        "Open checkout"
       ],
       "states": [
         "default",
@@ -42,7 +42,7 @@
     },
     {
       "path": "/checkout/[sku]",
-      "name": "Simulated checkout",
+      "name": "Checkout",
       "domain": "Public/Shared",
       "priority": "P0",
       "allowedRoles": [
@@ -52,7 +52,7 @@
       "primaryActions": [
         "Choose monthly/annual where available",
         "Choose card, ACH, or invoice",
-        "Complete simulated purchase"
+        "Complete purchase"
       ],
       "states": [
         "default",
@@ -114,7 +114,7 @@
       ],
       "requiredEntitlementsAny": [],
       "primaryActions": [
-        "Edit fictional profile",
+        "Edit profile",
         "Toggle notification preferences"
       ],
       "states": [
@@ -434,7 +434,7 @@
       ],
       "primaryActions": [
         "Register",
-        "Join simulated Zoom",
+        "Join live session",
         "View attendance/recording state"
       ],
       "states": [
@@ -532,7 +532,7 @@
       ],
       "primaryActions": [
         "Open third-party-style widget",
-        "Submit fictional general question"
+        "Submit general question"
       ],
       "states": [
         "default",
@@ -621,7 +621,7 @@
       "primaryActions": [
         "Create/reschedule/cancel",
         "Manage roster",
-        "Import simulated attendance",
+        "Import attendance",
         "Approve recording"
       ],
       "states": [
@@ -913,7 +913,7 @@
         "GD_ALL_ACCESS"
       ],
       "primaryActions": [
-        "Open simulated Calendly",
+        "Open scheduling calendar",
         "Create appointment reference"
       ],
       "states": [
@@ -937,7 +937,7 @@
         "GD_ALL_ACCESS"
       ],
       "primaryActions": [
-        "Filter and download fictional templates"
+        "Filter and download templates"
       ],
       "states": [
         "default",
@@ -1154,7 +1154,7 @@
       "requiredEntitlementsAny": [],
       "primaryActions": [
         "Scope proposal",
-        "Send simulated Adobe Sign",
+        "Send signature request",
         "Update status"
       ],
       "states": [
@@ -1175,7 +1175,7 @@
       ],
       "requiredEntitlementsAny": [],
       "primaryActions": [
-        "Create/edit/publish/archive fictional templates"
+        "Create/edit/publish/archive templates"
       ],
       "states": [
         "default",

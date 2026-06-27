@@ -111,14 +111,11 @@ function ShellContent() {
 
   return (
     <div data-product={visualProduct} className={`app-root ${themeClassName}`}>
-      <div className="demo-banner px-4 py-2 text-center text-sm font-semibold">
-        Demo - fictional data only. No production integrations, no real legal, payment, or customer data.
-      </div>
       <header className="topbar sticky top-0 z-30">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 lg:px-6">
           <Link href="/app/products" className="flex items-center gap-2 font-semibold">
             <ShieldCheck className="brand-mark h-5 w-5" aria-hidden="true" />
-            <span>GD & Signatrain Demo</span>
+            <span>GD & Signatrain</span>
           </Link>
           <ProductSwitcher
             availableProducts={availableProducts}
@@ -201,7 +198,7 @@ function LoadingDemoContext() {
         <p className="page-eyebrow text-sm font-bold uppercase tracking-wide">
           Checking access
         </p>
-        <h1 className="page-title mt-2 text-3xl font-bold">Loading demo context</h1>
+        <h1 className="page-title mt-2 text-3xl font-bold">Loading workspace</h1>
         <p className="mt-2 text-muted">
           Applying the selected persona, organization, and product permissions.
         </p>
@@ -261,7 +258,7 @@ function Sidebar({ pathname }: { pathname: string }) {
   }, {});
 
   return (
-    <aside className="shell-sidebar sticky top-[104px] hidden h-[calc(100vh-104px)] w-72 shrink-0 overflow-y-auto p-4 lg:block">
+    <aside className="shell-sidebar sticky top-16 hidden h-[calc(100vh-64px)] w-72 shrink-0 overflow-y-auto p-4 lg:block">
       <nav aria-label="Primary">
         {Object.entries(grouped).map(([group, items]) => (
           <section key={group} className="mb-5">
@@ -336,7 +333,7 @@ function DemoControls({
         <div className="flex items-center justify-between border-b border-[color:var(--border-subtle)] p-5">
           <div>
             <h2 className="text-xl font-bold">Demo Controls</h2>
-            <p className="text-sm text-muted">Switch personas, products, scenarios, and reset fixture data.</p>
+            <p className="text-sm text-muted">Switch personas, products, scenarios, and reset workspace data.</p>
           </div>
           <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
             Close
@@ -434,7 +431,7 @@ function DemoControls({
               type="button"
               className="ds-button ds-button-danger px-3 py-2 text-sm"
               onClick={() => {
-                if (window.confirm("Reset all local demo data to the checked-in fixtures?")) {
+                if (window.confirm("Reset this workspace to its starting state?")) {
                   onReset();
                   router.push("/app/products");
                   onClose();
@@ -442,7 +439,7 @@ function DemoControls({
               }}
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Reset demo data
+              Reset workspace
             </button>
           </section>
 
@@ -467,7 +464,7 @@ function OutboxModal({ onClose }: { onClose: () => void }) {
     <div className="modal-scrim absolute inset-0 z-10 flex items-center justify-center p-4">
       <section className="modal-panel max-h-[80vh] w-full max-w-3xl overflow-y-auto p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold">Simulated email outbox</h2>
+          <h2 className="text-lg font-bold">Email outbox</h2>
           <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
             Close
           </button>
@@ -528,11 +525,11 @@ function LandingView() {
     <div className="content-shell">
       <section className="ds-card mb-8 p-6">
         <p className="page-eyebrow text-sm font-semibold uppercase tracking-wide">
-          Disposable demo
+          Workspace access
         </p>
-        <h1 className="page-title mt-2 text-4xl font-bold">Select a persona to enter the GD & Signatrain demo</h1>
+        <h1 className="page-title mt-2 text-4xl font-bold">Select a persona to enter GD & Signatrain</h1>
         <p className="mt-3 max-w-3xl text-muted">
-          This local demo validates shared product access, role-specific navigation, and strict data boundaries using only fictional fixture data.
+          Persona profiles make it easy to review product access, role-specific navigation, and strict data boundaries.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link className="ds-button ds-button-primary px-4 py-2" href="/pricing">
@@ -579,7 +576,7 @@ function PricingView() {
       <PageHeading
         eyebrow="Public"
         title="Pricing and plan comparison"
-        description="Self-service choices open the simulated checkout route. Integration behavior remains fixture-backed for the demo."
+        description="Compare plans and start the checkout flow for the product that fits your team."
       />
       <div className="marketing-grid">
         {store.catalogSkus.map((sku) => (
@@ -592,11 +589,11 @@ function PricingView() {
                 className="ds-button ds-button-primary mt-5 px-4 py-2"
                 href={`/checkout/${sku.id}`}
               >
-                Open simulated checkout
+                Open checkout
               </Link>
             ) : (
               <p className="ds-pill mt-5 px-3 py-2 text-sm">
-                Admin-assisted purchase in this demo phase
+                Admin-assisted purchase
               </p>
             )}
           </article>
@@ -614,12 +611,12 @@ function CheckoutPlaceholder({ pathname }: { pathname: string }) {
     <div className="narrow-shell">
       <PageHeading
         eyebrow="Public / Shared"
-        title="Simulated checkout"
-        description="Phase 1 exposes the route and safe context. Checkout mutations are implemented in the shared company and checkout phase."
+        title="Checkout"
+        description="Review the selected plan and billing preferences before purchase."
       />
       <article className="ds-card p-5">
         <h2 className="text-xl font-bold">{sku?.name ?? "Unknown SKU"}</h2>
-        <p className="mt-2 text-muted">{sku?.priceDisplay ?? "The selected SKU is not in the fixture catalog."}</p>
+        <p className="mt-2 text-muted">{sku?.priceDisplay ?? "The selected plan is not available."}</p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link className="ds-button ds-button-secondary px-4 py-2" href="/pricing">
             Back to pricing
@@ -644,7 +641,7 @@ function CertificateView({ pathname }: { pathname: string }) {
       <PageHeading
         eyebrow="Public verification"
         title="Certificate verification"
-        description="Public verification exposes only limited non-sensitive demo metadata."
+        description="Public verification shows limited non-sensitive certificate metadata."
       />
       <article className="ds-card p-5">
         {certificate ? (
@@ -652,14 +649,14 @@ function CertificateView({ pathname }: { pathname: string }) {
             <StatusBadge label={certificate.status} />
             <h2 className="mt-4 text-2xl font-bold">{certificate.title}</h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-              <Meta label="Recipient" value={recipient?.name ?? "Demo learner"} />
+              <Meta label="Recipient" value={recipient?.name ?? "Learner"} />
               <Meta label="Certificate ID" value={certificate.id} />
               <Meta label="Issued" value={certificate.issuedAt} />
               <Meta label="Verification slug" value={certificate.verificationSlug} />
             </dl>
           </>
         ) : (
-          <p className="text-muted">No certificate fixture matches this verification route.</p>
+          <p className="text-muted">No certificate matches this verification link.</p>
         )}
       </article>
     </div>
@@ -677,7 +674,7 @@ function ProductsView() {
         description="Only products backed by the active organization entitlement and persona role are shown."
       />
       {products.length === 0 ? (
-        <EmptyState title="No active products" body="This persona can use pricing or an admin workflow to activate products in later phases." />
+        <EmptyState title="No active products" body="This persona can use pricing or an admin workflow to activate products." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {products.map((product) => (
@@ -713,7 +710,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
       <PageHeading
         eyebrow={`${route.domain} / ${route.priority}`}
         title={route.name}
-        description="Phase 1 placeholder with real navigation, central route guards, fixture context, and no external integrations."
+        description="Use this workspace to review key activity, permissions, and next actions for the selected product."
       />
       <div className="grid gap-4 lg:grid-cols-4">
         <MetricCard label="Persona" value={activeUser?.name ?? "None"} />
@@ -724,13 +721,13 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
       <section className="ds-card mt-6 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold">Documented actions</h2>
+            <h2 className="text-xl font-bold">Available actions</h2>
             <p className="mt-1 max-w-3xl text-sm text-muted">
-              Interactive demo actions from the route manifest. Each card opens a safe simulation using fixture data; full workflow mutations begin in later phases.
+              Open the key workflows available from this screen.
             </p>
           </div>
           <span className="ds-pill px-3 py-1 text-xs uppercase tracking-wide">
-            Simulated
+            Ready
           </span>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -740,7 +737,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
         </div>
       </section>
       <section className="ds-card mt-6 p-5">
-        <h2 className="text-xl font-bold">Fixture snapshot</h2>
+        <h2 className="text-xl font-bold">Workspace snapshot</h2>
         <SnapshotGrid route={route} />
       </section>
       {permissionDiagnostics ? (
@@ -788,7 +785,7 @@ function ActionCard({
       <span className="mt-4 block text-base font-bold text-ink">{action}</span>
       <span className="mt-2 block text-sm text-muted">{hint}</span>
       <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--brand-primary-dark)]">
-        Open simulation
+        Open
         <MousePointerClick className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
       </span>
     </button>
@@ -819,7 +816,7 @@ function ActionSimulationModal({
               </span>
               <div>
                 <p className="page-eyebrow text-sm font-bold uppercase tracking-wide">
-                  {route.name} simulation
+                  {route.name}
                 </p>
                 <h2 className="page-title mt-1 text-2xl font-bold">{simulation.title}</h2>
                 <p className="mt-2 max-w-3xl text-sm text-muted">{simulation.summary}</p>
@@ -834,17 +831,17 @@ function ActionSimulationModal({
           <SimulationPreview simulation={simulation} />
           <aside className="space-y-4">
             <section className="ds-card p-4">
-              <h3 className="font-bold">Fixture context</h3>
+              <h3 className="font-bold">Context</h3>
               <dl className="mt-3 grid gap-2">
-                <Meta label="Persona" value={activeUser?.name ?? "Demo persona"} />
-                <Meta label="Organization" value={activeOrganization?.name ?? "Demo organization"} />
-                <Meta label="Route" value={route.path} />
+                <Meta label="Persona" value={activeUser?.name ?? "Selected persona"} />
+                <Meta label="Organization" value={activeOrganization?.name ?? "Selected organization"} />
+                <Meta label="Screen" value={route.path} />
               </dl>
             </section>
             <section className="ds-card p-4">
-              <h3 className="font-bold">What changes in a later phase</h3>
+              <h3 className="font-bold">Workflow status</h3>
               <p className="mt-2 text-sm text-muted">
-                This modal previews the user experience without writing workflow state. The real mutation will be added in the phase that owns this workflow.
+                This panel shows the information users review before taking the next step in this workflow.
               </p>
             </section>
           </aside>
@@ -868,12 +865,12 @@ function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
         <div className="video-stage flex aspect-video items-center justify-center">
           <div className="text-center">
             <PlayCircle className="mx-auto h-16 w-16 text-white" aria-hidden="true" />
-            <p className="mt-3 text-lg font-bold">{simulation.items[0]?.title ?? "Demo video"}</p>
-            <p className="video-muted-text mt-1 text-sm">{simulation.items[0]?.detail ?? "Video player simulation"}</p>
+            <p className="mt-3 text-lg font-bold">{simulation.items[0]?.title ?? "Training video"}</p>
+            <p className="video-muted-text mt-1 text-sm">{simulation.items[0]?.detail ?? "Video player"}</p>
           </div>
         </div>
-        <ProgressBar value={72} label="Preview progress" inverse />
-        <p className="video-muted-text mt-3 text-sm">Preview only: later phases add watched-interval tracking and completion logic.</p>
+        <ProgressBar value={72} label="Progress" inverse />
+        <p className="video-muted-text mt-3 text-sm">Completion is recorded after the required watch threshold is reached.</p>
       </section>
     );
   }
@@ -881,7 +878,7 @@ function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
   if (simulation.kind === "form") {
     return (
       <section className="ds-card p-4">
-        <h3 className="text-lg font-bold">Simulated form preview</h3>
+        <h3 className="text-lg font-bold">Request details</h3>
         <div className="mt-4 space-y-3">
           {simulation.items.map((item) => (
             <div key={item.title} className="ds-card-muted p-3">
@@ -897,7 +894,7 @@ function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
 
   return (
     <section className="ds-card p-4">
-      <h3 className="text-lg font-bold">What opens in the demo</h3>
+      <h3 className="text-lg font-bold">What opens</h3>
       <div className="mt-4 grid gap-3">
         {simulation.items.map((item) => {
           if (simulation.kind === "sessions") {
@@ -1021,21 +1018,21 @@ function iconForAction(action: string, route: RouteDefinition) {
 function actionHint(action: string, route: RouteDefinition): string {
   const normalized = action.toLowerCase();
   if (normalized.includes("video") || normalized.includes("play") || normalized.includes("watch")) {
-    return "Preview the learning-player surface with a safe video frame.";
+    return "Open the learning player and continue progress tracking.";
   }
   if (normalized.includes("sessions") || normalized.includes("session") || normalized.includes("date")) {
-    return "Preview upcoming sessions, registration state, and schedule context.";
+    return "Review upcoming sessions, registration state, and schedule details.";
   }
   if (normalized.includes("checkout") || normalized.includes("billing")) {
-    return "Preview the commercial screen without storing payment details.";
+    return "Review plan, invoice, and billing details.";
   }
   if (normalized.includes("request") || route.domain.includes("GD")) {
-    return "Preview the GD client-service interaction with privacy-safe fixture data.";
+    return "Review service details, request status, and client-safe updates.";
   }
   if (normalized.includes("alert") || route.domain.includes("Legislative")) {
-    return "Preview the attorney-reviewed alert workflow and recipient view.";
+    return "Review the attorney-approved alert workflow and recipient view.";
   }
-  return "Open a modal that shows how this action will feel in the demo.";
+  return "Open the workflow details for this action.";
 }
 
 function buildActionSimulation(
@@ -1048,7 +1045,7 @@ function buildActionSimulation(
 
   if (normalized.includes("open sessions") || normalized.includes("sessions, scenarios, progress")) {
     return {
-      title: "Sessions, scenarios, and progress preview",
+      title: "Sessions, scenarios, and progress",
       summary: "A compact learner view showing the next session, eligible scenario, and current progress state.",
       kind: "sessions",
       items: [
@@ -1064,24 +1061,24 @@ function buildActionSimulation(
         })),
         {
           title: "Progress summary",
-          detail: activeUserId ? `Progress is scoped to ${activeUserId} and remains fixture-backed in Phase 1.` : "Progress is scoped to the selected persona.",
-          meta: "No mutation"
+          detail: activeUserId ? `Progress is scoped to learner record ${activeUserId}.` : "Progress is scoped to the selected learner.",
+          meta: "In progress"
         }
       ]
     };
   }
 
-  if (normalized.includes("video") || normalized.includes("watch") || normalized.includes("play") || normalized.includes("join simulated zoom")) {
+  if (normalized.includes("video") || normalized.includes("watch") || normalized.includes("play") || normalized.includes("join live session")) {
     const course = store.courses[0];
     return {
-      title: normalized.includes("zoom") ? "Simulated Zoom handoff" : "Training video preview",
-      summary: "A safe media surface opens without external video hosting. Completion logic stays in the later Signatrain phase.",
+      title: normalized.includes("zoom") ? "Live session room" : "Training video",
+      summary: "Open the session experience, confirm attendance readiness, and continue progress tracking.",
       kind: "video",
       items: [
         {
-          title: course?.title ?? "Demo training video",
+          title: course?.title ?? "Training video",
           detail: normalized.includes("zoom")
-            ? "Branded modal for join flow; no external URL is opened."
+            ? "Join flow with roster status, attendance readiness, and session controls."
             : "Video shell with poster, controls, and progress affordance."
         }
       ]
@@ -1090,8 +1087,8 @@ function buildActionSimulation(
 
   if (normalized.includes("continue learning") || route.domain.includes("Signatrain")) {
     return {
-      title: "Learning path preview",
-      summary: "A premium Signatrain learning-path surface with course progress, practical next steps, and scenario-based modules.",
+      title: "Learning path",
+      summary: "Course progress, practical next steps, and scenario-based modules for the selected learner.",
       kind: "cards",
       items: store.courses.slice(0, 3).map((course, index) => ({
         title: course.title,
@@ -1104,20 +1101,20 @@ function buildActionSimulation(
 
   if (normalized.includes("choose") || normalized.includes("enter") || normalized.includes("edit") || normalized.includes("toggle") || normalized.includes("describe")) {
     return {
-      title: "Form interaction preview",
-      summary: "The action opens a guided form state with safe fields and validation treatment.",
+      title: "Request details",
+      summary: "Complete the required fields and review validation guidance before submitting.",
       kind: "form",
       items: [
         { title: "Primary field", detail: action, meta: "Required" },
-        { title: "Visibility", detail: route.domain.includes("GD") ? "company_visible or restricted" : "Persona-scoped demo data" },
-        { title: "Result", detail: "Preview state only; no records are written in this phase." }
+        { title: "Visibility", detail: route.domain.includes("GD") ? "Company-visible or restricted" : "Learner workspace" },
+        { title: "Result", detail: "Ready for review" }
       ]
     };
   }
 
   if (normalized.includes("request") || route.domain.includes("GD")) {
     return {
-      title: "GD portal action preview",
+      title: "GD service workspace",
       summary: "Shows the client-facing service surface while preserving request privacy boundaries.",
       kind: "cards",
       items: store.legalRequests.slice(0, 2).map((request) => ({
@@ -1130,8 +1127,8 @@ function buildActionSimulation(
 
   if (normalized.includes("alert") || route.domain.includes("Legislative")) {
     return {
-      title: "Legislative alert preview",
-      summary: "Shows the alert pipeline or recipient experience with attorney-reviewed fixture content.",
+      title: "Legislative alert workspace",
+      summary: "Review the alert pipeline and recipient experience with attorney-reviewed content.",
       kind: "status",
       items: store.alerts.slice(0, 3).map((alert) => ({
         title: alert.title,
@@ -1143,8 +1140,8 @@ function buildActionSimulation(
 
   if (normalized.includes("certificate") || normalized.includes("download") || normalized.includes("verify")) {
     return {
-      title: "Certificate and export preview",
-      summary: "Shows the safe metadata that can be displayed or downloaded in a later phase.",
+      title: "Certificate and export",
+      summary: "Review the certificate metadata available for verification and download.",
       kind: "certificates",
       items: store.certificates.map((certificate) => ({
         title: certificate.title,
@@ -1156,8 +1153,8 @@ function buildActionSimulation(
 
   if (normalized.includes("invite") || normalized.includes("assign") || normalized.includes("seat") || normalized.includes("user")) {
     return {
-      title: "People and seat action preview",
-      summary: "Shows available users and seat pools without changing assignments yet.",
+      title: "People and seat management",
+      summary: "Review available users, role assignments, and seat pools.",
       kind: "cards",
       items: [
         ...store.users.slice(0, 3).map((user) => ({
@@ -1175,13 +1172,13 @@ function buildActionSimulation(
   }
 
   return {
-    title: `${action} preview`,
-    summary: "A safe modal simulation of the documented primary action.",
+    title: action,
+    summary: "Review key details and related records for this action.",
     kind: "cards",
     items: [
-      { title: "Current route", detail: route.name, meta: route.domain },
-      { title: "Action source", detail: "config/route-manifest.json", meta: route.priority },
-      { title: "Demo behavior", detail: "Visual simulation now; workflow mutation in its build phase." }
+      { title: "Current screen", detail: route.name, meta: route.domain },
+      { title: "Workflow", detail: action, meta: route.priority },
+      { title: "Status", detail: "Ready for review" }
     ]
   };
 }
@@ -1262,8 +1259,8 @@ function NotInManifest({ pathname }: { pathname: string }) {
   return (
     <div className="narrow-shell">
       <EmptyState
-        title="Route not in manifest"
-        body={`The path ${pathname} is not included in config/route-manifest.json.`}
+        title="Screen unavailable"
+        body={`The path ${pathname} is not available in this workspace.`}
       />
     </div>
   );

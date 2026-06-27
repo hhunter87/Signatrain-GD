@@ -46,8 +46,8 @@
   "alerts": [
     {
       "id": "alert_nyc_safe_time",
-      "title": "NYC Safe and Sick Time Amendment — Demo",
-      "summary": "Fictional demonstration summary of a local leave-law change.",
+      "title": "NYC Safe and Sick Time Amendment",
+      "summary": "Summary of a local leave-law change.",
       "impact": "Employers should review policy language and manager communications.",
       "recommendedAction": "Review current policy and confirm implementation owners.",
       "topic": "Leave and Accommodation",
@@ -61,7 +61,7 @@
         "HR"
       ],
       "sourceReferences": [
-        "Demo municipal source reference"
+        "Municipal source reference"
       ],
       "createdByUserId": "user_sam",
       "approvedByUserId": "user_rachel",
@@ -70,8 +70,8 @@
     },
     {
       "id": "alert_ca_wpvp",
-      "title": "California Workplace Violence Plan Update — Demo",
-      "summary": "Fictional demonstration update for California employers.",
+      "title": "California Workplace Violence Plan Update",
+      "summary": "Update for California employers.",
       "impact": "Employers should confirm plan ownership and training records.",
       "recommendedAction": "Review current plan and responsible roles.",
       "topic": "Workplace Safety",
@@ -85,7 +85,7 @@
         "HR"
       ],
       "sourceReferences": [
-        "Demo California source reference"
+        "California source reference"
       ],
       "createdByUserId": "user_sam",
       "approvedByUserId": "user_rachel",
@@ -94,8 +94,8 @@
     },
     {
       "id": "alert_nj_pay_transparency",
-      "title": "New Jersey Pay Transparency Amendment — Demo",
-      "summary": "Draft fictional alert for workflow demonstration.",
+      "title": "New Jersey Pay Transparency Amendment",
+      "summary": "Draft alert for workflow review.",
       "impact": "Job posting and record practices may require updates.",
       "recommendedAction": "Prepare a review of recruiting templates.",
       "topic": "Hiring",
@@ -109,7 +109,7 @@
         "HR"
       ],
       "sourceReferences": [
-        "Demo New Jersey source reference"
+        "New Jersey source reference"
       ],
       "createdByUserId": "user_sam",
       "approvedByUserId": null,
@@ -118,8 +118,8 @@
     },
     {
       "id": "alert_ny_monitoring",
-      "title": "New York Electronic Monitoring Notice — Demo",
-      "summary": "Fictional alert awaiting attorney review.",
+      "title": "New York Electronic Monitoring Notice",
+      "summary": "Alert awaiting attorney review.",
       "impact": "Notice language and acknowledgment practices may need review.",
       "recommendedAction": "Confirm current notice and onboarding process.",
       "topic": "Privacy",
@@ -133,7 +133,7 @@
         "HR"
       ],
       "sourceReferences": [
-        "Demo New York source reference"
+        "New York source reference"
       ],
       "createdByUserId": "user_sam",
       "approvedByUserId": null,
