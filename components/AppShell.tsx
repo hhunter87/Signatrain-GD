@@ -74,6 +74,7 @@ function ShellContent() {
   const access = canAccessRoute(route, activeUser, store);
   const productForTheme = isRestrictedPage ? store.activeProduct : routeProduct(pathname);
   const visualProduct = productForTheme === "shared" ? store.activeProduct : productForTheme;
+  const themeClassName = themeClassForPath(pathname, visualProduct);
 
   useEffect(() => {
     if (!hydrated || isRestrictedPage || !route || access.allowed) {
@@ -109,14 +110,14 @@ function ShellContent() {
   const showSidebar = !["/", "/pricing"].includes(pathname) && !pathname.startsWith("/checkout");
 
   return (
-    <div data-product={visualProduct} className="min-h-screen bg-canvas text-ink">
-      <div className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-950">
+    <div data-product={visualProduct} className={`app-root ${themeClassName}`}>
+      <div className="demo-banner px-4 py-2 text-center text-sm font-semibold">
         Demo - fictional data only. No production integrations, no real legal, payment, or customer data.
       </div>
-      <header className="sticky top-0 z-30 border-b border-line bg-panel/95 backdrop-blur">
+      <header className="topbar sticky top-0 z-30">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 lg:px-6">
           <Link href="/app/products" className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="h-5 w-5 text-[color:var(--theme-accent)]" aria-hidden="true" />
+            <ShieldCheck className="brand-mark h-5 w-5" aria-hidden="true" />
             <span>GD & Signatrain Demo</span>
           </Link>
           <ProductSwitcher
@@ -125,17 +126,17 @@ function ShellContent() {
             onSwitch={handleProductSwitch}
           />
           <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center gap-2 rounded border border-line bg-white px-3 py-2">
+            <span className="control-chip inline-flex items-center gap-2 px-3 py-2">
               <Building2 className="h-4 w-4" aria-hidden="true" />
               {activeOrganization?.name ?? "No organization"}
             </span>
-            <span className="inline-flex items-center gap-2 rounded border border-line bg-white px-3 py-2">
+            <span className="control-chip inline-flex items-center gap-2 px-3 py-2">
               <Users className="h-4 w-4" aria-hidden="true" />
               {activePersona.name}
             </span>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded bg-[color:var(--theme-strong)] px-3 py-2 font-semibold text-white"
+              className="ds-button ds-button-primary px-3 py-2 text-sm"
               onClick={() => setControlsOpen(true)}
             >
               <Settings2 className="h-4 w-4" aria-hidden="true" />
@@ -177,14 +178,30 @@ function ShellContent() {
   );
 }
 
+function themeClassForPath(pathname: string, product: ProductContext): string {
+  if (pathname.startsWith("/app/gd") || pathname.startsWith("/admin/gd")) {
+    return "theme-gd";
+  }
+  if (pathname.startsWith("/app/signatrain") || pathname.startsWith("/admin/signatrain")) {
+    return "theme-st";
+  }
+  if (product === "gd") {
+    return "theme-gd";
+  }
+  if (product === "signatrain") {
+    return "theme-st";
+  }
+  return "theme-shared";
+}
+
 function LoadingDemoContext() {
   return (
-    <div className="mx-auto max-w-3xl">
-      <section className="rounded border border-line bg-white p-6 shadow-soft">
-        <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--theme-accent)]">
+    <div className="narrow-shell">
+      <section className="ds-card p-6">
+        <p className="page-eyebrow text-sm font-bold uppercase tracking-wide">
           Checking access
         </p>
-        <h1 className="mt-2 text-3xl font-bold">Loading demo context</h1>
+        <h1 className="page-title mt-2 text-3xl font-bold">Loading demo context</h1>
         <p className="mt-2 text-muted">
           Applying the selected persona, organization, and product permissions.
         </p>
@@ -212,10 +229,8 @@ function ProductSwitcher({
           type="button"
           onClick={() => onSwitch(product)}
           className={[
-            "inline-flex items-center gap-2 rounded px-3 py-2 text-sm font-semibold transition",
-            currentProduct === product
-              ? "bg-[color:var(--theme-soft)] text-[color:var(--theme-strong)]"
-              : "text-muted hover:bg-slate-100"
+            "product-tab inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold",
+            currentProduct === product ? "product-tab-active" : ""
           ].join(" ")}
           title={`Switch to ${productLabel(product)}`}
         >
@@ -246,7 +261,7 @@ function Sidebar({ pathname }: { pathname: string }) {
   }, {});
 
   return (
-    <aside className="sticky top-[104px] hidden h-[calc(100vh-104px)] w-72 shrink-0 overflow-y-auto border-r border-line bg-white p-4 lg:block">
+    <aside className="shell-sidebar sticky top-[104px] hidden h-[calc(100vh-104px)] w-72 shrink-0 overflow-y-auto p-4 lg:block">
       <nav aria-label="Primary">
         {Object.entries(grouped).map(([group, items]) => (
           <section key={group} className="mb-5">
@@ -257,10 +272,10 @@ function Sidebar({ pathname }: { pathname: string }) {
                   <Link
                     href={href}
                     className={[
-                      "block rounded px-3 py-2 text-sm",
+                      "nav-link px-3 py-2 text-sm",
                       findRoute(pathname)?.path === route.path
-                        ? "bg-[color:var(--theme-soft)] font-semibold text-[color:var(--theme-strong)]"
-                        : "text-ink hover:bg-slate-100"
+                        ? "nav-link-active"
+                        : ""
                     ].join(" ")}
                   >
                     {route.name}
@@ -317,13 +332,13 @@ function DemoControls({
         className="absolute inset-0 h-full w-full bg-black/30"
         onClick={onClose}
       />
-      <section className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-soft">
-        <div className="flex items-center justify-between border-b border-line p-5">
+      <section className="modal-panel absolute right-0 top-0 flex h-full w-full max-w-xl flex-col overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-[color:var(--border-subtle)] p-5">
           <div>
             <h2 className="text-xl font-bold">Demo Controls</h2>
             <p className="text-sm text-muted">Switch personas, products, scenarios, and reset fixture data.</p>
           </div>
-          <button type="button" className="rounded border border-line px-3 py-2 text-sm font-semibold" onClick={onClose}>
+          <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
             Close
           </button>
         </div>
@@ -331,7 +346,7 @@ function DemoControls({
           <label className="block">
             <span className="mb-2 block text-sm font-semibold">Persona</span>
             <select
-              className="w-full rounded border border-line bg-white px-3 py-2"
+              className="ds-field w-full px-3 py-2"
               value={activePersona.id}
               onChange={(event) => {
                 onPersonaChange(event.target.value);
@@ -350,7 +365,7 @@ function DemoControls({
             <label className="block">
               <span className="mb-2 block text-sm font-semibold">Organization context</span>
               <select
-                className="w-full rounded border border-line bg-white px-3 py-2"
+                className="ds-field w-full px-3 py-2"
                 value={store.activeOrganizationId}
                 onChange={(event) => onOrganizationChange(event.target.value)}
               >
@@ -368,7 +383,7 @@ function DemoControls({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                className="rounded border border-line px-3 py-2 text-sm font-semibold"
+                className="ds-button ds-button-secondary px-3 py-2 text-sm"
                 onClick={() => onProductSwitch("shared")}
               >
                 My Products
@@ -377,7 +392,7 @@ function DemoControls({
                 <button
                   key={product}
                   type="button"
-                  className="rounded border border-line px-3 py-2 text-sm font-semibold"
+                  className="ds-button ds-button-secondary px-3 py-2 text-sm"
                   onClick={() => onProductSwitch(product)}
                 >
                   {productLabel(product)}
@@ -393,7 +408,7 @@ function DemoControls({
                 <button
                   key={shortcut.label}
                   type="button"
-                  className="rounded border border-line px-3 py-2 text-left text-sm font-semibold hover:bg-slate-50"
+                  className="ds-button ds-button-secondary justify-start px-3 py-2 text-left text-sm"
                   onClick={() => {
                     onPersonaChange(shortcut.personaId);
                     router.push(shortcut.route);
@@ -409,7 +424,7 @@ function DemoControls({
           <section className="grid gap-2 sm:grid-cols-2">
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded bg-[color:var(--theme-strong)] px-3 py-2 text-sm font-semibold text-white"
+              className="ds-button ds-button-primary px-3 py-2 text-sm"
               onClick={onOutboxOpen}
             >
               <Bell className="h-4 w-4" aria-hidden="true" />
@@ -417,7 +432,7 @@ function DemoControls({
             </button>
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded border border-red-200 px-3 py-2 text-sm font-semibold text-red-700"
+              className="ds-button ds-button-danger px-3 py-2 text-sm"
               onClick={() => {
                 if (window.confirm("Reset all local demo data to the checked-in fixtures?")) {
                   onReset();
@@ -431,7 +446,7 @@ function DemoControls({
             </button>
           </section>
 
-          <label className="flex items-center gap-3 rounded border border-line p-3 text-sm">
+          <label className="ds-card-muted flex items-center gap-3 p-3 text-sm">
             <input
               type="checkbox"
               checked={permissionDiagnostics}
@@ -449,17 +464,17 @@ function DemoControls({
 function OutboxModal({ onClose }: { onClose: () => void }) {
   const { store } = useDemoStore();
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 p-4">
-      <section className="max-h-[80vh] w-full max-w-3xl overflow-y-auto rounded bg-white p-5 shadow-soft">
+    <div className="modal-scrim absolute inset-0 z-10 flex items-center justify-center p-4">
+      <section className="modal-panel max-h-[80vh] w-full max-w-3xl overflow-y-auto p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold">Simulated email outbox</h2>
-          <button type="button" className="rounded border border-line px-3 py-2 text-sm font-semibold" onClick={onClose}>
+          <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
             Close
           </button>
         </div>
         <div className="space-y-3">
           {store.emailOutbox.map((email) => (
-            <article key={email.id} className="rounded border border-line p-4">
+            <article key={email.id} className="ds-card p-4">
               <p className="text-sm text-muted">{email.createdAt}</p>
               <h3 className="font-semibold">{email.subject}</h3>
               <p className="text-sm">To: {email.recipient}</p>
@@ -510,36 +525,36 @@ function LandingView() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <section className="mb-8 rounded border border-line bg-white p-6 shadow-soft">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[color:var(--theme-accent)]">
+    <div className="content-shell">
+      <section className="ds-card mb-8 p-6">
+        <p className="page-eyebrow text-sm font-semibold uppercase tracking-wide">
           Disposable demo
         </p>
-        <h1 className="mt-2 text-4xl font-bold">Select a persona to enter the GD & Signatrain demo</h1>
+        <h1 className="page-title mt-2 text-4xl font-bold">Select a persona to enter the GD & Signatrain demo</h1>
         <p className="mt-3 max-w-3xl text-muted">
           This local demo validates shared product access, role-specific navigation, and strict data boundaries using only fictional fixture data.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link className="rounded bg-[color:var(--theme-strong)] px-4 py-2 font-semibold text-white" href="/pricing">
+          <Link className="ds-button ds-button-primary px-4 py-2" href="/pricing">
             Open pricing
           </Link>
-          <Link className="rounded border border-line px-4 py-2 font-semibold" href="/app/products">
+          <Link className="ds-button ds-button-secondary px-4 py-2" href="/app/products">
             My Products
           </Link>
         </div>
       </section>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="marketing-grid">
         {Object.entries(grouped).map(([group, personas]) => (
-          <section key={group}>
+          <section key={group} className="marketing-span-4">
             <h2 className="mb-3 text-lg font-bold">{group}</h2>
             <div className="space-y-3">
               {personas.map((persona) => (
-                <article key={persona.id} className="rounded border border-line bg-white p-4">
+                <article key={persona.id} className="ds-card p-4">
                   <h3 className="font-semibold">{persona.name}</h3>
                   <p className="mt-1 text-sm text-muted">{persona.description}</p>
                   <button
                     type="button"
-                    className="mt-4 rounded bg-[color:var(--theme-strong)] px-3 py-2 text-sm font-semibold text-white"
+                    className="ds-button ds-button-primary mt-4 px-3 py-2 text-sm"
                     onClick={() => {
                       const startRoute = switchPersona(persona.id);
                       router.push(startRoute);
@@ -560,27 +575,27 @@ function LandingView() {
 function PricingView() {
   const { store } = useDemoStore();
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="content-shell">
       <PageHeading
         eyebrow="Public"
         title="Pricing and plan comparison"
         description="Self-service choices open the simulated checkout route. Integration behavior remains fixture-backed for the demo."
       />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="marketing-grid">
         {store.catalogSkus.map((sku) => (
-          <article key={sku.id} className="rounded border border-line bg-white p-5 shadow-soft">
+          <article key={sku.id} className="ds-card marketing-span-4 p-5">
             <h2 className="text-xl font-bold">{sku.name}</h2>
             <p className="mt-2 text-muted">{sku.priceDisplay}</p>
             {sku.additionalSeatDisplay ? <p className="mt-1 text-sm text-muted">{sku.additionalSeatDisplay}</p> : null}
             {sku.selfService ? (
               <Link
-                className="mt-5 inline-block rounded bg-[color:var(--theme-strong)] px-4 py-2 font-semibold text-white"
+                className="ds-button ds-button-primary mt-5 px-4 py-2"
                 href={`/checkout/${sku.id}`}
               >
                 Open simulated checkout
               </Link>
             ) : (
-              <p className="mt-5 rounded bg-slate-100 px-3 py-2 text-sm font-semibold text-muted">
+              <p className="ds-pill mt-5 px-3 py-2 text-sm">
                 Admin-assisted purchase in this demo phase
               </p>
             )}
@@ -596,20 +611,20 @@ function CheckoutPlaceholder({ pathname }: { pathname: string }) {
   const skuId = pathname.split("/").pop();
   const sku = store.catalogSkus.find((item) => item.id === skuId);
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="narrow-shell">
       <PageHeading
         eyebrow="Public / Shared"
         title="Simulated checkout"
         description="Phase 1 exposes the route and safe context. Checkout mutations are implemented in the shared company and checkout phase."
       />
-      <article className="rounded border border-line bg-white p-5 shadow-soft">
+      <article className="ds-card p-5">
         <h2 className="text-xl font-bold">{sku?.name ?? "Unknown SKU"}</h2>
         <p className="mt-2 text-muted">{sku?.priceDisplay ?? "The selected SKU is not in the fixture catalog."}</p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link className="rounded border border-line px-4 py-2 font-semibold" href="/pricing">
+          <Link className="ds-button ds-button-secondary px-4 py-2" href="/pricing">
             Back to pricing
           </Link>
-          <Link className="rounded bg-[color:var(--theme-strong)] px-4 py-2 font-semibold text-white" href="/app/products">
+          <Link className="ds-button ds-button-primary px-4 py-2" href="/app/products">
             View current products
           </Link>
         </div>
@@ -625,13 +640,13 @@ function CertificateView({ pathname }: { pathname: string }) {
   const recipient = store.users.find((user) => user.id === certificate?.userId);
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="narrow-shell">
       <PageHeading
         eyebrow="Public verification"
         title="Certificate verification"
         description="Public verification exposes only limited non-sensitive demo metadata."
       />
-      <article className="rounded border border-line bg-white p-5 shadow-soft">
+      <article className="ds-card p-5">
         {certificate ? (
           <>
             <StatusBadge label={certificate.status} />
@@ -655,7 +670,7 @@ function ProductsView() {
   const { store, activeUser, switchProduct } = useDemoStore();
   const products = getAvailableProducts(activeUser, store).filter((product) => product !== "admin");
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="content-shell">
       <PageHeading
         eyebrow="Shared Core"
         title="My Products"
@@ -670,7 +685,7 @@ function ProductsView() {
               key={product}
               href={product === "gd" ? "/app/gd" : "/app/signatrain"}
               onClick={() => switchProduct(product)}
-              className="rounded border border-line bg-white p-5 shadow-soft transition hover:-translate-y-0.5"
+              className="ds-card block p-5 transition hover:-translate-y-0.5"
             >
               <h2 className="text-2xl font-bold">{productLabel(product)}</h2>
               <p className="mt-2 text-muted">
@@ -694,7 +709,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
   });
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="content-shell">
       <PageHeading
         eyebrow={`${route.domain} / ${route.priority}`}
         title={route.name}
@@ -706,7 +721,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
         <MetricCard label="Visible requests" value={String(visibleRequests.length)} />
         <MetricCard label="Safe messages" value={String(visibleMessages.length)} />
       </div>
-      <section className="mt-6 rounded border border-line bg-white p-5 shadow-soft">
+      <section className="ds-card mt-6 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-bold">Documented actions</h2>
@@ -714,7 +729,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
               Interactive demo actions from the route manifest. Each card opens a safe simulation using fixture data; full workflow mutations begin in later phases.
             </p>
           </div>
-          <span className="rounded bg-[color:var(--theme-soft)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[color:var(--theme-strong)]">
+          <span className="ds-pill px-3 py-1 text-xs uppercase tracking-wide">
             Simulated
           </span>
         </div>
@@ -724,12 +739,12 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
           ))}
         </div>
       </section>
-      <section className="mt-6 rounded border border-line bg-white p-5 shadow-soft">
+      <section className="ds-card mt-6 p-5">
         <h2 className="text-xl font-bold">Fixture snapshot</h2>
         <SnapshotGrid route={route} />
       </section>
       {permissionDiagnostics ? (
-        <section className="mt-6 rounded border border-line bg-white p-5 shadow-soft">
+        <section className="ds-card mt-6 p-5">
           <h2 className="text-xl font-bold">Permission diagnostics</h2>
           <dl className="mt-3 grid gap-3 md:grid-cols-3">
             <Meta label="Path" value={pathname} />
@@ -765,14 +780,14 @@ function ActionCard({
     <button
       type="button"
       onClick={onOpen}
-      className="group min-h-36 rounded border border-line bg-slate-50 p-4 text-left transition hover:-translate-y-0.5 hover:border-[color:var(--theme-accent)] hover:bg-white hover:shadow-soft"
+      className="action-card group p-4"
     >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded bg-[color:var(--theme-soft)] text-[color:var(--theme-strong)]">
+      <span className="action-icon inline-flex h-10 w-10 items-center justify-center">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="mt-4 block text-base font-bold text-ink">{action}</span>
       <span className="mt-2 block text-sm text-muted">{hint}</span>
-      <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--theme-strong)]">
+      <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--brand-primary-dark)]">
         Open simulation
         <MousePointerClick className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
       </span>
@@ -794,23 +809,23 @@ function ActionSimulationModal({
   const Icon = iconForAction(action, route);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
-      <section className="max-h-[88vh] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-soft">
-        <div className="border-b border-line bg-slate-50 p-5">
+    <div className="modal-scrim fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <section className="modal-panel max-h-[88vh] w-full max-w-5xl overflow-y-auto">
+        <div className="border-b border-[color:var(--border-subtle)] bg-[color:var(--surface-muted)] p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 gap-4">
-              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded bg-[color:var(--theme-soft)] text-[color:var(--theme-strong)]">
+              <span className="action-icon inline-flex h-12 w-12 shrink-0 items-center justify-center">
                 <Icon className="h-6 w-6" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--theme-accent)]">
+                <p className="page-eyebrow text-sm font-bold uppercase tracking-wide">
                   {route.name} simulation
                 </p>
-                <h2 className="mt-1 text-2xl font-bold">{simulation.title}</h2>
+                <h2 className="page-title mt-1 text-2xl font-bold">{simulation.title}</h2>
                 <p className="mt-2 max-w-3xl text-sm text-muted">{simulation.summary}</p>
               </div>
             </div>
-            <button type="button" className="rounded border border-line bg-white px-3 py-2 text-sm font-semibold" onClick={onClose}>
+            <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
               Close
             </button>
           </div>
@@ -818,7 +833,7 @@ function ActionSimulationModal({
         <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_0.9fr]">
           <SimulationPreview simulation={simulation} />
           <aside className="space-y-4">
-            <section className="rounded border border-line p-4">
+            <section className="ds-card p-4">
               <h3 className="font-bold">Fixture context</h3>
               <dl className="mt-3 grid gap-2">
                 <Meta label="Persona" value={activeUser?.name ?? "Demo persona"} />
@@ -826,7 +841,7 @@ function ActionSimulationModal({
                 <Meta label="Route" value={route.path} />
               </dl>
             </section>
-            <section className="rounded border border-line p-4">
+            <section className="ds-card p-4">
               <h3 className="font-bold">What changes in a later phase</h3>
               <p className="mt-2 text-sm text-muted">
                 This modal previews the user experience without writing workflow state. The real mutation will be added in the phase that owns this workflow.
@@ -842,38 +857,36 @@ function ActionSimulationModal({
 interface ActionSimulation {
   title: string;
   summary: string;
-  kind: "video" | "sessions" | "cards" | "form" | "status";
-  items: Array<{ title: string; detail: string; meta?: string }>;
+  kind: "video" | "sessions" | "cards" | "form" | "status" | "certificates";
+  items: Array<{ title: string; detail: string; meta?: string; progress?: number }>;
 }
 
 function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
   if (simulation.kind === "video") {
     return (
-      <section className="rounded border border-line bg-slate-950 p-4 text-white">
-        <div className="flex aspect-video items-center justify-center rounded bg-gradient-to-br from-slate-900 to-slate-700">
+      <section className="ds-card bg-[color:var(--brand-primary-dark)] p-4 text-white">
+        <div className="video-stage flex aspect-video items-center justify-center">
           <div className="text-center">
             <PlayCircle className="mx-auto h-16 w-16 text-white" aria-hidden="true" />
             <p className="mt-3 text-lg font-bold">{simulation.items[0]?.title ?? "Demo video"}</p>
-            <p className="mt-1 text-sm text-slate-300">{simulation.items[0]?.detail ?? "Video player simulation"}</p>
+            <p className="video-muted-text mt-1 text-sm">{simulation.items[0]?.detail ?? "Video player simulation"}</p>
           </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded bg-slate-700">
-          <div className="h-full w-[72%] rounded bg-[color:var(--theme-accent)]" />
-        </div>
-        <p className="mt-3 text-sm text-slate-300">Preview only: later phases add watched-interval tracking and completion logic.</p>
+        <ProgressBar value={72} label="Preview progress" inverse />
+        <p className="video-muted-text mt-3 text-sm">Preview only: later phases add watched-interval tracking and completion logic.</p>
       </section>
     );
   }
 
   if (simulation.kind === "form") {
     return (
-      <section className="rounded border border-line bg-white p-4">
+      <section className="ds-card p-4">
         <h3 className="text-lg font-bold">Simulated form preview</h3>
         <div className="mt-4 space-y-3">
           {simulation.items.map((item) => (
-            <div key={item.title} className="rounded border border-line bg-slate-50 p-3">
+            <div key={item.title} className="ds-card-muted p-3">
               <label className="text-xs font-bold uppercase tracking-wide text-muted">{item.title}</label>
-              <div className="mt-2 rounded border border-line bg-white px-3 py-2 text-sm font-semibold">{item.detail}</div>
+              <div className="ds-field mt-2 px-3 py-2 text-sm font-semibold">{item.detail}</div>
               {item.meta ? <p className="mt-2 text-xs text-muted">{item.meta}</p> : null}
             </div>
           ))}
@@ -883,23 +896,84 @@ function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
   }
 
   return (
-    <section className="rounded border border-line bg-white p-4">
+    <section className="ds-card p-4">
       <h3 className="text-lg font-bold">What opens in the demo</h3>
       <div className="mt-4 grid gap-3">
-        {simulation.items.map((item) => (
-          <article key={`${item.title}-${item.detail}`} className="rounded border border-line bg-slate-50 p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--theme-accent)]" aria-hidden="true" />
-              <div>
-                <h4 className="font-bold">{item.title}</h4>
-                <p className="mt-1 text-sm text-muted">{item.detail}</p>
-                {item.meta ? <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--theme-accent)]">{item.meta}</p> : null}
-              </div>
-            </div>
-          </article>
-        ))}
+        {simulation.items.map((item) => {
+          if (simulation.kind === "sessions") {
+            return <ScenarioCard key={`${item.title}-${item.detail}`} item={item} />;
+          }
+          if (simulation.kind === "certificates") {
+            return <CertificateCard key={`${item.title}-${item.detail}`} item={item} />;
+          }
+          return <CourseCard key={`${item.title}-${item.detail}`} item={item} />;
+        })}
       </div>
     </section>
+  );
+}
+
+function ProgressBar({ value, label, inverse = false }: { value: number; label: string; inverse?: boolean }) {
+  return (
+    <div className="mt-4">
+      <div className={[
+        "mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wide",
+        inverse ? "video-muted-text" : "text-muted"
+      ].join(" ")}>
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <div className="progress-track">
+        <div className="progress-fill" style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function CourseCard({ item }: { item: ActionSimulation["items"][number] }) {
+  return (
+    <article className="course-card p-4">
+      <div className="flex items-start gap-3">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />
+        <div className="flex-1">
+          <h4 className="font-bold">{item.title}</h4>
+          <p className="mt-1 text-sm text-muted">{item.detail}</p>
+          {item.meta ? <p className="page-eyebrow mt-2 text-xs font-semibold uppercase tracking-wide">{item.meta}</p> : null}
+          {typeof item.progress === "number" ? (
+            <ProgressBar value={item.progress} label="Learner progress" />
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ScenarioCard({ item }: { item: ActionSimulation["items"][number] }) {
+  return (
+    <article className="scenario-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h4 className="font-bold">{item.title}</h4>
+          <p className="mt-1 text-sm text-muted">{item.detail}</p>
+        </div>
+        {item.meta ? <span className="ds-pill shrink-0 px-2 py-1 text-xs">{item.meta}</span> : null}
+      </div>
+    </article>
+  );
+}
+
+function CertificateCard({ item }: { item: ActionSimulation["items"][number] }) {
+  return (
+    <article className="certificate-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="page-eyebrow text-xs font-bold uppercase tracking-wide">Certificate</p>
+          <h4 className="mt-1 font-bold">{item.title}</h4>
+          <p className="mt-1 text-sm text-muted">{item.detail}</p>
+        </div>
+        {item.meta ? <span className="ds-pill shrink-0 px-2 py-1 text-xs">{item.meta}</span> : null}
+      </div>
+    </article>
   );
 }
 
@@ -1014,6 +1088,20 @@ function buildActionSimulation(
     };
   }
 
+  if (normalized.includes("continue learning") || route.domain.includes("Signatrain")) {
+    return {
+      title: "Learning path preview",
+      summary: "A premium Signatrain learning-path surface with course progress, practical next steps, and scenario-based modules.",
+      kind: "cards",
+      items: store.courses.slice(0, 3).map((course, index) => ({
+        title: course.title,
+        detail: `${course.topic} - ${course.audience} path - ${course.moduleIds.length} modules`,
+        meta: index === 0 ? "Recommended next" : "Learning path",
+        progress: [68, 42, 24][index] ?? 30
+      }))
+    };
+  }
+
   if (normalized.includes("choose") || normalized.includes("enter") || normalized.includes("edit") || normalized.includes("toggle") || normalized.includes("describe")) {
     return {
       title: "Form interaction preview",
@@ -1057,7 +1145,7 @@ function buildActionSimulation(
     return {
       title: "Certificate and export preview",
       summary: "Shows the safe metadata that can be displayed or downloaded in a later phase.",
-      kind: "cards",
+      kind: "certificates",
       items: store.certificates.map((certificate) => ({
         title: certificate.title,
         detail: `${certificate.id} - ${certificate.status}`,
@@ -1142,10 +1230,10 @@ function RestrictedView({ from }: { from: string | null }) {
   const access = canAccessRoute(route, activeUser, store);
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <section className="rounded border border-line bg-white p-6 shadow-soft">
-        <LockKeyhole className="h-9 w-9 text-[color:var(--theme-accent)]" aria-hidden="true" />
-        <h1 className="mt-4 text-3xl font-bold">Restricted access</h1>
+    <div className="narrow-shell">
+      <section className="ds-card p-6">
+        <LockKeyhole className="brand-mark h-9 w-9" aria-hidden="true" />
+        <h1 className="page-title mt-4 text-3xl font-bold">Restricted access</h1>
         <p className="mt-2 text-muted">
           {access.reason ?? "The active persona cannot open this screen."} Hidden content is not displayed.
         </p>
@@ -1158,10 +1246,10 @@ function RestrictedView({ from }: { from: string | null }) {
           </dl>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/app/products" className="rounded bg-[color:var(--theme-strong)] px-4 py-2 font-semibold text-white">
+          <Link href="/app/products" className="ds-button ds-button-primary px-4 py-2">
             Go to My Products
           </Link>
-          <Link href="/" className="rounded border border-line px-4 py-2 font-semibold">
+          <Link href="/" className="ds-button ds-button-secondary px-4 py-2">
             Select persona
           </Link>
         </div>
@@ -1172,7 +1260,7 @@ function RestrictedView({ from }: { from: string | null }) {
 
 function NotInManifest({ pathname }: { pathname: string }) {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="narrow-shell">
       <EmptyState
         title="Route not in manifest"
         body={`The path ${pathname} is not included in config/route-manifest.json.`}
@@ -1192,8 +1280,8 @@ function PageHeading({
 }) {
   return (
     <header className="mb-6">
-      <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--theme-accent)]">{eyebrow}</p>
-      <h1 className="mt-1 text-3xl font-bold lg:text-4xl">{title}</h1>
+      <p className="page-eyebrow text-sm font-bold uppercase tracking-wide">{eyebrow}</p>
+      <h1 className="page-title mt-1 text-3xl font-bold lg:text-4xl">{title}</h1>
       <p className="mt-2 max-w-3xl text-muted">{description}</p>
     </header>
   );
@@ -1201,7 +1289,7 @@ function PageHeading({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded border border-line bg-white p-4 shadow-soft">
+    <article className="ds-card stat-card p-4">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-1 text-2xl font-bold">{value}</p>
     </article>
@@ -1210,7 +1298,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded bg-slate-50 p-3">
+    <div className="ds-card-muted p-3">
       <dt className="text-xs font-bold uppercase tracking-wide text-muted">{label}</dt>
       <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
     </div>
@@ -1219,7 +1307,7 @@ function Meta({ label, value }: { label: string; value: string }) {
 
 function StatusBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex rounded bg-[color:var(--theme-soft)] px-3 py-1 text-sm font-bold text-[color:var(--theme-strong)]">
+    <span className="ds-pill px-3 py-1 text-sm">
       {label}
     </span>
   );
@@ -1227,7 +1315,7 @@ function StatusBadge({ label }: { label: string }) {
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
-    <section className="rounded border border-dashed border-line bg-white p-6 text-center">
+    <section className="ds-card p-6 text-center">
       <h2 className="text-xl font-bold">{title}</h2>
       <p className="mt-2 text-muted">{body}</p>
     </section>

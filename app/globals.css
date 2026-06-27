@@ -1,12 +1,11 @@
+@import "./brand-tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
-  --theme-strong: #17202a;
-  --theme-accent: #2d8c89;
-  --theme-soft: #e7f3f2;
 }
 
 * {
@@ -20,8 +19,8 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: #f6f4ef;
-  color: #17202a;
+  background: var(--surface-page);
+  color: var(--text-primary);
 }
 
 body,
@@ -46,23 +45,4 @@ a {
 
 :focus-visible {
   outline: 3px solid color-mix(in srgb, var(--theme-accent), white 18%);
-}
-
-[data-product="gd"] {
-  --theme-strong: #10243f;
-  --theme-accent: #2d8c89;
-  --theme-soft: #e7f3f2;
-}
-
-[data-product="signatrain"] {
-  --theme-strong: #222426;
-  --theme-accent: #b88a2a;
-  --theme-soft: #f6ecd7;
-}
-
-[data-product="shared"],
-[data-product="admin"] {
-  --theme-strong: #17202a;
-  --theme-accent: #687589;
-  --theme-soft: #eef1f4;
 }

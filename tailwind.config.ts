@@ -9,24 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#17202a",
-        muted: "#5f6b78",
-        canvas: "#f6f4ef",
-        panel: "#ffffff",
-        line: "#d9dee5",
+        ink: "var(--text-primary)",
+        muted: "var(--text-secondary)",
+        canvas: "var(--surface-page)",
+        panel: "var(--surface-card)",
+        line: "var(--border-subtle)",
         gd: {
-          navy: "#10243f",
-          teal: "#2d8c89",
-          mist: "#e7f3f2"
+          navy: "#183B70",
+          dark: "#0F294F",
+          cyan: "#22A9E0",
+          mist: "#F6F9FC"
         },
         signatrain: {
-          charcoal: "#222426",
-          gold: "#b88a2a",
-          hay: "#f6ecd7"
+          navy: "#153A66",
+          dark: "#0B2442",
+          teal: "#00A7B5",
+          green: "#52B788",
+          warm: "#F2B84B",
+          mist: "#EEF8F8"
         }
       },
       boxShadow: {
-        soft: "0 10px 30px rgba(23, 32, 42, 0.08)"
+        soft: "var(--shadow-card)"
       }
     }
   },
