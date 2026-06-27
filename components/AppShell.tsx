@@ -4,12 +4,24 @@ import {
   Bell,
   BriefcaseBusiness,
   Building2,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
+  CreditCard,
+  Download,
+  Eye,
   GraduationCap,
   LayoutDashboard,
+  ListChecks,
   LockKeyhole,
+  MessageSquare,
+  MousePointerClick,
+  PlayCircle,
   RotateCcw,
+  Search,
   Settings2,
   ShieldCheck,
+  Upload,
   Users
 } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 import { canAccessRoute, getAvailableProducts, isInternalUser, productLabel } from "@/lib/access";
 import { routeGroup, routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
 import { DemoStoreProvider, useDemoStore } from "@/lib/store";
-import type { ProductContext, RouteDefinition } from "@/lib/types";
+import type { DemoStoreData, ProductContext, RouteDefinition } from "@/lib/types";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 
 const scenarioShortcuts = [
@@ -649,15 +661,12 @@ function ProductsView() {
 
 function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; pathname: string }) {
   const { store, activeUser, activeOrganization, permissionDiagnostics } = useDemoStore();
+  const [activeAction, setActiveAction] = useState<string | null>(null);
   const visibleRequests = visibleLegalRequestsForUser(activeUser, store);
   const visibleMessages = store.legalMessages.filter((message) => {
     const request = store.legalRequests.find((item) => item.id === message.requestId);
     return request ? canViewLegalMessage(activeUser, request, message, store) : false;
   });
-  const relatedRoutes = routes
-    .filter((item) => item.domain === route.domain && item.path !== route.path)
-    .filter((item) => canAccessRoute(item, activeUser, store).allowed)
-    .slice(0, 8);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -672,39 +681,24 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
         <MetricCard label="Visible requests" value={String(visibleRequests.length)} />
         <MetricCard label="Safe messages" value={String(visibleMessages.length)} />
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <section className="rounded border border-line bg-white p-5 shadow-soft">
-          <h2 className="text-xl font-bold">Documented actions</h2>
-          <p className="mt-1 text-sm text-muted">
-            These actions come from the route manifest. Workflow mutations begin in later build phases.
-          </p>
-          <ul className="mt-4 space-y-2">
-            {route.primaryActions.map((action) => (
-              <li key={action} className="rounded bg-slate-50 px-3 py-2 text-sm">
-                {action}
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="rounded border border-line bg-white p-5 shadow-soft">
-          <h2 className="text-xl font-bold">Related navigation</h2>
-          <div className="mt-4 space-y-2">
-            {relatedRoutes.length ? (
-              relatedRoutes.map((item) => (
-                <Link
-                  key={item.path}
-                  className="block rounded border border-line px-3 py-2 text-sm font-semibold hover:bg-slate-50"
-                  href={resolveDemoPath(item.path)}
-                >
-                  {item.name}
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-muted">No related accessible routes for this persona.</p>
-            )}
+      <section className="mt-6 rounded border border-line bg-white p-5 shadow-soft">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold">Documented actions</h2>
+            <p className="mt-1 max-w-3xl text-sm text-muted">
+              Interactive demo actions from the route manifest. Each card opens a safe simulation using fixture data; full workflow mutations begin in later phases.
+            </p>
           </div>
-        </section>
-      </div>
+          <span className="rounded bg-[color:var(--theme-soft)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[color:var(--theme-strong)]">
+            Simulated
+          </span>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {route.primaryActions.map((action) => (
+            <ActionCard key={action} action={action} route={route} onOpen={() => setActiveAction(action)} />
+          ))}
+        </div>
+      </section>
       <section className="mt-6 rounded border border-line bg-white p-5 shadow-soft">
         <h2 className="text-xl font-bold">Fixture snapshot</h2>
         <SnapshotGrid route={route} />
@@ -719,8 +713,364 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
           </dl>
         </section>
       ) : null}
+      {activeAction ? (
+        <ActionSimulationModal
+          action={activeAction}
+          route={route}
+          onClose={() => setActiveAction(null)}
+        />
+      ) : null}
     </div>
   );
+}
+
+function ActionCard({
+  action,
+  route,
+  onOpen
+}: {
+  action: string;
+  route: RouteDefinition;
+  onOpen: () => void;
+}) {
+  const Icon = iconForAction(action, route);
+  const hint = actionHint(action, route);
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group min-h-36 rounded border border-line bg-slate-50 p-4 text-left transition hover:-translate-y-0.5 hover:border-[color:var(--theme-accent)] hover:bg-white hover:shadow-soft"
+    >
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded bg-[color:var(--theme-soft)] text-[color:var(--theme-strong)]">
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+      <span className="mt-4 block text-base font-bold text-ink">{action}</span>
+      <span className="mt-2 block text-sm text-muted">{hint}</span>
+      <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--theme-strong)]">
+        Open simulation
+        <MousePointerClick className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
+      </span>
+    </button>
+  );
+}
+
+function ActionSimulationModal({
+  action,
+  route,
+  onClose
+}: {
+  action: string;
+  route: RouteDefinition;
+  onClose: () => void;
+}) {
+  const { store, activeUser, activeOrganization } = useDemoStore();
+  const simulation = buildActionSimulation(action, route, store, activeUser?.id);
+  const Icon = iconForAction(action, route);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+      <section className="max-h-[88vh] w-full max-w-5xl overflow-y-auto rounded bg-white shadow-soft">
+        <div className="border-b border-line bg-slate-50 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 gap-4">
+              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded bg-[color:var(--theme-soft)] text-[color:var(--theme-strong)]">
+                <Icon className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--theme-accent)]">
+                  {route.name} simulation
+                </p>
+                <h2 className="mt-1 text-2xl font-bold">{simulation.title}</h2>
+                <p className="mt-2 max-w-3xl text-sm text-muted">{simulation.summary}</p>
+              </div>
+            </div>
+            <button type="button" className="rounded border border-line bg-white px-3 py-2 text-sm font-semibold" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+        <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <SimulationPreview simulation={simulation} />
+          <aside className="space-y-4">
+            <section className="rounded border border-line p-4">
+              <h3 className="font-bold">Fixture context</h3>
+              <dl className="mt-3 grid gap-2">
+                <Meta label="Persona" value={activeUser?.name ?? "Demo persona"} />
+                <Meta label="Organization" value={activeOrganization?.name ?? "Demo organization"} />
+                <Meta label="Route" value={route.path} />
+              </dl>
+            </section>
+            <section className="rounded border border-line p-4">
+              <h3 className="font-bold">What changes in a later phase</h3>
+              <p className="mt-2 text-sm text-muted">
+                This modal previews the user experience without writing workflow state. The real mutation will be added in the phase that owns this workflow.
+              </p>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+interface ActionSimulation {
+  title: string;
+  summary: string;
+  kind: "video" | "sessions" | "cards" | "form" | "status";
+  items: Array<{ title: string; detail: string; meta?: string }>;
+}
+
+function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
+  if (simulation.kind === "video") {
+    return (
+      <section className="rounded border border-line bg-slate-950 p-4 text-white">
+        <div className="flex aspect-video items-center justify-center rounded bg-gradient-to-br from-slate-900 to-slate-700">
+          <div className="text-center">
+            <PlayCircle className="mx-auto h-16 w-16 text-white" aria-hidden="true" />
+            <p className="mt-3 text-lg font-bold">{simulation.items[0]?.title ?? "Demo video"}</p>
+            <p className="mt-1 text-sm text-slate-300">{simulation.items[0]?.detail ?? "Video player simulation"}</p>
+          </div>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded bg-slate-700">
+          <div className="h-full w-[72%] rounded bg-[color:var(--theme-accent)]" />
+        </div>
+        <p className="mt-3 text-sm text-slate-300">Preview only: later phases add watched-interval tracking and completion logic.</p>
+      </section>
+    );
+  }
+
+  if (simulation.kind === "form") {
+    return (
+      <section className="rounded border border-line bg-white p-4">
+        <h3 className="text-lg font-bold">Simulated form preview</h3>
+        <div className="mt-4 space-y-3">
+          {simulation.items.map((item) => (
+            <div key={item.title} className="rounded border border-line bg-slate-50 p-3">
+              <label className="text-xs font-bold uppercase tracking-wide text-muted">{item.title}</label>
+              <div className="mt-2 rounded border border-line bg-white px-3 py-2 text-sm font-semibold">{item.detail}</div>
+              {item.meta ? <p className="mt-2 text-xs text-muted">{item.meta}</p> : null}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded border border-line bg-white p-4">
+      <h3 className="text-lg font-bold">What opens in the demo</h3>
+      <div className="mt-4 grid gap-3">
+        {simulation.items.map((item) => (
+          <article key={`${item.title}-${item.detail}`} className="rounded border border-line bg-slate-50 p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--theme-accent)]" aria-hidden="true" />
+              <div>
+                <h4 className="font-bold">{item.title}</h4>
+                <p className="mt-1 text-sm text-muted">{item.detail}</p>
+                {item.meta ? <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--theme-accent)]">{item.meta}</p> : null}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function iconForAction(action: string, route: RouteDefinition) {
+  const normalized = action.toLowerCase();
+  if (normalized.includes("video") || normalized.includes("watch") || normalized.includes("play") || normalized.includes("zoom")) {
+    return PlayCircle;
+  }
+  if (normalized.includes("session") || normalized.includes("date") || normalized.includes("schedule") || normalized.includes("appointment")) {
+    return CalendarDays;
+  }
+  if (normalized.includes("checkout") || normalized.includes("billing") || normalized.includes("invoice") || normalized.includes("payment") || normalized.includes("card")) {
+    return CreditCard;
+  }
+  if (normalized.includes("invite") || normalized.includes("assign") || normalized.includes("transfer") || normalized.includes("user")) {
+    return Users;
+  }
+  if (normalized.includes("download") || normalized.includes("export")) {
+    return Download;
+  }
+  if (normalized.includes("upload") || normalized.includes("attach")) {
+    return Upload;
+  }
+  if (normalized.includes("message") || normalized.includes("note")) {
+    return MessageSquare;
+  }
+  if (normalized.includes("approve") || normalized.includes("submit") || normalized.includes("publish") || normalized.includes("issue") || normalized.includes("revoke")) {
+    return ClipboardCheck;
+  }
+  if (normalized.includes("filter") || normalized.includes("review")) {
+    return Search;
+  }
+  if (normalized.includes("view") || normalized.includes("open")) {
+    return Eye;
+  }
+  if (route.domain.includes("Signatrain")) {
+    return GraduationCap;
+  }
+  if (route.domain.includes("GD")) {
+    return BriefcaseBusiness;
+  }
+  return ListChecks;
+}
+
+function actionHint(action: string, route: RouteDefinition): string {
+  const normalized = action.toLowerCase();
+  if (normalized.includes("video") || normalized.includes("play") || normalized.includes("watch")) {
+    return "Preview the learning-player surface with a safe video frame.";
+  }
+  if (normalized.includes("sessions") || normalized.includes("session") || normalized.includes("date")) {
+    return "Preview upcoming sessions, registration state, and schedule context.";
+  }
+  if (normalized.includes("checkout") || normalized.includes("billing")) {
+    return "Preview the commercial screen without storing payment details.";
+  }
+  if (normalized.includes("request") || route.domain.includes("GD")) {
+    return "Preview the GD client-service interaction with privacy-safe fixture data.";
+  }
+  if (normalized.includes("alert") || route.domain.includes("Legislative")) {
+    return "Preview the attorney-reviewed alert workflow and recipient view.";
+  }
+  return "Open a modal that shows how this action will feel in the demo.";
+}
+
+function buildActionSimulation(
+  action: string,
+  route: RouteDefinition,
+  store: DemoStoreData,
+  activeUserId?: string
+): ActionSimulation {
+  const normalized = action.toLowerCase();
+
+  if (normalized.includes("open sessions") || normalized.includes("sessions, scenarios, progress")) {
+    return {
+      title: "Sessions, scenarios, and progress preview",
+      summary: "A compact learner view showing the next session, eligible scenario, and current progress state.",
+      kind: "sessions",
+      items: [
+        ...store.liveSessions.slice(0, 2).map((session) => ({
+          title: session.title,
+          detail: `${session.status.replaceAll("_", " ")} - ${new Date(session.startsAt).toLocaleDateString("en-US")}`,
+          meta: session.audience
+        })),
+        ...store.scenarios.slice(0, 2).map((scenario) => ({
+          title: scenario.title,
+          detail: scenario.summary,
+          meta: scenario.audiences.join(" + ")
+        })),
+        {
+          title: "Progress summary",
+          detail: activeUserId ? `Progress is scoped to ${activeUserId} and remains fixture-backed in Phase 1.` : "Progress is scoped to the selected persona.",
+          meta: "No mutation"
+        }
+      ]
+    };
+  }
+
+  if (normalized.includes("video") || normalized.includes("watch") || normalized.includes("play") || normalized.includes("join simulated zoom")) {
+    const course = store.courses[0];
+    return {
+      title: normalized.includes("zoom") ? "Simulated Zoom handoff" : "Training video preview",
+      summary: "A safe media surface opens without external video hosting. Completion logic stays in the later Signatrain phase.",
+      kind: "video",
+      items: [
+        {
+          title: course?.title ?? "Demo training video",
+          detail: normalized.includes("zoom")
+            ? "Branded modal for join flow; no external URL is opened."
+            : "Video shell with poster, controls, and progress affordance."
+        }
+      ]
+    };
+  }
+
+  if (normalized.includes("choose") || normalized.includes("enter") || normalized.includes("edit") || normalized.includes("toggle") || normalized.includes("describe")) {
+    return {
+      title: "Form interaction preview",
+      summary: "The action opens a guided form state with safe fields and validation treatment.",
+      kind: "form",
+      items: [
+        { title: "Primary field", detail: action, meta: "Required" },
+        { title: "Visibility", detail: route.domain.includes("GD") ? "company_visible or restricted" : "Persona-scoped demo data" },
+        { title: "Result", detail: "Preview state only; no records are written in this phase." }
+      ]
+    };
+  }
+
+  if (normalized.includes("request") || route.domain.includes("GD")) {
+    return {
+      title: "GD portal action preview",
+      summary: "Shows the client-facing service surface while preserving request privacy boundaries.",
+      kind: "cards",
+      items: store.legalRequests.slice(0, 2).map((request) => ({
+        title: request.subject,
+        detail: `${request.topic} - ${request.status.replaceAll("_", " ")} - ${request.privacy.replaceAll("_", " ")}`,
+        meta: request.clientVisibleSummary ?? "Client-safe summary"
+      }))
+    };
+  }
+
+  if (normalized.includes("alert") || route.domain.includes("Legislative")) {
+    return {
+      title: "Legislative alert preview",
+      summary: "Shows the alert pipeline or recipient experience with attorney-reviewed fixture content.",
+      kind: "status",
+      items: store.alerts.slice(0, 3).map((alert) => ({
+        title: alert.title,
+        detail: `${alert.status.replaceAll("_", " ")} - ${alert.jurisdictionIds.join(", ")}`,
+        meta: alert.audiences.join(" + ")
+      }))
+    };
+  }
+
+  if (normalized.includes("certificate") || normalized.includes("download") || normalized.includes("verify")) {
+    return {
+      title: "Certificate and export preview",
+      summary: "Shows the safe metadata that can be displayed or downloaded in a later phase.",
+      kind: "cards",
+      items: store.certificates.map((certificate) => ({
+        title: certificate.title,
+        detail: `${certificate.id} - ${certificate.status}`,
+        meta: certificate.issuedAt
+      }))
+    };
+  }
+
+  if (normalized.includes("invite") || normalized.includes("assign") || normalized.includes("seat") || normalized.includes("user")) {
+    return {
+      title: "People and seat action preview",
+      summary: "Shows available users and seat pools without changing assignments yet.",
+      kind: "cards",
+      items: [
+        ...store.users.slice(0, 3).map((user) => ({
+          title: user.name,
+          detail: `${user.status} - ${user.roles.join(", ")}`,
+          meta: user.email
+        })),
+        ...store.seatPools.slice(0, 2).map((pool) => ({
+          title: pool.entitlementCode,
+          detail: `${pool.capacity} seats from ${pool.source}`,
+          meta: pool.organizationId
+        }))
+      ]
+    };
+  }
+
+  return {
+    title: `${action} preview`,
+    summary: "A safe modal simulation of the documented primary action.",
+    kind: "cards",
+    items: [
+      { title: "Current route", detail: route.name, meta: route.domain },
+      { title: "Action source", detail: "config/route-manifest.json", meta: route.priority },
+      { title: "Demo behavior", detail: "Visual simulation now; workflow mutation in its build phase." }
+    ]
+  };
 }
 
 function SnapshotGrid({ route }: { route: RouteDefinition }) {
