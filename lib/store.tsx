@@ -14,6 +14,7 @@ import type { DemoStoreData, ProductContext } from "@/lib/types";
 
 interface DemoStoreContextValue {
   store: DemoStoreData;
+  hydrated: boolean;
   activePersona: DemoStoreData["personas"][number];
   activeUser: DemoStoreData["users"][number] | undefined;
   activeOrganization: DemoStoreData["organizations"][number] | undefined;
@@ -64,12 +65,14 @@ function loadStore(): DemoStoreData {
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<DemoStoreData>(() => createSeedStore());
+  const [hydrated, setHydrated] = useState(false);
   const [permissionDiagnostics, setPermissionDiagnostics] = useState(
     demoConfig.enablePermissionDiagnostics
   );
 
   useEffect(() => {
     setStore(loadStore());
+    setHydrated(true);
   }, []);
 
   const updateStore = useCallback((updater: (current: DemoStoreData) => DemoStoreData) => {
@@ -128,11 +131,13 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       saveStore(seed);
     }
     setStore(seed);
+    setHydrated(true);
   }, []);
 
   const value = useMemo<DemoStoreContextValue>(
     () => ({
       store,
+      hydrated,
       activePersona,
       activeUser,
       activeOrganization,
@@ -147,6 +152,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       activeOrganization,
       activePersona,
       activeUser,
+      hydrated,
       permissionDiagnostics,
       resetDemo,
       store,

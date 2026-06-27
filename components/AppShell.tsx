@@ -55,6 +55,7 @@ function ShellContent() {
   const searchParams = useSearchParams();
   const {
     store,
+    hydrated,
     activePersona,
     activeUser,
     activeOrganization,
@@ -75,10 +76,16 @@ function ShellContent() {
   const visualProduct = productForTheme === "shared" ? store.activeProduct : productForTheme;
 
   useEffect(() => {
-    if (!isRestrictedPage && route && !access.allowed) {
-      router.replace(`/restricted?from=${encodeURIComponent(pathname)}`);
+    if (!hydrated || isRestrictedPage || !route || access.allowed) {
+      return undefined;
     }
-  }, [access.allowed, isRestrictedPage, pathname, route, router]);
+
+    const redirectTimer = window.setTimeout(() => {
+      router.replace(`/restricted?from=${encodeURIComponent(pathname)}`);
+    }, 120);
+
+    return () => window.clearTimeout(redirectTimer);
+  }, [access.allowed, hydrated, isRestrictedPage, pathname, route, router]);
 
   const handlePersonaChange = (personaId: string) => {
     const startRoute = switchPersona(personaId);
@@ -140,12 +147,14 @@ function ShellContent() {
       <div className="flex">
         {showSidebar ? <Sidebar pathname={pathname} /> : null}
         <main className="min-w-0 flex-1 px-4 py-6 lg:px-8">
-          {isRestrictedPage ? (
+          {!hydrated ? (
+            <LoadingDemoContext />
+          ) : isRestrictedPage ? (
             <RestrictedView from={restrictedFrom} />
           ) : route && access.allowed ? (
             <RouteView route={route} pathname={pathname} />
           ) : route ? (
-            <RestrictedView from={pathname} />
+            <LoadingDemoContext />
           ) : (
             <NotInManifest pathname={pathname} />
           )}
@@ -164,6 +173,22 @@ function ShellContent() {
         permissionDiagnostics={permissionDiagnostics}
         setPermissionDiagnostics={setPermissionDiagnostics}
       />
+    </div>
+  );
+}
+
+function LoadingDemoContext() {
+  return (
+    <div className="mx-auto max-w-3xl">
+      <section className="rounded border border-line bg-white p-6 shadow-soft">
+        <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--theme-accent)]">
+          Checking access
+        </p>
+        <h1 className="mt-2 text-3xl font-bold">Loading demo context</h1>
+        <p className="mt-2 text-muted">
+          Applying the selected persona, organization, and product permissions.
+        </p>
+      </section>
     </div>
   );
 }
