@@ -7,6 +7,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronDown,
+  PauseCircle,
   ClipboardCheck,
   CreditCard,
   Download,
@@ -1165,7 +1166,7 @@ function InlineActionView({ action, route }: { action: string; route: RouteDefin
         </span>
       </div>
       <div className="stagger grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <SimulationPreview simulation={simulation} />
+        <ActionWorkflow action={action} route={route} />
         <aside className="space-y-4">
           <section className="ds-card p-4">
             <h3 className="font-bold">Context</h3>
@@ -1178,7 +1179,8 @@ function InlineActionView({ action, route }: { action: string; route: RouteDefin
           <section className="ds-card p-4">
             <h3 className="font-bold">Workflow status</h3>
             <p className="mt-2 text-sm text-muted">
-              This panel shows the information users review before taking the next step in this workflow.
+              Walk through the steps on the left to simulate the full process — choose an option,
+              review the details, and confirm to see the recorded outcome.
             </p>
           </section>
         </aside>
@@ -1223,7 +1225,7 @@ function ActionSimulationModal({
           </div>
         </div>
         <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <SimulationPreview simulation={simulation} />
+          <ActionWorkflow action={action} route={route} />
           <aside className="space-y-4">
             <section className="ds-card p-4">
               <h3 className="font-bold">Context</h3>
@@ -1236,7 +1238,8 @@ function ActionSimulationModal({
             <section className="ds-card p-4">
               <h3 className="font-bold">Workflow status</h3>
               <p className="mt-2 text-sm text-muted">
-                This panel shows the information users review before taking the next step in this workflow.
+                Walk through the steps on the left to simulate the full process — choose an option,
+                review the details, and confirm to see the recorded outcome.
               </p>
             </section>
           </aside>
@@ -1253,54 +1256,372 @@ interface ActionSimulation {
   items: Array<{ title: string; detail: string; meta?: string; progress?: number }>;
 }
 
-function SimulationPreview({ simulation }: { simulation: ActionSimulation }) {
+type WorkflowStep = "choose" | "review" | "processing" | "done";
+
+function verbForAction(action: string): string {
+  const normalized = action.toLowerCase();
+  if (normalized.includes("register")) {
+    return "Register";
+  }
+  if (normalized.includes("assign")) {
+    return "Assign";
+  }
+  if (normalized.includes("invite")) {
+    return "Send invite";
+  }
+  if (normalized.includes("transfer")) {
+    return "Transfer";
+  }
+  if (normalized.includes("approve")) {
+    return "Approve";
+  }
+  if (normalized.includes("publish")) {
+    return "Publish";
+  }
+  if (normalized.includes("submit")) {
+    return "Submit";
+  }
+  if (normalized.includes("upload") || normalized.includes("attach")) {
+    return "Upload";
+  }
+  if (normalized.includes("download") || normalized.includes("export")) {
+    return "Download";
+  }
+  if (normalized.includes("issue")) {
+    return "Issue";
+  }
+  if (normalized.includes("revoke")) {
+    return "Revoke";
+  }
+  if (normalized.includes("archive")) {
+    return "Archive";
+  }
+  if (normalized.includes("schedule") || normalized.includes("book")) {
+    return "Schedule";
+  }
+  if (normalized.includes("verify")) {
+    return "Verify";
+  }
+  return "Confirm";
+}
+
+function workflowSideEffects(
+  simulation: ActionSimulation,
+  route: RouteDefinition,
+  subject: string
+): string[] {
+  if (simulation.kind === "sessions") {
+    return [
+      `${subject} added to the attendee roster`,
+      "Confirmation email queued in the outbox",
+      "Attendance tracking armed at the 90% threshold",
+      "Audit event recorded"
+    ];
+  }
+  if (simulation.kind === "certificates") {
+    return [
+      `Verification link generated for ${subject}`,
+      "PDF download prepared (simulated)",
+      "Audit event recorded"
+    ];
+  }
+  if (simulation.kind === "form") {
+    return [
+      "Entry created with the selected details",
+      route.domain.includes("GD")
+        ? "GD operations queue notified with a client-safe summary"
+        : "Reviewer queue notified",
+      "Confirmation email queued in the outbox",
+      "Audit event recorded"
+    ];
+  }
+  if (simulation.kind === "status") {
+    return [
+      `${subject} moved to the next workflow state`,
+      "Attorney review checkpoint satisfied",
+      "Distribution targeting prepared for eligible recipients",
+      "Audit event recorded"
+    ];
+  }
+  if (route.domain.includes("Signatrain")) {
+    return [
+      `Progress updated for ${subject}`,
+      "Next step unlocked in the learning sequence",
+      "Learner record synchronized"
+    ];
+  }
+  if (route.domain.includes("GD")) {
+    return [
+      `${subject} updated in the client workspace`,
+      "Client-safe activity entry added",
+      "Audit event recorded"
+    ];
+  }
+  return [`${subject} processed`, "Notification queued", "Audit event recorded"];
+}
+
+function ActionWorkflow({ action, route }: { action: string; route: RouteDefinition }) {
+  const { store, activeUser, activeOrganization } = useDemoStore();
+  const simulation = buildActionSimulation(action, route, store, activeUser?.id);
+  const tint = tintForAction(action, route);
+  const verb = verbForAction(action);
+  const isForm = simulation.kind === "form";
+  const [step, setStep] = useState<WorkflowStep>("choose");
+  const [selected, setSelected] = useState<ActionSimulation["items"][number] | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (step !== "processing") {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setStep("done"), 750);
+    return () => window.clearTimeout(timer);
+  }, [step]);
+
   if (simulation.kind === "video") {
-    return (
-      <section className="ds-card bg-[color:var(--brand-primary-dark)] p-4 text-white">
-        <div className="video-stage flex aspect-video items-center justify-center">
-          <div className="text-center">
-            <PlayCircle className="mx-auto h-16 w-16 text-white" aria-hidden="true" />
-            <p className="mt-3 text-lg font-bold">{simulation.items[0]?.title ?? "Training video"}</p>
-            <p className="video-muted-text mt-1 text-sm">{simulation.items[0]?.detail ?? "Video player"}</p>
-          </div>
-        </div>
-        <ProgressBar value={72} label="Progress" inverse />
-        <p className="video-muted-text mt-3 text-sm">Completion is recorded after the required watch threshold is reached.</p>
-      </section>
-    );
+    return <VideoWorkflow simulation={simulation} tint={tint} />;
   }
 
-  if (simulation.kind === "form") {
-    return (
-      <section className="ds-card p-4">
-        <h3 className="text-lg font-bold">Request details</h3>
-        <div className="mt-4 space-y-3">
-          {simulation.items.map((item) => (
-            <div key={item.title} className="ds-card-muted p-3">
-              <label className="text-xs font-bold uppercase tracking-wide text-muted">{item.title}</label>
-              <div className="ds-field mt-2 px-3 py-2 text-sm font-semibold">{item.detail}</div>
-              {item.meta ? <p className="mt-2 text-xs text-muted">{item.meta}</p> : null}
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
+  const stepIndex = step === "choose" ? 0 : step === "review" ? 1 : 2;
+  const subject = isForm ? simulation.title : selected?.title ?? simulation.title;
+  const reset = () => {
+    setStep("choose");
+    setSelected(null);
+  };
 
   return (
-    <section className="ds-card p-4">
-      <h3 className="text-lg font-bold">What opens</h3>
-      <div className="mt-4 grid gap-3">
-        {simulation.items.map((item) => {
-          if (simulation.kind === "sessions") {
-            return <ScenarioCard key={`${item.title}-${item.detail}`} item={item} />;
-          }
-          if (simulation.kind === "certificates") {
-            return <CertificateCard key={`${item.title}-${item.detail}`} item={item} />;
-          }
-          return <CourseCard key={`${item.title}-${item.detail}`} item={item} />;
-        })}
+    <section className={`ds-card p-5 ${tint}`}>
+      <div className="mb-5 flex flex-wrap items-center gap-2" aria-label="Workflow progress">
+        {["Choose", "Review", "Done"].map((label, index) => (
+          <span
+            key={label}
+            className={`step-chip px-2.5 py-1 text-xs font-bold ${index <= stepIndex ? "step-chip-active" : ""}`}
+          >
+            <span className="step-num">{index + 1}</span>
+            {label}
+          </span>
+        ))}
       </div>
+
+      {step === "choose" && !isForm ? (
+        <>
+          <h3 className="text-lg font-bold">Choose an option</h3>
+          <p className="mt-1 text-sm text-muted">{simulation.summary}</p>
+          <div className="stagger mt-4 grid gap-2.5">
+            {simulation.items.map((item) => (
+              <button
+                key={`${item.title}-${item.detail}`}
+                type="button"
+                className="option-card p-3.5 text-left"
+                onClick={() => {
+                  setSelected(item);
+                  setStep("review");
+                }}
+              >
+                <span className="flex items-start justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="block font-bold">{item.title}</span>
+                    <span className="mt-0.5 block text-sm text-muted">{item.detail}</span>
+                  </span>
+                  {item.meta ? (
+                    <span className="tint-chip shrink-0 px-2 py-0.5 text-xs">{item.meta}</span>
+                  ) : null}
+                </span>
+                {typeof item.progress === "number" ? (
+                  <ProgressBar value={item.progress} label="Progress" />
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {step === "choose" && isForm ? (
+        <>
+          <h3 className="text-lg font-bold">Complete the details</h3>
+          <p className="mt-1 text-sm text-muted">{simulation.summary}</p>
+          <div className="mt-4 space-y-3">
+            {simulation.items.map((item) => (
+              <label key={item.title} className="block">
+                <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
+                  {item.title}
+                </span>
+                <input
+                  className="ds-field w-full px-3 py-2 text-sm font-semibold"
+                  value={formValues[item.title] ?? item.detail}
+                  onChange={(event) =>
+                    setFormValues((current) => ({ ...current, [item.title]: event.target.value }))
+                  }
+                />
+                {item.meta ? <span className="mt-1 block text-xs text-muted">{item.meta}</span> : null}
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="ds-button ds-button-primary mt-5 px-4 py-2 text-sm"
+            onClick={() => setStep("review")}
+          >
+            Continue
+          </button>
+        </>
+      ) : null}
+
+      {step === "review" ? (
+        <>
+          <h3 className="text-lg font-bold">Review & confirm</h3>
+          <div className="ds-card-muted mt-4 p-4">
+            <p className="font-bold">{subject}</p>
+            <p className="mt-1 text-sm text-muted">
+              {isForm ? "The details below will be submitted." : selected?.detail}
+            </p>
+            {isForm ? (
+              <dl className="mt-3 grid gap-2">
+                {simulation.items.map((item) => (
+                  <Meta
+                    key={item.title}
+                    label={item.title}
+                    value={formValues[item.title] ?? item.detail}
+                  />
+                ))}
+              </dl>
+            ) : null}
+          </div>
+          <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Meta label="Persona" value={activeUser?.name ?? "Selected persona"} />
+            <Meta label="Organization" value={activeOrganization?.name ?? "Selected organization"} />
+          </dl>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="ds-button ds-button-primary px-4 py-2 text-sm"
+              onClick={() => setStep("processing")}
+            >
+              {verb}
+            </button>
+            <button
+              type="button"
+              className="ds-button ds-button-secondary px-4 py-2 text-sm"
+              onClick={reset}
+            >
+              Back
+            </button>
+          </div>
+        </>
+      ) : null}
+
+      {step === "processing" ? (
+        <div className="flex flex-col items-center gap-3 py-10 text-center">
+          <span className="spinner" aria-hidden="true" />
+          <p className="text-sm font-semibold text-muted">Processing…</p>
+        </div>
+      ) : null}
+
+      {step === "done" ? (
+        <div className="py-1">
+          <div className="flex items-center gap-3">
+            <span className="success-icon">
+              <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <div>
+              <h3 className="text-lg font-bold">{verb} complete</h3>
+              <p className="text-sm text-muted">{subject} — simulated successfully.</p>
+            </div>
+          </div>
+          <ul className="stagger mt-5 space-y-2">
+            {workflowSideEffects(simulation, route, subject).map((effect) => (
+              <li key={effect} className="flex items-start gap-2 text-sm">
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--tint,var(--brand-accent))]"
+                  aria-hidden="true"
+                />
+                {effect}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="ds-button ds-button-secondary px-4 py-2 text-sm"
+              onClick={reset}
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Run again
+            </button>
+            <span className="text-xs text-muted">Demo simulation — no real data was changed.</span>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function VideoWorkflow({ simulation, tint }: { simulation: ActionSimulation; tint: string }) {
+  const [progress, setProgress] = useState(72);
+  const [playing, setPlaying] = useState(false);
+  const item = simulation.items[0];
+  const complete = progress >= 95;
+
+  useEffect(() => {
+    if (!playing) {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      setProgress((current) => Math.min(current + 1, 100));
+    }, 90);
+    return () => window.clearInterval(interval);
+  }, [playing]);
+
+  useEffect(() => {
+    if (progress >= 100) {
+      setPlaying(false);
+    }
+  }, [progress]);
+
+  return (
+    <section className={`ds-card p-4 ${tint}`}>
+      <div className="video-stage flex aspect-video items-center justify-center">
+        <div className="text-center">
+          <button
+            type="button"
+            className="video-play"
+            onClick={() => setPlaying((current) => !current)}
+            aria-label={playing ? "Pause simulated video" : "Play simulated video"}
+          >
+            {playing ? (
+              <PauseCircle className="h-16 w-16" aria-hidden="true" />
+            ) : (
+              <PlayCircle className="h-16 w-16" aria-hidden="true" />
+            )}
+          </button>
+          <p className="mt-3 text-lg font-bold text-white">{item?.title ?? "Training video"}</p>
+          <p className="video-muted-text mt-1 text-sm">
+            {playing ? "Playing — unique watch coverage is being recorded" : item?.detail ?? "Video player"}
+          </p>
+        </div>
+      </div>
+      <ProgressBar value={progress} label="Unique watch coverage" />
+      {complete ? (
+        <div className="stagger mt-4 space-y-2">
+          <p className="flex items-start gap-2 text-sm font-semibold">
+            <CheckCircle2
+              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--tint,var(--brand-accent))]"
+              aria-hidden="true"
+            />
+            95% unique watch coverage reached — completion recorded.
+          </p>
+          <p className="flex items-start gap-2 text-sm text-muted">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
+            Certificate eligibility updated for this learner.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-muted">
+          Press play to simulate watching. Completion is recorded at 95% unique coverage.
+        </p>
+      )}
     </section>
   );
 }
@@ -1319,53 +1640,6 @@ function ProgressBar({ value, label, inverse = false }: { value: number; label: 
         <div className="progress-fill" style={{ width: `${value}%` }} />
       </div>
     </div>
-  );
-}
-
-function CourseCard({ item }: { item: ActionSimulation["items"][number] }) {
-  return (
-    <article className="course-card p-4">
-      <div className="flex items-start gap-3">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />
-        <div className="flex-1">
-          <h4 className="font-bold">{item.title}</h4>
-          <p className="mt-1 text-sm text-muted">{item.detail}</p>
-          {item.meta ? <p className="page-eyebrow mt-2 text-xs font-semibold uppercase tracking-wide">{item.meta}</p> : null}
-          {typeof item.progress === "number" ? (
-            <ProgressBar value={item.progress} label="Learner progress" />
-          ) : null}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function ScenarioCard({ item }: { item: ActionSimulation["items"][number] }) {
-  return (
-    <article className="scenario-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h4 className="font-bold">{item.title}</h4>
-          <p className="mt-1 text-sm text-muted">{item.detail}</p>
-        </div>
-        {item.meta ? <span className="ds-pill shrink-0 px-2 py-1 text-xs">{item.meta}</span> : null}
-      </div>
-    </article>
-  );
-}
-
-function CertificateCard({ item }: { item: ActionSimulation["items"][number] }) {
-  return (
-    <article className="certificate-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="page-eyebrow text-xs font-bold uppercase tracking-wide">Certificate</p>
-          <h4 className="mt-1 font-bold">{item.title}</h4>
-          <p className="mt-1 text-sm text-muted">{item.detail}</p>
-        </div>
-        {item.meta ? <span className="ds-pill shrink-0 px-2 py-1 text-xs">{item.meta}</span> : null}
-      </div>
-    </article>
   );
 }
 
