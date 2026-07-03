@@ -6,6 +6,7 @@ import {
   Building2,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   CreditCard,
   Download,
@@ -18,6 +19,7 @@ import {
   MousePointerClick,
   PlayCircle,
   RotateCcw,
+  Scale,
   Search,
   Settings2,
   ShieldCheck,
@@ -28,7 +30,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { canAccessRoute, getAvailableProducts, isInternalUser, productLabel } from "@/lib/access";
-import { routeGroup, routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
+import { routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
 import { DemoStoreProvider, useDemoStore } from "@/lib/store";
 import type { DemoStoreData, ProductContext, RouteDefinition } from "@/lib/types";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
@@ -344,46 +346,213 @@ function NotificationBell() {
   );
 }
 
+const SIDEBAR_GROUP_ORDER = [
+  "Shared",
+  "Signatrain",
+  "Greenwald Doherty",
+  "Legislative Tracking",
+  "Platform Admin"
+] as const;
+
+const SIDEBAR_SECTION_ORDER: Record<string, string[]> = {
+  Shared: ["General"],
+  Signatrain: ["Learning", "Live sessions & cohorts", "My records", "Administration"],
+  "Greenwald Doherty": ["Client portal", "Requests & matters", "Services & billing", "Operations"],
+  "Legislative Tracking": ["Alerts", "Administration"],
+  "Platform Admin": ["Platform"]
+};
+
+const SIDEBAR_GROUP_ICONS: Record<string, typeof GraduationCap> = {
+  Shared: LayoutDashboard,
+  Signatrain: GraduationCap,
+  "Greenwald Doherty": BriefcaseBusiness,
+  "Legislative Tracking": Scale,
+  "Platform Admin": ShieldCheck
+};
+
+function sidebarPlacement(route: RouteDefinition): { group: string; section: string } | null {
+  const { domain, path } = route;
+
+  if (domain === "Shared") {
+    return { group: "Shared", section: "General" };
+  }
+  if (domain === "Signatrain") {
+    if (path.includes("/live") || path.includes("/cohorts")) {
+      return { group: "Signatrain", section: "Live sessions & cohorts" };
+    }
+    if (path.includes("/progress") || path.includes("/certificates") || path.includes("/bot")) {
+      return { group: "Signatrain", section: "My records" };
+    }
+    return { group: "Signatrain", section: "Learning" };
+  }
+  if (domain === "Signatrain Admin") {
+    return { group: "Signatrain", section: "Administration" };
+  }
+  if (domain === "GD") {
+    if (path.includes("/requests") || path.includes("/matters")) {
+      return { group: "Greenwald Doherty", section: "Requests & matters" };
+    }
+    if (
+      path.includes("/schedule") ||
+      path.includes("/templates") ||
+      path.includes("/projects") ||
+      path.includes("/billing") ||
+      path.includes("/signatrain-seats")
+    ) {
+      return { group: "Greenwald Doherty", section: "Services & billing" };
+    }
+    return { group: "Greenwald Doherty", section: "Client portal" };
+  }
+  if (domain === "GD Admin") {
+    return { group: "Greenwald Doherty", section: "Operations" };
+  }
+  if (domain === "Legislative") {
+    return { group: "Legislative Tracking", section: "Alerts" };
+  }
+  if (domain === "Legislative Admin") {
+    return { group: "Legislative Tracking", section: "Administration" };
+  }
+  if (domain === "Platform Admin") {
+    return { group: "Platform Admin", section: "Platform" };
+  }
+  return null;
+}
+
 function Sidebar({ pathname }: { pathname: string }) {
   const { store, activeUser } = useDemoStore();
-  const visibleRoutes = useMemo(
-    () =>
-      routes
-        .filter((route) => route.domain !== "Public" && route.domain !== "Public/Shared")
-        .filter((route) => canAccessRoute(route, activeUser, store).allowed)
-        .map((route) => ({ route, href: resolveDemoPath(route.path), group: routeGroup(route) })),
-    [activeUser, store]
-  );
-  const grouped = visibleRoutes.reduce<Record<string, typeof visibleRoutes>>((accumulator, item) => {
-    accumulator[item.group] = [...(accumulator[item.group] ?? []), item];
-    return accumulator;
-  }, {});
+  const activeRoutePath = findRoute(pathname)?.path;
+
+  const tree = useMemo(() => {
+    const groups = new Map<string, Map<string, Array<{ route: RouteDefinition; href: string }>>>();
+
+    routes
+      .filter((route) => canAccessRoute(route, activeUser, store).allowed)
+      .forEach((route) => {
+        const placement = sidebarPlacement(route);
+        if (!placement) {
+          return;
+        }
+        const sections = groups.get(placement.group) ?? new Map();
+        const items = sections.get(placement.section) ?? [];
+        items.push({ route, href: resolveDemoPath(route.path) });
+        sections.set(placement.section, items);
+        groups.set(placement.group, sections);
+      });
+
+    return SIDEBAR_GROUP_ORDER.filter((group) => groups.has(group)).map((group) => ({
+      group,
+      sections: (SIDEBAR_SECTION_ORDER[group] ?? [])
+        .filter((section) => groups.get(group)?.has(section))
+        .map((section) => ({
+          section,
+          items: groups.get(group)?.get(section) ?? []
+        }))
+    }));
+  }, [activeUser, store]);
+
+  const activePlacement = useMemo(() => {
+    const route = routes.find((item) => item.path === activeRoutePath);
+    return route ? sidebarPlacement(route) : null;
+  }, [activeRoutePath]);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [closedSections, setClosedSections] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (activePlacement && activePlacement.group !== "Shared") {
+      setOpenGroups((current) => ({ ...current, [activePlacement.group]: true }));
+      setClosedSections((current) => ({
+        ...current,
+        [`${activePlacement.group}/${activePlacement.section}`]: false
+      }));
+    }
+  }, [activePlacement]);
 
   return (
     <aside className="shell-sidebar sticky top-16 hidden h-[calc(100vh-64px)] w-72 shrink-0 overflow-y-auto p-4 lg:block">
-      <nav aria-label="Primary">
-        {Object.entries(grouped).map(([group, items]) => (
-          <section key={group} className="mb-5">
-            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">{group}</h2>
-            <ul className="space-y-1">
-              {items.map(({ route, href }) => (
-                <li key={route.path}>
-                  <Link
-                    href={href}
-                    className={[
-                      "nav-link px-3 py-2 text-sm",
-                      findRoute(pathname)?.path === route.path
-                        ? "nav-link-active"
-                        : ""
-                    ].join(" ")}
-                  >
-                    {route.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+      <nav aria-label="Primary" className="space-y-2">
+        {tree.map(({ group, sections }) => {
+          const GroupIcon = SIDEBAR_GROUP_ICONS[group] ?? LayoutDashboard;
+          const alwaysOpen = group === "Shared";
+          const isOpen = alwaysOpen || Boolean(openGroups[group]);
+          const itemCount = sections.reduce((total, section) => total + section.items.length, 0);
+
+          return (
+            <section key={group}>
+              {alwaysOpen ? (
+                <h2 className="nav-group-header px-3 py-2 text-xs font-bold uppercase tracking-wide">
+                  <GroupIcon className="h-4 w-4" aria-hidden="true" />
+                  {group}
+                </h2>
+              ) : (
+                <button
+                  type="button"
+                  className="nav-group-btn px-3 py-2 text-xs font-bold uppercase tracking-wide"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenGroups((current) => ({ ...current, [group]: !isOpen }))}
+                >
+                  <GroupIcon className="h-4 w-4" aria-hidden="true" />
+                  <span className="flex-1 text-left">{group}</span>
+                  <span className="nav-count">{itemCount}</span>
+                  <ChevronDown
+                    className={`chev h-4 w-4 ${isOpen ? "chev-open" : ""}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              )}
+              {isOpen ? (
+                <div className="nav-group-body">
+                  {sections.map(({ section, items }) => {
+                    const sectionKey = `${group}/${section}`;
+                    const showSubheader = sections.length > 1;
+                    const sectionOpen = !showSubheader || !closedSections[sectionKey];
+
+                    return (
+                      <div key={sectionKey}>
+                        {showSubheader ? (
+                          <button
+                            type="button"
+                            className="nav-sub-btn px-3 py-1.5 text-xs font-semibold"
+                            aria-expanded={sectionOpen}
+                            onClick={() =>
+                              setClosedSections((current) => ({
+                                ...current,
+                                [sectionKey]: sectionOpen
+                              }))
+                            }
+                          >
+                            <span className="flex-1 text-left">{section}</span>
+                            <ChevronDown
+                              className={`chev h-3.5 w-3.5 ${sectionOpen ? "chev-open" : ""}`}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        ) : null}
+                        {sectionOpen ? (
+                          <ul className={`space-y-0.5 ${showSubheader ? "nav-children" : "mt-1"}`}>
+                            {items.map(({ route, href }) => (
+                              <li key={route.path}>
+                                <Link
+                                  href={href}
+                                  className={[
+                                    "nav-link px-3 py-1.5 text-sm",
+                                    activeRoutePath === route.path ? "nav-link-active" : ""
+                                  ].join(" ")}
+                                >
+                                  {route.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </section>
+          );
+        })}
       </nav>
     </aside>
   );
