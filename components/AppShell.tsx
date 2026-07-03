@@ -113,8 +113,10 @@ function ShellContent() {
     <div data-product={visualProduct} className={`app-root ${themeClassName}`}>
       <header className="topbar sticky top-0 z-30">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 lg:px-6">
-          <Link href="/app/products" className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="brand-mark h-5 w-5" aria-hidden="true" />
+          <Link href="/app/products" className="flex items-center gap-2.5 font-semibold tracking-tight">
+            <span className="brand-tile">
+              <ShieldCheck className="brand-mark h-4 w-4" aria-hidden="true" />
+            </span>
             <span>GD & Signatrain</span>
           </Link>
           <ProductSwitcher
@@ -145,17 +147,19 @@ function ShellContent() {
       <div className="flex">
         {showSidebar ? <Sidebar pathname={pathname} /> : null}
         <main className="min-w-0 flex-1 px-4 py-6 lg:px-8">
-          {!hydrated ? (
-            <LoadingDemoContext />
-          ) : isRestrictedPage ? (
-            <RestrictedView from={restrictedFrom} />
-          ) : route && access.allowed ? (
-            <RouteView route={route} pathname={pathname} />
-          ) : route ? (
-            <LoadingDemoContext />
-          ) : (
-            <NotInManifest pathname={pathname} />
-          )}
+          <div key={pathname} className="page-enter">
+            {!hydrated ? (
+              <LoadingDemoContext />
+            ) : isRestrictedPage ? (
+              <RestrictedView from={restrictedFrom} />
+            ) : route && access.allowed ? (
+              <RouteView route={route} pathname={pathname} />
+            ) : route ? (
+              <LoadingDemoContext />
+            ) : (
+              <NotInManifest pathname={pathname} />
+            )}
+          </div>
         </main>
       </div>
       <DemoControls
@@ -523,19 +527,23 @@ function LandingView() {
 
   return (
     <div className="content-shell">
-      <section className="ds-card mb-8 p-6">
-        <p className="page-eyebrow text-sm font-semibold uppercase tracking-wide">
+      <section className="hero-panel mb-10 p-8 lg:p-12">
+        <p className="hero-eyebrow px-3 py-1.5 text-xs font-bold uppercase tracking-widest">
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           Workspace access
         </p>
-        <h1 className="page-title mt-2 text-4xl font-bold">Select a persona to enter GD & Signatrain</h1>
-        <p className="mt-3 max-w-3xl text-muted">
-          Persona profiles make it easy to review product access, role-specific navigation, and strict data boundaries.
+        <h1 className="hero-title mt-5 max-w-3xl text-4xl font-extrabold leading-tight lg:text-5xl">
+          One platform. Two products. Every role, exactly as it should look.
+        </h1>
+        <p className="hero-muted mt-4 max-w-2xl text-lg">
+          Select a persona to experience GD client services and Signatrain learning with
+          role-specific navigation, entitlements, and strict data boundaries.
         </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link className="ds-button ds-button-primary px-4 py-2" href="/pricing">
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Link className="ds-button ds-button-primary px-5 py-2.5" href="/pricing">
             Open pricing
           </Link>
-          <Link className="ds-button ds-button-secondary px-4 py-2" href="/app/products">
+          <Link className="ds-button ds-button-secondary px-5 py-2.5" href="/app/products">
             My Products
           </Link>
         </div>
@@ -543,15 +551,22 @@ function LandingView() {
       <div className="marketing-grid">
         {Object.entries(grouped).map(([group, personas]) => (
           <section key={group} className="marketing-span-4">
-            <h2 className="mb-3 text-lg font-bold">{group}</h2>
-            <div className="space-y-3">
+            <h2 className="group-label mb-4 text-sm font-bold uppercase tracking-wide text-muted">{group}</h2>
+            <div className="stagger space-y-3">
               {personas.map((persona) => (
-                <article key={persona.id} className="ds-card p-4">
-                  <h3 className="font-semibold">{persona.name}</h3>
-                  <p className="mt-1 text-sm text-muted">{persona.description}</p>
+                <article key={persona.id} className="ds-card persona-card p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="persona-avatar" aria-hidden="true">
+                      {personaInitials(persona.name)}
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="font-bold">{persona.name}</h3>
+                      <p className="mt-1 text-sm text-muted">{persona.description}</p>
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    className="ds-button ds-button-primary mt-4 px-3 py-2 text-sm"
+                    className="ds-button ds-button-primary mt-5 px-3 py-2 text-sm"
                     onClick={() => {
                       const startRoute = switchPersona(persona.id);
                       router.push(startRoute);
@@ -569,6 +584,15 @@ function LandingView() {
   );
 }
 
+function personaInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function PricingView() {
   const { store } = useDemoStore();
   return (
@@ -578,24 +602,26 @@ function PricingView() {
         title="Pricing and plan comparison"
         description="Compare plans and start the checkout flow for the product that fits your team."
       />
-      <div className="marketing-grid">
+      <div className="marketing-grid stagger">
         {store.catalogSkus.map((sku) => (
-          <article key={sku.id} className="ds-card marketing-span-4 p-5">
-            <h2 className="text-xl font-bold">{sku.name}</h2>
-            <p className="mt-2 text-muted">{sku.priceDisplay}</p>
+          <article key={sku.id} className="ds-card plan-card marketing-span-4 p-6">
+            <h2 className="text-lg font-bold">{sku.name}</h2>
+            <p className="plan-price mt-3">{sku.priceDisplay}</p>
             {sku.additionalSeatDisplay ? <p className="mt-1 text-sm text-muted">{sku.additionalSeatDisplay}</p> : null}
-            {sku.selfService ? (
-              <Link
-                className="ds-button ds-button-primary mt-5 px-4 py-2"
-                href={`/checkout/${sku.id}`}
-              >
-                Open checkout
-              </Link>
-            ) : (
-              <p className="ds-pill mt-5 px-3 py-2 text-sm">
-                Admin-assisted purchase
-              </p>
-            )}
+            <div className="mt-auto pt-6">
+              {sku.selfService ? (
+                <Link
+                  className="ds-button ds-button-primary w-full px-4 py-2"
+                  href={`/checkout/${sku.id}`}
+                >
+                  Open checkout
+                </Link>
+              ) : (
+                <p className="ds-pill w-full justify-center px-3 py-2 text-sm">
+                  Admin-assisted purchase
+                </p>
+              )}
+            </div>
           </article>
         ))}
       </div>
@@ -676,15 +702,22 @@ function ProductsView() {
       {products.length === 0 ? (
         <EmptyState title="No active products" body="This persona can use pricing or an admin workflow to activate products." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="stagger grid gap-4 md:grid-cols-2">
           {products.map((product) => (
             <Link
               key={product}
               href={product === "gd" ? "/app/gd" : "/app/signatrain"}
               onClick={() => switchProduct(product)}
-              className="ds-card block p-5 transition hover:-translate-y-0.5"
+              className="ds-card group block p-6"
             >
-              <h2 className="text-2xl font-bold">{productLabel(product)}</h2>
+              <span className="action-icon inline-flex h-11 w-11 items-center justify-center">
+                {product === "gd" ? (
+                  <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <GraduationCap className="h-5 w-5" aria-hidden="true" />
+                )}
+              </span>
+              <h2 className="mt-4 text-2xl font-bold">{productLabel(product)}</h2>
               <p className="mt-2 text-muted">
                 Open the entitled {productLabel(product)} portal with navigation and route guards for this persona.
               </p>
@@ -712,7 +745,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
         title={route.name}
         description="Use this workspace to review key activity, permissions, and next actions for the selected product."
       />
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="stagger grid gap-4 lg:grid-cols-4">
         <MetricCard label="Persona" value={activeUser?.name ?? "None"} />
         <MetricCard label="Organization" value={activeOrganization?.name ?? "None"} />
         <MetricCard label="Visible requests" value={String(visibleRequests.length)} />
@@ -730,7 +763,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
             Ready
           </span>
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {route.primaryActions.map((action) => (
             <ActionCard key={action} action={action} route={route} onOpen={() => setActiveAction(action)} />
           ))}
@@ -1213,7 +1246,7 @@ function SnapshotGrid({ route }: { route: RouteDefinition }) {
   }
 
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="stagger mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => (
         <MetricCard key={card.label} label={card.label} value={String(card.value)} />
       ))}
@@ -1287,10 +1320,46 @@ function PageHeading({
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <article className="ds-card stat-card p-4">
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted">{label}</p>
+      <p className="stat-value mt-1.5 text-2xl font-extrabold">
+        <AnimatedValue value={value} />
+      </p>
     </article>
   );
+}
+
+function AnimatedValue({ value }: { value: string }) {
+  const numeric = /^\d+$/.test(value.trim()) ? Number(value.trim()) : null;
+  const [display, setDisplay] = useState<number>(0);
+
+  useEffect(() => {
+    if (numeric === null) {
+      return undefined;
+    }
+
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplay(numeric);
+      return undefined;
+    }
+
+    let frame = 0;
+    const duration = 750;
+    const start = performance.now();
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(numeric * eased));
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [numeric]);
+
+  return <>{numeric === null ? value : display}</>;
 }
 
 function Meta({ label, value }: { label: string; value: string }) {
