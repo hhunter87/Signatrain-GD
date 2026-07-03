@@ -133,6 +133,7 @@ function ShellContent() {
               <Users className="h-4 w-4" aria-hidden="true" />
               {activePersona.name}
             </span>
+            <NotificationBell />
             <button
               type="button"
               className="ds-button ds-button-primary px-3 py-2 text-sm"
@@ -243,6 +244,103 @@ function ProductSwitcher({
         </button>
       ))}
     </nav>
+  );
+}
+
+function NotificationBell() {
+  const router = useRouter();
+  const { store, activeUser } = useDemoStore();
+  const [open, setOpen] = useState(false);
+  const notifications = useMemo(
+    () =>
+      store.notifications
+        .filter((notification) => notification.userId === activeUser?.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [activeUser?.id, store.notifications]
+  );
+  const unreadCount = notifications.filter((notification) => !notification.readAt).length;
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [open]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        className="notif-button"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <Bell className="h-4 w-4" aria-hidden="true" />
+        {unreadCount > 0 ? <span className="notif-badge">{unreadCount}</span> : null}
+      </button>
+      {open ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close notifications"
+            className="fixed inset-0 z-50 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <section className="notif-panel" aria-label="Notifications">
+            <div className="flex items-center justify-between px-4 py-3">
+              <h2 className="text-sm font-bold">Notifications</h2>
+              {unreadCount > 0 ? (
+                <span className="ds-pill px-2 py-0.5 text-xs">{unreadCount} unread</span>
+              ) : (
+                <span className="text-xs text-muted">All caught up</span>
+              )}
+            </div>
+            {notifications.length === 0 ? (
+              <p className="notif-item text-sm text-muted">No notifications for this persona yet.</p>
+            ) : (
+              notifications.map((notification) => (
+                <button
+                  key={notification.id}
+                  type="button"
+                  className="notif-item"
+                  onClick={() => {
+                    setOpen(false);
+                    if (notification.href) {
+                      router.push(notification.href);
+                    }
+                  }}
+                >
+                  <span className="flex items-start gap-2.5">
+                    {!notification.readAt ? <span className="notif-dot mt-1.5" aria-hidden="true" /> : <span className="mt-1.5 inline-block h-2 w-2 flex-none" aria-hidden="true" />}
+                    <span className="min-w-0">
+                      <span className={`block text-sm ${notification.readAt ? "font-semibold text-muted" : "font-bold"}`}>
+                        {notification.title}
+                      </span>
+                      <span className="mt-0.5 block text-sm text-muted">{notification.body}</span>
+                      <span className="mt-1 block text-xs text-muted">
+                        {new Date(notification.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric"
+                        })}
+                      </span>
+                    </span>
+                  </span>
+                </button>
+              ))
+            )}
+          </section>
+        </>
+      ) : null}
+    </div>
   );
 }
 
@@ -732,6 +830,8 @@ function ProductsView() {
 function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; pathname: string }) {
   const { store, activeUser, activeOrganization, permissionDiagnostics } = useDemoStore();
   const [activeAction, setActiveAction] = useState<string | null>(null);
+  const showContextCards = route.path === "/app/profile";
+  const singleAction = route.primaryActions.length === 1 ? route.primaryActions[0] : null;
   const visibleRequests = visibleLegalRequestsForUser(activeUser, store);
   const visibleMessages = store.legalMessages.filter((message) => {
     const request = store.legalRequests.find((item) => item.id === message.requestId);
@@ -745,31 +845,30 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
         title={route.name}
         description="Use this workspace to review key activity, permissions, and next actions for the selected product."
       />
-      <div className="stagger grid gap-4 lg:grid-cols-4">
-        <MetricCard label="Persona" value={activeUser?.name ?? "None"} />
-        <MetricCard label="Organization" value={activeOrganization?.name ?? "None"} />
-        <MetricCard label="Visible requests" value={String(visibleRequests.length)} />
-        <MetricCard label="Safe messages" value={String(visibleMessages.length)} />
-      </div>
-      <section className="ds-card mt-6 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+      {showContextCards ? (
+        <div className="stagger mb-8 grid gap-4 lg:grid-cols-4">
+          <MetricCard label="Persona" value={activeUser?.name ?? "None"} />
+          <MetricCard label="Organization" value={activeOrganization?.name ?? "None"} />
+          <MetricCard label="Visible requests" value={String(visibleRequests.length)} />
+          <MetricCard label="Safe messages" value={String(visibleMessages.length)} />
+        </div>
+      ) : null}
+      {singleAction ? (
+        <InlineActionView action={singleAction} route={route} />
+      ) : (
+        <section>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-bold">Available actions</h2>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
-              Open the key workflows available from this screen.
-            </p>
+            <span className="ds-pill px-3 py-1 text-xs uppercase tracking-wide">Ready</span>
           </div>
-          <span className="ds-pill px-3 py-1 text-xs uppercase tracking-wide">
-            Ready
-          </span>
-        </div>
-        <div className="stagger mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {route.primaryActions.map((action) => (
-            <ActionCard key={action} action={action} route={route} onOpen={() => setActiveAction(action)} />
-          ))}
-        </div>
-      </section>
-      <section className="ds-card mt-6 p-5">
+          <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {route.primaryActions.map((action) => (
+              <ActionCard key={action} action={action} route={route} onOpen={() => setActiveAction(action)} />
+            ))}
+          </div>
+        </section>
+      )}
+      <section className="ds-card mt-8 p-5">
         <h2 className="text-xl font-bold">Workspace snapshot</h2>
         <SnapshotGrid route={route} />
       </section>
@@ -803,25 +902,119 @@ function ActionCard({
   route: RouteDefinition;
   onOpen: () => void;
 }) {
+  const { store, activeUser } = useDemoStore();
   const Icon = iconForAction(action, route);
-  const hint = actionHint(action, route);
+  const tint = tintForAction(action, route);
+  const simulation = buildActionSimulation(action, route, store, activeUser?.id);
+  const previewItems = simulation.items.slice(0, 2);
 
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="action-card group p-4"
+      className={`action-card group flex flex-col p-5 ${tint}`}
     >
-      <span className="action-icon inline-flex h-10 w-10 items-center justify-center">
-        <Icon className="h-5 w-5" aria-hidden="true" />
+      <span className="flex items-start justify-between gap-3">
+        <span className="action-icon inline-flex h-11 w-11 items-center justify-center">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <span className="tint-chip px-2.5 py-1 text-xs uppercase tracking-wide">
+          {simulation.items.length} {simulation.items.length === 1 ? "item" : "items"}
+        </span>
       </span>
-      <span className="mt-4 block text-base font-bold text-ink">{action}</span>
-      <span className="mt-2 block text-sm text-muted">{hint}</span>
-      <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--brand-primary-dark)]">
-        Open
+      <span className="mt-4 block text-lg font-bold text-ink">{action}</span>
+      <span className="mt-1.5 block text-sm text-muted">{simulation.summary}</span>
+      <span className="mt-4 block space-y-2">
+        {previewItems.map((item) => (
+          <span key={`${item.title}-${item.detail}`} className="action-meta-row text-sm">
+            <span className="min-w-0 truncate font-semibold">{item.title}</span>
+            {item.meta ? <span className="shrink-0 text-xs font-semibold text-muted">{item.meta}</span> : null}
+          </span>
+        ))}
+      </span>
+      <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-bold text-[color:var(--tint,var(--brand-accent))]">
+        Open workspace
         <MousePointerClick className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden="true" />
       </span>
     </button>
+  );
+}
+
+function tintForAction(action: string, route: RouteDefinition): string {
+  const normalized = action.toLowerCase();
+  if (normalized.includes("video") || normalized.includes("watch") || normalized.includes("play") || normalized.includes("zoom")) {
+    return "tint-violet";
+  }
+  if (normalized.includes("session") || normalized.includes("date") || normalized.includes("schedule") || normalized.includes("appointment")) {
+    return "tint-amber";
+  }
+  if (normalized.includes("checkout") || normalized.includes("billing") || normalized.includes("invoice") || normalized.includes("payment") || normalized.includes("card")) {
+    return "tint-emerald";
+  }
+  if (normalized.includes("invite") || normalized.includes("assign") || normalized.includes("transfer") || normalized.includes("user") || normalized.includes("seat")) {
+    return "tint-blue";
+  }
+  if (normalized.includes("download") || normalized.includes("export") || normalized.includes("upload") || normalized.includes("attach")) {
+    return "tint-cyan";
+  }
+  if (normalized.includes("message") || normalized.includes("note")) {
+    return "tint-cyan";
+  }
+  if (normalized.includes("approve") || normalized.includes("submit") || normalized.includes("publish") || normalized.includes("issue")) {
+    return "tint-emerald";
+  }
+  if (normalized.includes("revoke") || normalized.includes("archive")) {
+    return "tint-rose";
+  }
+  if (normalized.includes("alert") || route.domain.includes("Legislative")) {
+    return "tint-rose";
+  }
+  if (normalized.includes("certificate") || normalized.includes("verify")) {
+    return "tint-amber";
+  }
+  return "tint-brand";
+}
+
+function InlineActionView({ action, route }: { action: string; route: RouteDefinition }) {
+  const { store, activeUser, activeOrganization } = useDemoStore();
+  const simulation = buildActionSimulation(action, route, store, activeUser?.id);
+  const Icon = iconForAction(action, route);
+  const tint = tintForAction(action, route);
+
+  return (
+    <section className={`inline-action ${tint}`}>
+      <div className="mb-5 flex flex-wrap items-center gap-4">
+        <span className="action-icon inline-flex h-12 w-12 shrink-0 items-center justify-center">
+          <Icon className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-xl font-bold">{simulation.title}</h2>
+          <p className="mt-1 max-w-3xl text-sm text-muted">{simulation.summary}</p>
+        </div>
+        <span className="tint-chip ml-auto px-2.5 py-1 text-xs uppercase tracking-wide">
+          {simulation.items.length} {simulation.items.length === 1 ? "item" : "items"}
+        </span>
+      </div>
+      <div className="stagger grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <SimulationPreview simulation={simulation} />
+        <aside className="space-y-4">
+          <section className="ds-card p-4">
+            <h3 className="font-bold">Context</h3>
+            <dl className="mt-3 grid gap-2">
+              <Meta label="Persona" value={activeUser?.name ?? "Selected persona"} />
+              <Meta label="Organization" value={activeOrganization?.name ?? "Selected organization"} />
+              <Meta label="Screen" value={route.path} />
+            </dl>
+          </section>
+          <section className="ds-card p-4">
+            <h3 className="font-bold">Workflow status</h3>
+            <p className="mt-2 text-sm text-muted">
+              This panel shows the information users review before taking the next step in this workflow.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </section>
   );
 }
 
@@ -840,7 +1033,7 @@ function ActionSimulationModal({
 
   return (
     <div className="modal-scrim fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <section className="modal-panel max-h-[88vh] w-full max-w-5xl overflow-y-auto">
+      <section className={`modal-panel max-h-[88vh] w-full max-w-5xl overflow-y-auto ${tintForAction(action, route)}`}>
         <div className="border-b border-[color:var(--border-subtle)] bg-[color:var(--surface-muted)] p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 gap-4">
@@ -1048,26 +1241,6 @@ function iconForAction(action: string, route: RouteDefinition) {
   return ListChecks;
 }
 
-function actionHint(action: string, route: RouteDefinition): string {
-  const normalized = action.toLowerCase();
-  if (normalized.includes("video") || normalized.includes("play") || normalized.includes("watch")) {
-    return "Open the learning player and continue progress tracking.";
-  }
-  if (normalized.includes("sessions") || normalized.includes("session") || normalized.includes("date")) {
-    return "Review upcoming sessions, registration state, and schedule details.";
-  }
-  if (normalized.includes("checkout") || normalized.includes("billing")) {
-    return "Review plan, invoice, and billing details.";
-  }
-  if (normalized.includes("request") || route.domain.includes("GD")) {
-    return "Review service details, request status, and client-safe updates.";
-  }
-  if (normalized.includes("alert") || route.domain.includes("Legislative")) {
-    return "Review the attorney-approved alert workflow and recipient view.";
-  }
-  return "Open the workflow details for this action.";
-}
-
 function buildActionSimulation(
   action: string,
   route: RouteDefinition,
@@ -1245,10 +1418,12 @@ function SnapshotGrid({ route }: { route: RouteDefinition }) {
     cards.push({ label: "Alerts", value: store.alerts.length });
   }
 
+  const tints = ["tint-blue", "tint-violet", "tint-cyan", "tint-emerald", "tint-amber", "tint-rose", "tint-brand"];
+
   return (
     <div className="stagger mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card) => (
-        <MetricCard key={card.label} label={card.label} value={String(card.value)} />
+      {cards.map((card, index) => (
+        <MetricCard key={card.label} label={card.label} value={String(card.value)} tint={tints[index % tints.length]} />
       ))}
     </div>
   );
@@ -1317,9 +1492,9 @@ function PageHeading({
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({ label, value, tint = "tint-brand" }: { label: string; value: string; tint?: string }) {
   return (
-    <article className="ds-card stat-card p-4">
+    <article className={`ds-card stat-card p-4 ${tint}`}>
       <p className="text-xs font-bold uppercase tracking-wide text-muted">{label}</p>
       <p className="stat-value mt-1.5 text-2xl font-extrabold">
         <AnimatedValue value={value} />
