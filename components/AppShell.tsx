@@ -40,6 +40,8 @@ import { DemoPrefsProvider, useDemoPrefs } from "@/lib/prefs";
 import type { DemoStoreData, ProductContext, RouteDefinition } from "@/lib/types";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 
+const TOUR_STORAGE_KEY = "gd_st_demo_tour_step";
+
 const TOUR_STEPS = [
   {
     title: "Enterprise structure",
@@ -135,7 +137,31 @@ function ShellContent() {
   const prefs = useDemoPrefs();
   const [controlsOpen, setControlsOpen] = useState(false);
   const [outboxOpen, setOutboxOpen] = useState(false);
-  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [tourStep, setTourStepState] = useState<number | null>(null);
+
+  // The page component remounts on every navigation, so the tour position
+  // is kept in sessionStorage and restored after each route change.
+  useEffect(() => {
+    const raw = window.sessionStorage.getItem(TOUR_STORAGE_KEY);
+    if (raw !== null) {
+      const parsed = Number(raw);
+      if (Number.isInteger(parsed) && parsed >= 0 && parsed < TOUR_STEPS.length) {
+        setTourStepState(parsed);
+      }
+    }
+  }, []);
+
+  const setTourStep = (value: number | null) => {
+    setTourStepState(value);
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (value === null) {
+      window.sessionStorage.removeItem(TOUR_STORAGE_KEY);
+    } else {
+      window.sessionStorage.setItem(TOUR_STORAGE_KEY, String(value));
+    }
+  };
   const route = findRoute(pathname);
   const routePlacement = route ? sidebarPlacement(route) : null;
   const routeHiddenByPrefs = Boolean(
