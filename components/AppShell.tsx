@@ -175,7 +175,12 @@ function ShellContent() {
   const isRestrictedPage = pathname === "/restricted";
   const access = canAccessRoute(route, activeUser, store);
   const productForTheme = isRestrictedPage ? store.activeProduct : routeProduct(pathname);
-  const visualProduct = productForTheme === "shared" ? store.activeProduct : productForTheme;
+  const visualProduct =
+    pathname === "/"
+      ? "signatrain"
+      : productForTheme === "shared"
+        ? store.activeProduct
+        : productForTheme;
   const themeClassName = themeClassForPath(pathname, visualProduct);
 
   useEffect(() => {
@@ -337,6 +342,9 @@ function ShellContent() {
 }
 
 function themeClassForPath(pathname: string, product: ProductContext): string {
+  if (pathname === "/") {
+    return "theme-st";
+  }
   if (pathname.startsWith("/app/gd") || pathname.startsWith("/admin/gd")) {
     return "theme-gd";
   }
@@ -1456,7 +1464,13 @@ function LandingView({ onStartTour }: { onStartTour: () => void }) {
     <div className="content-shell">
       <section className="hero-panel mb-10 p-8 lg:p-12">
         <p className="hero-eyebrow px-3 py-1.5 text-xs font-bold uppercase tracking-widest">
-          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+          <Image
+            src="/brand/signatrain/signatrain-icon-white.svg"
+            alt=""
+            width={14}
+            height={14}
+            unoptimized
+          />
           Workspace access
         </p>
         <h1 className="hero-title mt-5 max-w-3xl text-4xl font-extrabold leading-tight lg:text-5xl">
@@ -1477,6 +1491,9 @@ function LandingView({ onStartTour }: { onStartTour: () => void }) {
           <Link className="ds-button ds-button-secondary px-5 py-2.5" href="/app/products">
             My Products
           </Link>
+          <a className="ds-button ds-button-secondary px-5 py-2.5" href="/website">
+            SignaTrain website
+          </a>
         </div>
       </section>
       <div className="marketing-grid">
