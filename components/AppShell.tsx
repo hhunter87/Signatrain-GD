@@ -17,6 +17,7 @@ import {
   ListChecks,
   LockKeyhole,
   MessageSquare,
+  MessageSquarePlus,
   MousePointerClick,
   PlayCircle,
   RotateCcw,
@@ -24,6 +25,7 @@ import {
   Search,
   Settings2,
   ShieldCheck,
+  Trash2,
   Upload,
   Users
 } from "lucide-react";
@@ -33,6 +35,7 @@ import { useEffect, useMemo, useState } from "react";
 import { canAccessRoute, getAvailableProducts, isInternalUser, productLabel } from "@/lib/access";
 import { routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
 import { DemoStoreProvider, useDemoStore } from "@/lib/store";
+import { DemoPrefsProvider, useDemoPrefs } from "@/lib/prefs";
 import type { DemoStoreData, ProductContext, RouteDefinition } from "@/lib/types";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 
@@ -47,7 +50,9 @@ const scenarioShortcuts = [
 export function AppShell() {
   return (
     <DemoStoreProvider>
-      <ShellContent />
+      <DemoPrefsProvider>
+        <ShellContent />
+      </DemoPrefsProvider>
     </DemoStoreProvider>
   );
 }
@@ -69,9 +74,16 @@ function ShellContent() {
     switchProduct,
     resetDemo
   } = useDemoStore();
+  const prefs = useDemoPrefs();
   const [controlsOpen, setControlsOpen] = useState(false);
   const [outboxOpen, setOutboxOpen] = useState(false);
   const route = findRoute(pathname);
+  const routePlacement = route ? sidebarPlacement(route) : null;
+  const routeHiddenByPrefs = Boolean(
+    route &&
+      routePlacement &&
+      (prefs.isGroupDisabled(routePlacement.group) || prefs.isRouteDisabled(route.path))
+  );
   const restrictedFrom = searchParams.get("from");
   const isRestrictedPage = pathname === "/restricted";
   const access = canAccessRoute(route, activeUser, store);
@@ -156,6 +168,8 @@ function ShellContent() {
               <LoadingDemoContext />
             ) : isRestrictedPage ? (
               <RestrictedView from={restrictedFrom} />
+            ) : routeHiddenByPrefs ? (
+              <HiddenByPrefsView onOpenControls={() => setControlsOpen(true)} />
             ) : route && access.allowed ? (
               <RouteView route={route} pathname={pathname} />
             ) : route ? (
@@ -166,6 +180,7 @@ function ShellContent() {
           </div>
         </main>
       </div>
+      <FeedbackWidget route={route} pathname={pathname} />
       <DemoControls
         open={controlsOpen}
         onClose={() => setControlsOpen(false)}
@@ -421,6 +436,7 @@ function sidebarPlacement(route: RouteDefinition): { group: string; section: str
 
 function Sidebar({ pathname }: { pathname: string }) {
   const { store, activeUser } = useDemoStore();
+  const { isGroupDisabled, isRouteDisabled } = useDemoPrefs();
   const activeRoutePath = findRoute(pathname)?.path;
 
   const tree = useMemo(() => {
@@ -431,6 +447,9 @@ function Sidebar({ pathname }: { pathname: string }) {
       .forEach((route) => {
         const placement = sidebarPlacement(route);
         if (!placement) {
+          return;
+        }
+        if (isGroupDisabled(placement.group) || isRouteDisabled(route.path)) {
           return;
         }
         const sections = groups.get(placement.group) ?? new Map();
@@ -449,7 +468,7 @@ function Sidebar({ pathname }: { pathname: string }) {
           items: groups.get(group)?.get(section) ?? []
         }))
     }));
-  }, [activeUser, store]);
+  }, [activeUser, store, isGroupDisabled, isRouteDisabled]);
 
   const activePlacement = useMemo(() => {
     const route = routes.find((item) => item.path === activeRoutePath);
@@ -723,9 +742,346 @@ function DemoControls({
             />
             Show permission diagnostics on route placeholders
           </label>
+
+          <VisibilitySettings />
+
+          <FeedbackList />
         </div>
       </section>
       {outboxOpen ? <OutboxModal onClose={onOutboxClose} /> : null}
+    </div>
+  );
+}
+
+function VisibilitySettings() {
+  const {
+    isGroupDisabled,
+    isRouteDisabled,
+    isActionDisabled,
+    toggleGroup,
+    toggleRoute,
+    toggleAction,
+    resetVisibility
+  } = useDemoPrefs();
+
+  const allTree = useMemo(() => {
+    const groups = new Map<string, Map<string, RouteDefinition[]>>();
+
+    routes.forEach((route) => {
+      const placement = sidebarPlacement(route);
+      if (!placement) {
+        return;
+      }
+      const sections = groups.get(placement.group) ?? new Map();
+      const items = sections.get(placement.section) ?? [];
+      items.push(route);
+      sections.set(placement.section, items);
+      groups.set(placement.group, sections);
+    });
+
+    return SIDEBAR_GROUP_ORDER.filter((group) => groups.has(group)).map((group) => ({
+      group,
+      sections: (SIDEBAR_SECTION_ORDER[group] ?? [])
+        .filter((section) => groups.get(group)?.has(section))
+        .map((section) => ({
+          section,
+          items: groups.get(group)?.get(section) ?? []
+        }))
+    }));
+  }, []);
+
+  return (
+    <section>
+      <h3 className="mb-1 text-sm font-semibold">Demo visibility</h3>
+      <p className="mb-3 text-xs text-muted">
+        Turn entire tabs, individual screens, or single actions on and off. The client sees only what
+        is enabled here. Settings persist in this browser.
+      </p>
+      <div className="prefs-tree space-y-1.5">
+        {allTree.map(({ group, sections }) => {
+          const groupOff = isGroupDisabled(group);
+          return (
+            <details key={group} className="prefs-node">
+              <summary>
+                <ChevronDown className="chev h-3.5 w-3.5" aria-hidden="true" />
+                <label
+                  className={`prefs-check ${groupOff ? "prefs-off" : ""}`}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <input type="checkbox" checked={!groupOff} onChange={() => toggleGroup(group)} />
+                  <span className="font-bold">{group}</span>
+                </label>
+              </summary>
+              <div className="prefs-children">
+                {sections.map(({ section, items }) => (
+                  <div key={section}>
+                    {sections.length > 1 ? <p className="prefs-section-label">{section}</p> : null}
+                    {items.map((route) => {
+                      const routeOff = groupOff || isRouteDisabled(route.path);
+                      return (
+                        <details key={route.path} className="prefs-node">
+                          <summary>
+                            <ChevronDown className="chev h-3.5 w-3.5" aria-hidden="true" />
+                            <label
+                              className={`prefs-check ${routeOff ? "prefs-off" : ""}`}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={!isRouteDisabled(route.path)}
+                                disabled={groupOff}
+                                onChange={() => toggleRoute(route.path)}
+                              />
+                              {route.name}
+                            </label>
+                          </summary>
+                          <div className="prefs-children">
+                            {route.primaryActions.map((action) => {
+                              const actionOff = routeOff || isActionDisabled(route.path, action);
+                              return (
+                                <label
+                                  key={action}
+                                  className={`prefs-check ${actionOff ? "prefs-off" : ""}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={!isActionDisabled(route.path, action)}
+                                    disabled={routeOff}
+                                    onChange={() => toggleAction(route.path, action)}
+                                  />
+                                  {action}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </details>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        className="ds-button ds-button-secondary mt-3 px-3 py-2 text-sm"
+        onClick={resetVisibility}
+      >
+        <RotateCcw className="h-4 w-4" aria-hidden="true" />
+        Show everything again
+      </button>
+    </section>
+  );
+}
+
+function FeedbackList() {
+  const { comments, removeComment, clearComments } = useDemoPrefs();
+
+  const feedbackText = useMemo(
+    () =>
+      comments
+        .map(
+          (comment) =>
+            `[${comment.routeName}] ${comment.persona}, ${new Date(comment.createdAt).toLocaleString("en-US")}\n${comment.body}`
+        )
+        .join("\n\n"),
+    [comments]
+  );
+
+  const mailtoHref = `mailto:milan@proconsult.rs?subject=${encodeURIComponent(
+    "GD & Signatrain demo feedback"
+  )}&body=${encodeURIComponent(feedbackText)}`;
+
+  const downloadFeedback = () => {
+    const blob = new Blob([feedbackText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "demo-feedback.txt";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <section>
+      <h3 className="mb-1 text-sm font-semibold">Client feedback ({comments.length})</h3>
+      {comments.length === 0 ? (
+        <p className="text-xs text-muted">
+          No comments yet. Use the Comment button at the bottom-right of any screen to capture client
+          feedback — it is stored in this browser and can be sent from here.
+        </p>
+      ) : (
+        <>
+          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+            {comments.map((comment) => (
+              <article key={comment.id} className="ds-card-muted p-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-bold text-muted">
+                    {comment.routeName} · {comment.persona} ·{" "}
+                    {new Date(comment.createdAt).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
+                  </p>
+                  <button
+                    type="button"
+                    className="text-muted transition hover:text-[color:var(--status-danger)]"
+                    aria-label="Delete comment"
+                    onClick={() => removeComment(comment.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+                <p className="mt-1.5 whitespace-pre-wrap">{comment.body}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a className="ds-button ds-button-primary px-3 py-2 text-sm" href={mailtoHref}>
+              Send to Milan
+            </a>
+            <button
+              type="button"
+              className="ds-button ds-button-secondary px-3 py-2 text-sm"
+              onClick={downloadFeedback}
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              Download .txt
+            </button>
+            <button
+              type="button"
+              className="ds-button ds-button-danger px-3 py-2 text-sm"
+              onClick={() => {
+                if (window.confirm("Delete all saved comments?")) {
+                  clearComments();
+                }
+              }}
+            >
+              Clear all
+            </button>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function FeedbackWidget({ route, pathname }: { route: RouteDefinition | undefined; pathname: string }) {
+  const { activePersona } = useDemoStore();
+  const { addComment } = useDemoPrefs();
+  const [open, setOpen] = useState(false);
+  const [body, setBody] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const submit = () => {
+    const trimmed = body.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    addComment({
+      routePath: pathname,
+      routeName: route?.name ?? pathname,
+      persona: activePersona.name,
+      body: trimmed
+    });
+    setBody("");
+    setSaved(true);
+    window.setTimeout(() => {
+      setSaved(false);
+      setOpen(false);
+    }, 1300);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        className="feedback-fab"
+        onClick={() => setOpen(true)}
+        aria-label="Leave a comment about this screen"
+      >
+        <MessageSquarePlus className="h-5 w-5" aria-hidden="true" />
+        <span className="hidden sm:inline">Comment</span>
+      </button>
+      {open ? (
+        <div
+          className="modal-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Leave a comment"
+        >
+          <section className="modal-panel w-full max-w-lg p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold">Leave a comment</h2>
+                <p className="mt-1 text-sm text-muted">About: {route?.name ?? pathname}</p>
+              </div>
+              <button
+                type="button"
+                className="ds-button ds-button-secondary px-3 py-2 text-sm"
+                onClick={() => setOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+            {saved ? (
+              <p className="mt-5 flex items-center gap-2 text-sm font-semibold">
+                <CheckCircle2
+                  className="h-5 w-5 text-[color:var(--brand-accent)]"
+                  aria-hidden="true"
+                />
+                Comment saved — it is available in Demo Controls.
+              </p>
+            ) : (
+              <>
+                <textarea
+                  className="ds-field mt-4 w-full px-3 py-2 text-sm"
+                  rows={4}
+                  placeholder="What should be added or changed on this screen?"
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="ds-button ds-button-primary mt-4 px-4 py-2 text-sm"
+                  onClick={submit}
+                  disabled={!body.trim()}
+                >
+                  Save comment
+                </button>
+              </>
+            )}
+          </section>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function HiddenByPrefsView({ onOpenControls }: { onOpenControls: () => void }) {
+  return (
+    <div className="narrow-shell">
+      <section className="ds-card p-6">
+        <Eye className="brand-mark h-9 w-9 opacity-40" aria-hidden="true" />
+        <h1 className="page-title mt-4 text-3xl font-bold">Screen turned off for this demo</h1>
+        <p className="mt-2 text-muted">
+          This screen is hidden by the Demo visibility settings. Re-enable it to include it in the
+          walkthrough.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" className="ds-button ds-button-primary px-4 py-2" onClick={onOpenControls}>
+            Open Demo Controls
+          </button>
+          <Link href="/app/products" className="ds-button ds-button-secondary px-4 py-2">
+            Go to My Products
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
@@ -999,9 +1355,11 @@ function ProductsView() {
 
 function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; pathname: string }) {
   const { store, activeUser, activeOrganization, permissionDiagnostics } = useDemoStore();
+  const { isActionDisabled } = useDemoPrefs();
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const showContextCards = route.path === "/app/profile";
-  const singleAction = route.primaryActions.length === 1 ? route.primaryActions[0] : null;
+  const visibleActions = route.primaryActions.filter((action) => !isActionDisabled(route.path, action));
+  const singleAction = visibleActions.length === 1 ? visibleActions[0] : null;
   const visibleRequests = visibleLegalRequestsForUser(activeUser, store);
   const visibleMessages = store.legalMessages.filter((message) => {
     const request = store.legalRequests.find((item) => item.id === message.requestId);
@@ -1025,6 +1383,11 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
       ) : null}
       {singleAction ? (
         <InlineActionView action={singleAction} route={route} />
+      ) : visibleActions.length === 0 ? (
+        <EmptyState
+          title="Actions hidden for this demo"
+          body="All actions on this screen are turned off in Demo Controls. Re-enable them under Demo visibility."
+        />
       ) : (
         <section>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -1032,7 +1395,7 @@ function ManifestPlaceholder({ route, pathname }: { route: RouteDefinition; path
             <span className="ds-pill px-3 py-1 text-xs uppercase tracking-wide">Ready</span>
           </div>
           <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {route.primaryActions.map((action) => (
+            {visibleActions.map((action) => (
               <ActionCard key={action} action={action} route={route} onOpen={() => setActiveAction(action)} />
             ))}
           </div>
