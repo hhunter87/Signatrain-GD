@@ -32,6 +32,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { CustomScreen, hasCustomScreen } from "@/components/screens";
 import { canAccessRoute, getAvailableProducts, isInternalUser, productLabel } from "@/lib/access";
 import { routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
@@ -189,7 +190,12 @@ function ShellContent() {
   }, [access.allowed, hydrated, isRestrictedPage, pathname, route, router]);
 
   const handlePersonaChange = (personaId: string) => {
-    const startRoute = switchPersona(personaId);
+    let startRoute = "/";
+    // Flush the persona switch synchronously so the store (and its
+    // localStorage snapshot) is updated before navigation remounts the page.
+    flushSync(() => {
+      startRoute = switchPersona(personaId);
+    });
     router.push(startRoute);
   };
 
@@ -216,7 +222,11 @@ function ShellContent() {
     }
     const step = TOUR_STEPS[index];
     if (store.activePersonaId !== step.personaId) {
-      switchPersona(step.personaId);
+      // Synchronous flush: the persona must be persisted before router.push
+      // remounts the page, otherwise the access guard sees the old persona.
+      flushSync(() => {
+        switchPersona(step.personaId);
+      });
     }
     router.push(step.route);
   };
@@ -1451,7 +1461,10 @@ function LandingView({ onStartTour }: { onStartTour: () => void }) {
                     type="button"
                     className="ds-button ds-button-primary mt-5 px-3 py-2 text-sm"
                     onClick={() => {
-                      const startRoute = switchPersona(persona.id);
+                      let startRoute = "/";
+                      flushSync(() => {
+                        startRoute = switchPersona(persona.id);
+                      });
                       router.push(startRoute);
                     }}
                   >

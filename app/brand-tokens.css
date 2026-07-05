@@ -1070,6 +1070,12 @@
     background: var(--surface-card);
     box-shadow: var(--shadow-lift);
     animation: fade-up 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    /* The tour keeps one constant identity regardless of the active
+       product theme — fixed dark slate-blue accents. */
+    --brand-accent: #3e5c9a;
+    --brand-accent-2: #64548e;
+    --glow-accent: 0 3px 12px -4px rgba(62, 92, 154, 0.35);
+    --button-radius: 8px;
   }
 
   /* ---------------------------------- demo prefs & feedback ---------------------------------- */
