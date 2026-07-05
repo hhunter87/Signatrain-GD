@@ -31,13 +31,71 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CustomScreen, hasCustomScreen } from "@/components/screens";
 import { canAccessRoute, getAvailableProducts, isInternalUser, productLabel } from "@/lib/access";
 import { routeProduct, findRoute, resolveDemoPath, routes } from "@/lib/routes";
 import { DemoStoreProvider, useDemoStore } from "@/lib/store";
 import { DemoPrefsProvider, useDemoPrefs } from "@/lib/prefs";
 import type { DemoStoreData, ProductContext, RouteDefinition } from "@/lib/types";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
+
+const TOUR_STEPS = [
+  {
+    title: "Enterprise structure",
+    body: "Maya (Company Owner) sees one shared account with two products — GD and Signatrain — and no hidden infrastructure brand.",
+    personaId: "persona_maya",
+    route: "/app/products"
+  },
+  {
+    title: "Company administration",
+    body: "Jordan (HR Admin) manages users and seats but cannot see billing — roles are additive and scoped.",
+    personaId: "persona_jordan",
+    route: "/app/company/users"
+  },
+  {
+    title: "HR learning",
+    body: "Elena (HR Subscriber) tracks course progress and the 95% unique-watch video rule.",
+    personaId: "persona_elena",
+    route: "/app/signatrain/progress"
+  },
+  {
+    title: "Live sessions",
+    body: "Elena registers for a Masterclass — try the Register button to see the simulated confirmation.",
+    personaId: "persona_elena",
+    route: "/app/signatrain/live"
+  },
+  {
+    title: "Manager experience",
+    body: "Marcus (Manager) gets the manager program and scenarios; HR Masterclasses, Bot, and Legislative Tracking are absent.",
+    personaId: "persona_marcus",
+    route: "/app/signatrain"
+  },
+  {
+    title: "GD front door",
+    body: "Maya reviews legal requests — restricted requests stay hidden from non-participants.",
+    personaId: "persona_maya",
+    route: "/app/gd/requests"
+  },
+  {
+    title: "GD operations",
+    body: "Dana triages the request work queue; internal notes never reach the client.",
+    personaId: "persona_dana",
+    route: "/admin/gd/requests"
+  },
+  {
+    title: "Legislative Tracking",
+    body: "Sam manages the attorney-reviewed alert pipeline from draft to distribution.",
+    personaId: "persona_sam",
+    route: "/admin/alerts"
+  },
+  {
+    title: "Commercial path",
+    body: "The prospect persona sees pricing and the simulated self-service checkout.",
+    personaId: "persona_prospect",
+    route: "/pricing"
+  }
+];
 
 const scenarioShortcuts = [
   { label: "E2E-01 Maya owner", personaId: "persona_maya", route: "/app/products" },
@@ -77,6 +135,7 @@ function ShellContent() {
   const prefs = useDemoPrefs();
   const [controlsOpen, setControlsOpen] = useState(false);
   const [outboxOpen, setOutboxOpen] = useState(false);
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const route = findRoute(pathname);
   const routePlacement = route ? sidebarPlacement(route) : null;
   const routeHiddenByPrefs = Boolean(
@@ -123,6 +182,18 @@ function ShellContent() {
 
   const availableProducts = getAvailableProducts(activeUser, store);
   const showSidebar = !["/", "/pricing"].includes(pathname) && !pathname.startsWith("/checkout");
+
+  const goToTourStep = (index: number | null) => {
+    setTourStep(index);
+    if (index === null) {
+      return;
+    }
+    const step = TOUR_STEPS[index];
+    if (store.activePersonaId !== step.personaId) {
+      switchPersona(step.personaId);
+    }
+    router.push(step.route);
+  };
 
   return (
     <div data-product={visualProduct} className={`app-root ${themeClassName}`}>
@@ -171,7 +242,7 @@ function ShellContent() {
             ) : routeHiddenByPrefs ? (
               <HiddenByPrefsView onOpenControls={() => setControlsOpen(true)} />
             ) : route && access.allowed ? (
-              <RouteView route={route} pathname={pathname} />
+              <RouteView route={route} pathname={pathname} onStartTour={() => goToTourStep(0)} />
             ) : route ? (
               <LoadingDemoContext />
             ) : (
@@ -180,9 +251,20 @@ function ShellContent() {
           </div>
         </main>
       </div>
+      {tourStep !== null ? (
+        <TourCard
+          stepIndex={tourStep}
+          onNavigate={goToTourStep}
+          onEnd={() => setTourStep(null)}
+        />
+      ) : null}
       <FeedbackWidget route={route} pathname={pathname} />
       <DemoControls
         open={controlsOpen}
+        onStartTour={() => {
+          setControlsOpen(false);
+          goToTourStep(0);
+        }}
         onClose={() => setControlsOpen(false)}
         outboxOpen={outboxOpen}
         onOutboxOpen={() => setOutboxOpen(true)}
@@ -265,9 +347,123 @@ function ProductSwitcher({
   );
 }
 
+function useModalA11y(active: boolean, onClose: () => void) {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!active) {
+      return undefined;
+    }
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+
+    const focusables = () => {
+      const panel = ref.current;
+      if (!panel) {
+        return [] as HTMLElement[];
+      }
+      return Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => !element.hasAttribute("disabled"));
+    };
+
+    focusables()[0]?.focus();
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const list = focusables();
+      if (list.length === 0) {
+        return;
+      }
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      previouslyFocused?.focus();
+    };
+  }, [active, onClose]);
+
+  return ref;
+}
+
+function TourCard({
+  stepIndex,
+  onNavigate,
+  onEnd
+}: {
+  stepIndex: number;
+  onNavigate: (index: number | null) => void;
+  onEnd: () => void;
+}) {
+  const step = TOUR_STEPS[stepIndex];
+  const isLast = stepIndex === TOUR_STEPS.length - 1;
+
+  return (
+    <aside className="tour-card p-4" aria-label={`Demo tour step ${stepIndex + 1} of ${TOUR_STEPS.length}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className="ds-pill px-2.5 py-0.5 text-xs">
+          Step {stepIndex + 1} / {TOUR_STEPS.length}
+        </span>
+        <button
+          type="button"
+          className="text-xs font-bold uppercase tracking-wide text-muted transition hover:text-ink"
+          onClick={onEnd}
+        >
+          End tour
+        </button>
+      </div>
+      <h2 className="mt-3 text-base font-bold">{step.title}</h2>
+      <p className="mt-1 text-sm text-muted">{step.body}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {stepIndex > 0 ? (
+          <button
+            type="button"
+            className="ds-button ds-button-secondary px-3 py-1.5 text-sm"
+            onClick={() => onNavigate(stepIndex - 1)}
+          >
+            Back
+          </button>
+        ) : null}
+        {isLast ? (
+          <button type="button" className="ds-button ds-button-primary px-3 py-1.5 text-sm" onClick={onEnd}>
+            Finish tour
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="ds-button ds-button-primary px-3 py-1.5 text-sm"
+            onClick={() => onNavigate(stepIndex + 1)}
+          >
+            Next step
+          </button>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 function NotificationBell() {
   const router = useRouter();
-  const { store, activeUser } = useDemoStore();
+  const { store, activeUser, markNotificationRead, markAllNotificationsRead } = useDemoStore();
   const [open, setOpen] = useState(false);
   const notifications = useMemo(
     () =>
@@ -317,7 +513,13 @@ function NotificationBell() {
             <div className="flex items-center justify-between px-4 py-3">
               <h2 className="text-sm font-bold">Notifications</h2>
               {unreadCount > 0 ? (
-                <span className="ds-pill px-2 py-0.5 text-xs">{unreadCount} unread</span>
+                <button
+                  type="button"
+                  className="text-xs font-bold text-[color:var(--brand-accent)] hover:underline"
+                  onClick={markAllNotificationsRead}
+                >
+                  Mark all read ({unreadCount})
+                </button>
               ) : (
                 <span className="text-xs text-muted">All caught up</span>
               )}
@@ -331,6 +533,7 @@ function NotificationBell() {
                   type="button"
                   className="notif-item"
                   onClick={() => {
+                    markNotificationRead(notification.id);
                     setOpen(false);
                     if (notification.href) {
                       router.push(notification.href);
@@ -581,6 +784,7 @@ function Sidebar({ pathname }: { pathname: string }) {
 function DemoControls({
   open,
   onClose,
+  onStartTour,
   outboxOpen,
   onOutboxOpen,
   onOutboxClose,
@@ -593,6 +797,7 @@ function DemoControls({
 }: {
   open: boolean;
   onClose: () => void;
+  onStartTour: () => void;
   outboxOpen: boolean;
   onOutboxOpen: () => void;
   onOutboxClose: () => void;
@@ -607,6 +812,7 @@ function DemoControls({
   const { store, activePersona, activeUser } = useDemoStore();
   const canSwitchOrganization = isInternalUser(activeUser);
   const availableProducts = getAvailableProducts(activeUser, store);
+  const panelRef = useModalA11y(open && !outboxOpen, onClose);
 
   if (!open) {
     return null;
@@ -620,7 +826,7 @@ function DemoControls({
         className="absolute inset-0 h-full w-full bg-black/30"
         onClick={onClose}
       />
-      <section className="modal-panel absolute right-0 top-0 flex h-full w-full max-w-xl flex-col overflow-y-auto">
+      <section ref={panelRef} className="modal-panel absolute right-0 top-0 flex h-full w-full max-w-xl flex-col overflow-y-auto">
         <div className="flex items-center justify-between border-b border-[color:var(--border-subtle)] p-5">
           <div>
             <h2 className="text-xl font-bold">Demo Controls</h2>
@@ -631,6 +837,15 @@ function DemoControls({
           </button>
         </div>
         <div className="space-y-6 p-5">
+          <button
+            type="button"
+            className="ds-button ds-button-primary w-full px-4 py-2.5"
+            onClick={onStartTour}
+          >
+            <PlayCircle className="h-4 w-4" aria-hidden="true" />
+            Start demo tour ({TOUR_STEPS.length} steps)
+          </button>
+
           <label className="block">
             <span className="mb-2 block text-sm font-semibold">Persona</span>
             <select
@@ -976,6 +1191,7 @@ function FeedbackWidget({ route, pathname }: { route: RouteDefinition | undefine
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState("");
   const [saved, setSaved] = useState(false);
+  const panelRef = useModalA11y(open, () => setOpen(false));
 
   const submit = () => {
     const trimmed = body.trim();
@@ -1015,7 +1231,7 @@ function FeedbackWidget({ route, pathname }: { route: RouteDefinition | undefine
           aria-modal="true"
           aria-label="Leave a comment"
         >
-          <section className="modal-panel w-full max-w-lg p-5">
+          <section ref={panelRef} className="modal-panel w-full max-w-lg p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold">Leave a comment</h2>
@@ -1088,9 +1304,10 @@ function HiddenByPrefsView({ onOpenControls }: { onOpenControls: () => void }) {
 
 function OutboxModal({ onClose }: { onClose: () => void }) {
   const { store } = useDemoStore();
+  const panelRef = useModalA11y(true, onClose);
   return (
     <div className="modal-scrim absolute inset-0 z-10 flex items-center justify-center p-4">
-      <section className="modal-panel max-h-[80vh] w-full max-w-3xl overflow-y-auto p-5">
+      <section ref={panelRef} className="modal-panel max-h-[80vh] w-full max-w-3xl overflow-y-auto p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold">Email outbox</h2>
           <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={onClose}>
@@ -1112,9 +1329,17 @@ function OutboxModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function RouteView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+function RouteView({
+  route,
+  pathname,
+  onStartTour
+}: {
+  route: RouteDefinition;
+  pathname: string;
+  onStartTour: () => void;
+}) {
   if (pathname === "/") {
-    return <LandingView />;
+    return <LandingView onStartTour={onStartTour} />;
   }
 
   if (pathname === "/pricing") {
@@ -1133,10 +1358,14 @@ function RouteView({ route, pathname }: { route: RouteDefinition; pathname: stri
     return <ProductsView />;
   }
 
+  if (hasCustomScreen(route.path)) {
+    return <CustomScreen route={route} pathname={pathname} />;
+  }
+
   return <ManifestPlaceholder route={route} pathname={pathname} />;
 }
 
-function LandingView() {
+function LandingView({ onStartTour }: { onStartTour: () => void }) {
   const router = useRouter();
   const { store, switchPersona } = useDemoStore();
   const grouped = {
@@ -1164,7 +1393,11 @@ function LandingView() {
           role-specific navigation, entitlements, and strict data boundaries.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
-          <Link className="ds-button ds-button-primary px-5 py-2.5" href="/pricing">
+          <button type="button" className="ds-button ds-button-primary px-5 py-2.5" onClick={onStartTour}>
+            <PlayCircle className="h-4 w-4" aria-hidden="true" />
+            Start demo tour
+          </button>
+          <Link className="ds-button ds-button-secondary px-5 py-2.5" href="/pricing">
             Open pricing
           </Link>
           <Link className="ds-button ds-button-secondary px-5 py-2.5" href="/app/products">
@@ -1564,10 +1797,11 @@ function ActionSimulationModal({
   const { store, activeUser, activeOrganization } = useDemoStore();
   const simulation = buildActionSimulation(action, route, store, activeUser?.id);
   const Icon = iconForAction(action, route);
+  const panelRef = useModalA11y(true, onClose);
 
   return (
     <div className="modal-scrim fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <section className={`modal-panel max-h-[88vh] w-full max-w-5xl overflow-y-auto ${tintForAction(action, route)}`}>
+      <section ref={panelRef} className={`modal-panel max-h-[88vh] w-full max-w-5xl overflow-y-auto ${tintForAction(action, route)}`}>
         <div className="border-b border-[color:var(--border-subtle)] bg-[color:var(--surface-muted)] p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 gap-4">
@@ -1724,7 +1958,7 @@ function workflowSideEffects(
 }
 
 function ActionWorkflow({ action, route }: { action: string; route: RouteDefinition }) {
-  const { store, activeUser, activeOrganization } = useDemoStore();
+  const { store, activeUser, activeOrganization, recordSimulation } = useDemoStore();
   const simulation = buildActionSimulation(action, route, store, activeUser?.id);
   const tint = tintForAction(action, route);
   const verb = verbForAction(action);
@@ -1732,22 +1966,35 @@ function ActionWorkflow({ action, route }: { action: string; route: RouteDefinit
   const [step, setStep] = useState<WorkflowStep>("choose");
   const [selected, setSelected] = useState<ActionSimulation["items"][number] | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const subjectForRecord = isForm ? simulation.title : selected?.title ?? simulation.title;
 
   useEffect(() => {
     if (step !== "processing") {
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setStep("done"), 750);
+    const timer = window.setTimeout(() => {
+      recordSimulation({
+        title: `${verb} complete`,
+        body: `${subjectForRecord} — ${route.name}.`,
+        href: resolveDemoPath(route.path),
+        emailSubject: `${verb} confirmation — ${subjectForRecord}`,
+        emailBody: `This simulated email confirms the action "${action}" for ${subjectForRecord} on the ${route.name} screen.`,
+        action: `${verb.toLowerCase().replaceAll(" ", "_")}_simulated`,
+        objectType: simulation.kind,
+        objectId: route.path
+      });
+      setStep("done");
+    }, 750);
     return () => window.clearTimeout(timer);
-  }, [step]);
+  }, [step, recordSimulation, verb, subjectForRecord, route.name, route.path, action, simulation.kind]);
 
   if (simulation.kind === "video") {
-    return <VideoWorkflow simulation={simulation} tint={tint} />;
+    return <VideoWorkflow simulation={simulation} tint={tint} route={route} />;
   }
 
   const stepIndex = step === "choose" ? 0 : step === "review" ? 1 : 2;
-  const subject = isForm ? simulation.title : selected?.title ?? simulation.title;
+  const subject = subjectForRecord;
   const reset = () => {
     setStep("choose");
     setSelected(null);
@@ -1920,9 +2167,19 @@ function ActionWorkflow({ action, route }: { action: string; route: RouteDefinit
   );
 }
 
-function VideoWorkflow({ simulation, tint }: { simulation: ActionSimulation; tint: string }) {
+function VideoWorkflow({
+  simulation,
+  tint,
+  route
+}: {
+  simulation: ActionSimulation;
+  tint: string;
+  route: RouteDefinition;
+}) {
+  const { recordSimulation } = useDemoStore();
   const [progress, setProgress] = useState(72);
   const [playing, setPlaying] = useState(false);
+  const [recorded, setRecorded] = useState(false);
   const item = simulation.items[0];
   const complete = progress >= 95;
 
@@ -1942,6 +2199,23 @@ function VideoWorkflow({ simulation, tint }: { simulation: ActionSimulation; tin
       setPlaying(false);
     }
   }, [progress]);
+
+  useEffect(() => {
+    if (!complete || recorded) {
+      return;
+    }
+    setRecorded(true);
+    recordSimulation({
+      title: "Completion recorded",
+      body: `${item?.title ?? "Training video"} reached the 95% watch threshold.`,
+      href: resolveDemoPath(route.path),
+      emailSubject: `Completion recorded — ${item?.title ?? "Training video"}`,
+      emailBody: `This simulated email confirms that ${item?.title ?? "the training video"} reached 95% unique watch coverage and completion was recorded.`,
+      action: "video_completion_simulated",
+      objectType: "video",
+      objectId: route.path
+    });
+  }, [complete, recorded, recordSimulation, item?.title, route.path]);
 
   return (
     <section className={`ds-card p-4 ${tint}`}>

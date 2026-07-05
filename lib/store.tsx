@@ -12,6 +12,17 @@ import {
 import { cloneStore, createSeedStore, demoConfig, inferProductFromRoute } from "@/lib/fixtures";
 import type { DemoStoreData, ProductContext } from "@/lib/types";
 
+export interface SimulationRecord {
+  title: string;
+  body: string;
+  href?: string;
+  emailSubject: string;
+  emailBody: string;
+  action: string;
+  objectType: string;
+  objectId: string;
+}
+
 interface DemoStoreContextValue {
   store: DemoStoreData;
   hydrated: boolean;
@@ -24,6 +35,14 @@ interface DemoStoreContextValue {
   switchOrganization: (organizationId: string) => void;
   switchProduct: (product: ProductContext) => void;
   resetDemo: () => void;
+  recordSimulation: (record: SimulationRecord) => void;
+  markNotificationRead: (notificationId: string) => void;
+  markAllNotificationsRead: () => void;
+  addLegalMessage: (
+    requestId: string,
+    body: string,
+    visibility: "client_visible" | "internal_only"
+  ) => void;
 }
 
 const DemoStoreContext = createContext<DemoStoreContextValue | null>(null);
@@ -124,6 +143,111 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     [updateStore]
   );
 
+  const recordSimulation = useCallback(
+    (record: SimulationRecord) => {
+      if (!activeUser) {
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+      updateStore((current) => ({
+        ...current,
+        notifications: [
+          {
+            id: `not_sim_${suffix}`,
+            userId: activeUser.id,
+            type: "simulation",
+            title: record.title,
+            body: record.body,
+            href: record.href,
+            readAt: null,
+            createdAt: now
+          },
+          ...current.notifications
+        ],
+        emailOutbox: [
+          {
+            id: `email_sim_${suffix}`,
+            recipient: activeUser.email,
+            subject: record.emailSubject,
+            templateKey: "simulation",
+            body: record.emailBody,
+            createdAt: now
+          },
+          ...current.emailOutbox
+        ],
+        auditEvents: [
+          {
+            id: `audit_sim_${suffix}`,
+            actorUserId: activeUser.id,
+            action: record.action,
+            objectType: record.objectType,
+            objectId: record.objectId,
+            metadata: { simulated: true },
+            createdAt: now
+          },
+          ...current.auditEvents
+        ]
+      }));
+    },
+    [activeUser, updateStore]
+  );
+
+  const markNotificationRead = useCallback(
+    (notificationId: string) => {
+      updateStore((current) => ({
+        ...current,
+        notifications: current.notifications.map((notification) =>
+          notification.id === notificationId && !notification.readAt
+            ? { ...notification, readAt: new Date().toISOString() }
+            : notification
+        )
+      }));
+    },
+    [updateStore]
+  );
+
+  const markAllNotificationsRead = useCallback(() => {
+    if (!activeUser) {
+      return;
+    }
+
+    updateStore((current) => ({
+      ...current,
+      notifications: current.notifications.map((notification) =>
+        notification.userId === activeUser.id && !notification.readAt
+          ? { ...notification, readAt: new Date().toISOString() }
+          : notification
+      )
+    }));
+  }, [activeUser, updateStore]);
+
+  const addLegalMessage = useCallback(
+    (requestId: string, body: string, visibility: "client_visible" | "internal_only") => {
+      if (!activeUser) {
+        return;
+      }
+
+      updateStore((current) => ({
+        ...current,
+        legalMessages: [
+          ...current.legalMessages,
+          {
+            id: `msg_sim_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            requestId,
+            authorUserId: activeUser.id,
+            visibility,
+            body,
+            createdAt: new Date().toISOString()
+          }
+        ]
+      }));
+    },
+    [activeUser, updateStore]
+  );
+
   const resetDemo = useCallback(() => {
     const seed = createSeedStore();
     if (typeof window !== "undefined") {
@@ -146,7 +270,11 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       switchPersona,
       switchOrganization,
       switchProduct,
-      resetDemo
+      resetDemo,
+      recordSimulation,
+      markNotificationRead,
+      markAllNotificationsRead,
+      addLegalMessage
     }),
     [
       activeOrganization,
@@ -155,6 +283,10 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       hydrated,
       permissionDiagnostics,
       resetDemo,
+      recordSimulation,
+      markNotificationRead,
+      markAllNotificationsRead,
+      addLegalMessage,
       store,
       switchOrganization,
       switchPersona,
