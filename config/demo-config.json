@@ -7,7 +7,7 @@
   "enablePersonaSwitcher": true,
   "enableProductSwitcher": true,
   "enableReset": true,
-  "enablePermissionDiagnostics": true,
+  "enablePermissionDiagnostics": false,
   "enableMockCheckout": true,
   "enableRealIntegrations": false,
   "simulateLatencyMs": 250,
