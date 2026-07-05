@@ -29,6 +29,7 @@ import {
   Upload,
   Users
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -236,10 +237,29 @@ function ShellContent() {
       <header className="topbar sticky top-0 z-30">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 lg:px-6">
           <Link href="/app/products" className="flex items-center gap-2.5 font-semibold tracking-tight">
-            <span className="brand-tile">
-              <ShieldCheck className="brand-mark h-4 w-4" aria-hidden="true" />
-            </span>
-            <span>GD & Signatrain</span>
+            {visualProduct === "signatrain" ? (
+              <>
+                <Image
+                  src="/brand/signatrain/signatrain-icon-white.svg"
+                  alt="SignaTrain"
+                  width={30}
+                  height={30}
+                  unoptimized
+                  priority
+                />
+                <span className="brand-wordmark text-lg">
+                  <span className="wm-signa">Signa</span>
+                  <span className="wm-train">Train</span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="brand-tile">
+                  <ShieldCheck className="brand-mark h-4 w-4" aria-hidden="true" />
+                </span>
+                <span>GD & Signatrain</span>
+              </>
+            )}
           </Link>
           <ProductSwitcher
             availableProducts={availableProducts}
@@ -373,7 +393,15 @@ function ProductSwitcher({
           title={`Switch to ${productLabel(product)}`}
         >
           {product === "gd" ? <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> : null}
-          {product === "signatrain" ? <GraduationCap className="h-4 w-4" aria-hidden="true" /> : null}
+          {product === "signatrain" ? (
+            <Image
+              src="/brand/signatrain/signatrain-icon-white.svg"
+              alt=""
+              width={16}
+              height={16}
+              unoptimized
+            />
+          ) : null}
           {product === "shared" ? <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> : null}
           {product === "admin" ? <ShieldCheck className="h-4 w-4" aria-hidden="true" /> : null}
           {productLabel(product)}
@@ -750,7 +778,17 @@ function Sidebar({ pathname }: { pathname: string }) {
                   aria-expanded={isOpen}
                   onClick={() => setOpenGroups((current) => ({ ...current, [group]: !isOpen }))}
                 >
-                  <GroupIcon className="h-4 w-4" aria-hidden="true" />
+                  {group === "Signatrain" ? (
+                    <Image
+                      src="/brand/signatrain/signatrain-icon-white.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      unoptimized
+                    />
+                  ) : (
+                    <GroupIcon className="h-4 w-4" aria-hidden="true" />
+                  )}
                   <span className="flex-1 text-left">{group}</span>
                   <span className="nav-count">{itemCount}</span>
                   <ChevronDown

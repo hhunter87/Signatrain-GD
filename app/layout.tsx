@@ -13,7 +13,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* App Router root layout applies to every page; the pages-router rule is a false positive here. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap"
+          rel="stylesheet"
+        />
+        {children}
+      </body>
     </html>
   );
 }
