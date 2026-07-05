@@ -1494,6 +1494,9 @@ function LandingView({ onStartTour }: { onStartTour: () => void }) {
           <a className="ds-button ds-button-secondary px-5 py-2.5" href="/website">
             SignaTrain website
           </a>
+          <a className="ds-button ds-button-secondary px-5 py-2.5" href="/gd-website">
+            GD website
+          </a>
         </div>
       </section>
       <div className="marketing-grid">

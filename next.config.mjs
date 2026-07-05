@@ -6,6 +6,10 @@ const nextConfig = {
       {
         source: "/website",
         destination: "/website.html"
+      },
+      {
+        source: "/gd-website",
+        destination: "/gd-website.html"
       }
     ];
   }
