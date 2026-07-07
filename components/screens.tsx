@@ -97,6 +97,7 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/gd/onboarding",
   "/app/gd/benefits",
   "/app/gd/requests",
+  "/app/gd/requests/new",
   "/app/gd/requests/[requestId]",
   "/app/gd/matters",
   "/app/gd/matters/[matterId]",
@@ -144,6 +145,8 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <GdBenefitsView route={route} />;
     case "/app/gd/requests":
       return <RequestListView route={route} />;
+    case "/app/gd/requests/new":
+      return <SubmitLegalRequestView route={route} />;
     case "/app/gd/requests/[requestId]":
       return <RequestThreadView route={route} pathname={pathname} />;
     case "/app/gd/matters":
@@ -4883,6 +4886,110 @@ function JurisdictionCoverageView({ route }: { route: RouteDefinition }) {
         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Jurisdiction coverage reflects the monitoring scope currently configured for your company. Alerts help identify potentially relevant changes and are not a substitute for a full legal review of your specific situation.
       </p>
+    </div>
+  );
+}
+
+
+/* --------------------------- Submit legal request ------------------------- */
+
+function SubmitLegalRequestView({ route }: { route: RouteDefinition }) {
+  const categories = ["Contract review", "Employment issue", "Compliance question", "Litigation / dispute", "Policy review", "Corporate governance", "Billing / legal admin", "General legal question", "Signatrain-related training/legal"];
+  const outcomes = ["Review and advise", "Draft a response", "Revise a document", "Prepare a new document", "Schedule attorney consultation", "Convert this into a formal matter/project"];
+  const riskQuestions = ["There is a court deadline", "There is a government agency deadline", "A demand letter has been received", "An employee/customer/vendor is waiting for a response", "This is blocking a business decision", "This relates to a signed contract"];
+
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState(categories[0]);
+  const [priority, setPriority] = useState("medium");
+  const [privacy, setPrivacy] = useState<"company_visible" | "restricted">("company_visible");
+  const [deadline, setDeadline] = useState("");
+  const [description, setDescription] = useState("");
+  const [risks, setRisks] = useState<Record<string, boolean>>({});
+  const [outcome, setOutcome] = useState(outcomes[0]);
+  const [fileName, setFileName] = useState("");
+  const [submitted, setSubmitted] = useState<string | null>(null);
+  const toggleRisk = (q: string) => setRisks((r) => ({ ...r, [q]: !r[q] }));
+  const reference = `REQ-2026-${String(20 + Math.floor(title.length % 80)).padStart(3, "0")}`;
+
+  if (submitted) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <CheckCircle2 className="h-10 w-10 text-[color:var(--brand-accent)]" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Legal request submitted</h1>
+          <p className="mt-2 text-muted">This is a simulation; no real request was created.</p>
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Request number</dt><dd className="mt-0.5 text-sm">{submitted}</dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Status</dt><dd className="mt-0.5"><StatusChip value="submitted" /></dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Expected response</dt><dd className="mt-0.5 text-sm">1 business day (Concierge plan)</dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Category</dt><dd className="mt-0.5 text-sm">{category}</dd></div>
+          </dl>
+          <p className="mt-4 text-sm text-muted">Next steps: your GD team will triage the request and reach out with any questions.</p>
+          <div className="mt-5 flex gap-2">
+            <Link href="/app/gd/requests" className="ds-button ds-button-primary px-4 py-2 text-sm">Back to requests</Link>
+            <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={() => setSubmitted(null)}>Submit another</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Send a structured legal request to your Greenwald Doherty team. Simple to complete, but detailed enough for GD to act." />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className="ds-card p-5">
+            <h2 className="text-lg font-bold">Basic info</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2"><label className="text-xs font-bold uppercase tracking-wide text-muted">Request title</label><input className="ds-field mt-1 w-full px-3 py-2 text-sm" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Short summary of what you need" /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label><select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={category} onChange={(e) => setCategory(e.target.value)}>{categories.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Priority</label><select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={priority} onChange={(e) => setPriority(e.target.value)}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Requested deadline</label><input type="date" className="ds-field mt-1 w-full px-3 py-2 text-sm" value={deadline} onChange={(e) => setDeadline(e.target.value)} /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Privacy</label><select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={privacy} onChange={(e) => setPrivacy(e.target.value as "company_visible" | "restricted")}><option value="company_visible">Company visible</option><option value="restricted">Restricted to participants</option></select></div>
+            </div>
+          </section>
+
+          <section className="ds-card p-5">
+            <h2 className="text-lg font-bold">Describe your request</h2>
+            <p className="mt-1 text-sm text-muted">What happened? What decision do you need to make? Is there a deadline? Are documents involved?</p>
+            <textarea className="ds-field mt-3 w-full px-3 py-2 text-sm" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Please describe what you need help with." />
+          </section>
+
+          <section className="ds-card p-5">
+            <h2 className="text-lg font-bold">Urgency &amp; risk</h2>
+            <p className="mt-1 text-sm text-muted">Check anything that applies so GD can triage correctly.</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {riskQuestions.map((q) => (
+                <label key={q} className="flex items-start gap-2 rounded-lg border border-[color:var(--hairline,rgba(0,0,0,0.08))] p-2.5 text-sm">
+                  <input type="checkbox" checked={!!risks[q]} onChange={() => toggleRisk(q)} className="mt-0.5" />
+                  {q}
+                </label>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="ds-card p-5">
+            <div className="mb-2 flex items-center gap-2"><Paperclip className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Documents</h2></div>
+            <p className="text-sm text-muted">Attach contracts, letters, notices, or prior correspondence (simulation).</p>
+            <button type="button" className="ds-button ds-button-secondary mt-3 px-4 py-2 text-sm" onClick={() => setFileName("Supporting_Documents.pdf")}>Choose file</button>
+            {fileName ? <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold"><Paperclip className="h-3.5 w-3.5" aria-hidden="true" />{fileName}</p> : null}
+          </section>
+
+          <section className="ds-card p-5">
+            <h2 className="text-lg font-bold">Preferred outcome</h2>
+            <select className="ds-field mt-2 w-full px-3 py-2 text-sm" value={outcome} onChange={(e) => setOutcome(e.target.value)}>{outcomes.map((o) => <option key={o} value={o}>{o}</option>)}</select>
+          </section>
+
+          <button type="button" className="ds-button ds-button-primary inline-flex w-full justify-center px-4 py-2.5 text-sm" onClick={() => setSubmitted(reference)} disabled={!title.trim() || !description.trim()}>
+            <Send className="h-4 w-4" aria-hidden="true" />
+            Submit request
+          </button>
+          <p className="text-xs text-muted">You'll receive a request number and expected response window after submitting.</p>
+        </div>
+      </div>
     </div>
   );
 }

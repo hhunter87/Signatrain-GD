@@ -33,6 +33,33 @@
       "courseId": "course_harassment_mgr",
       "status": "in_progress",
       "startedAt": "2026-06-25"
+    },
+    {
+      "id": "enr_maya_emp",
+      "userId": "user_maya",
+      "courseId": "course_employment_law",
+      "status": "in_progress",
+      "startedAt": "2026-06-22"
+    },
+    {
+      "id": "enr_maya_comp",
+      "userId": "user_maya",
+      "courseId": "course_compliance_basics",
+      "status": "not_started"
+    },
+    {
+      "id": "enr_jordan_hr",
+      "userId": "user_jordan",
+      "courseId": "course_hr_bootcamp",
+      "status": "completed",
+      "startedAt": "2026-05-01"
+    },
+    {
+      "id": "enr_jordan_comp",
+      "userId": "user_jordan",
+      "courseId": "course_compliance_basics",
+      "status": "in_progress",
+      "startedAt": "2026-06-25"
     }
   ],
   "videoProgress": [
@@ -95,6 +122,42 @@
       "uniqueSeconds": 420,
       "percent": 1.0,
       "completed": true
+    },
+    {
+      "id": "vp_maya_1",
+      "userId": "user_maya",
+      "videoId": "video_hr_1",
+      "watchedIntervals": [],
+      "uniqueSeconds": 400,
+      "percent": 1.0,
+      "completed": true
+    },
+    {
+      "id": "vp_maya_2",
+      "userId": "user_maya",
+      "videoId": "video_hr_2",
+      "watchedIntervals": [],
+      "uniqueSeconds": 248,
+      "percent": 0.62,
+      "completed": false
+    },
+    {
+      "id": "vp_jordan_1",
+      "userId": "user_jordan",
+      "videoId": "video_hr_1",
+      "watchedIntervals": [],
+      "uniqueSeconds": 400,
+      "percent": 1.0,
+      "completed": true
+    },
+    {
+      "id": "vp_jordan_2",
+      "userId": "user_jordan",
+      "videoId": "video_hr_2",
+      "watchedIntervals": [],
+      "uniqueSeconds": 400,
+      "percent": 1.0,
+      "completed": true
     }
   ],
   "evaluations": [],
@@ -117,6 +180,26 @@
       "issuedAt": "2026-06-15",
       "status": "issued",
       "verificationSlug": "CERT-ST-2026-0011",
+      "creditMetadata": null
+    },
+    {
+      "id": "CERT-ST-2026-0021",
+      "userId": "user_maya",
+      "title": "New HR Bootcamp",
+      "courseId": "course_hr_bootcamp",
+      "issuedAt": "2026-06-28",
+      "status": "issued",
+      "verificationSlug": "CERT-ST-2026-0021",
+      "creditMetadata": null
+    },
+    {
+      "id": "CERT-ST-2026-0022",
+      "userId": "user_jordan",
+      "title": "New HR Bootcamp",
+      "courseId": "course_hr_bootcamp",
+      "issuedAt": "2026-06-30",
+      "status": "issued",
+      "verificationSlug": "CERT-ST-2026-0022",
       "creditMetadata": null
     }
   ],
@@ -210,6 +293,76 @@
       "dueAt": "2026-08-20",
       "assignedBy": "HR Admin",
       "progress": 0
+    },
+    {
+      "id": "asg_maya_prog",
+      "userId": "user_maya",
+      "kind": "program",
+      "refId": "program_hr_compliance",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 40
+    },
+    {
+      "id": "asg_maya_c1",
+      "userId": "user_maya",
+      "kind": "course",
+      "refId": "course_hr_bootcamp",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 55
+    },
+    {
+      "id": "asg_maya_c2",
+      "userId": "user_maya",
+      "kind": "course",
+      "refId": "course_compliance_basics",
+      "status": "not_started",
+      "dueAt": "2026-09-01",
+      "assignedBy": "HR Admin",
+      "progress": 0
+    },
+    {
+      "id": "asg_maya_c3",
+      "userId": "user_maya",
+      "kind": "course",
+      "refId": "course_employment_law",
+      "status": "in_progress",
+      "dueAt": "2026-08-20",
+      "assignedBy": "HR Admin",
+      "progress": 30
+    },
+    {
+      "id": "asg_jordan_prog",
+      "userId": "user_jordan",
+      "kind": "program",
+      "refId": "program_hr_compliance",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 30
+    },
+    {
+      "id": "asg_jordan_c1",
+      "userId": "user_jordan",
+      "kind": "course",
+      "refId": "course_hr_bootcamp",
+      "status": "completed",
+      "dueAt": "2026-06-30",
+      "assignedBy": "HR Admin",
+      "progress": 100
+    },
+    {
+      "id": "asg_jordan_c2",
+      "userId": "user_jordan",
+      "kind": "course",
+      "refId": "course_compliance_basics",
+      "status": "in_progress",
+      "dueAt": "2026-09-01",
+      "assignedBy": "HR Admin",
+      "progress": 60
     }
   ],
   "certDetails": [
@@ -233,6 +386,28 @@
       "durationMinutes": 45,
       "instructor": "Alex Morgan",
       "modulesCompleted": 6,
+      "renewalNote": "Renewal training becomes available 30 days before expiration."
+    },
+    {
+      "certId": "CERT-ST-2026-0021",
+      "issuer": "Signatrain",
+      "expiresAt": "2027-06-28",
+      "verificationId": "CERT-ST-2026-0021",
+      "score": 90,
+      "durationMinutes": 45,
+      "instructor": "Alex Morgan",
+      "modulesCompleted": 3,
+      "renewalNote": "Renewal training becomes available 30 days before expiration."
+    },
+    {
+      "certId": "CERT-ST-2026-0022",
+      "issuer": "Signatrain",
+      "expiresAt": "2027-06-30",
+      "verificationId": "CERT-ST-2026-0022",
+      "score": 94,
+      "durationMinutes": 45,
+      "instructor": "Alex Morgan",
+      "modulesCompleted": 3,
       "renewalNote": "Renewal training becomes available 30 days before expiration."
     }
   ]
