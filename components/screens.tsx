@@ -37,8 +37,10 @@ import {
   Settings,
   Shield,
   Sparkles,
+  Upload,
   UserPlus,
   Users,
+  X,
   Video
 } from "lucide-react";
 import Link from "next/link";
@@ -536,61 +538,86 @@ const ONBOARDING_SECTION_ORDER = [
 ];
 
 function GdOnboardingView({ route }: { route: RouteDefinition }) {
-  const { activeUser } = useDemoStore();
+  const { store, activeUser } = useDemoStore();
   const orgId = activeUser?.organizationId;
   const tasks = onboardingTasks.filter((t) => t.organizationId === orgId);
-  const done = tasks.filter((t) => t.status === "accepted").length;
-  const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
   const profile = gdCompanyProfile.organizationId === orgId ? gdCompanyProfile : undefined;
+  const orgUsers = store.users.filter((u) => u.organizationId === orgId);
+
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
+  const [uploads, setUploads] = useState<Record<string, string>>({});
+  const [modal, setModal] = useState<{ type: "upload" | "schedule" | "generic"; taskId: string; title: string } | null>(null);
+  // upload modal
+  const [fileName, setFileName] = useState("");
+  // schedule modal
+  const [invitees, setInvitees] = useState<string[]>([]);
+  const [callDate, setCallDate] = useState("");
+  const [callTime, setCallTime] = useState("");
+  const [scheduleDone, setScheduleDone] = useState(false);
+
+  const statusOf = (t: { id: string; status: string }) => overrides[t.id] ?? t.status;
+  const done = tasks.filter((t) => statusOf(t) === "accepted").length;
+  const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
 
   const sections = ONBOARDING_SECTION_ORDER.map((name) => ({
     name,
     items: tasks.filter((t) => t.section === name)
-  })).filter((s) => s.items.length > 0);
+  })).filter((sec) => sec.items.length > 0);
+
+  const actionType = (title: string): "upload" | "schedule" | "generic" => {
+    const t = title.toLowerCase();
+    if (t.includes("termination")) return "upload";
+    if (t.includes("kickoff")) return "schedule";
+    return "generic";
+  };
+  const openModal = (taskId: string, title: string) => {
+    setFileName(""); setInvitees([]); setCallDate(""); setCallTime(""); setScheduleDone(false);
+    setModal({ type: actionType(title), taskId, title });
+  };
+  const closeModal = () => setModal(null);
+  const confirmUpload = () => {
+    if (!modal || !fileName) return;
+    setUploads((u) => ({ ...u, [modal.taskId]: fileName }));
+    setOverrides((o) => ({ ...o, [modal.taskId]: "in_review" }));
+    closeModal();
+  };
+  const confirmSchedule = () => {
+    if (!modal) return;
+    setOverrides((o) => ({ ...o, [modal.taskId]: "accepted" }));
+    setScheduleDone(true);
+  };
+  const confirmGeneric = () => {
+    if (!modal) return;
+    setOverrides((o) => ({ ...o, [modal.taskId]: "submitted" }));
+    closeModal();
+  };
+  const toggleInvitee = (id: string) => setInvitees((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
 
   return (
     <div className="content-shell">
-      <ScreenHeading
-        route={route}
-        description="Complete these steps so Greenwald Doherty has everything needed to represent you well."
-      />
+      <ScreenHeading route={route} description="Complete these steps so Greenwald Doherty has everything needed to represent you well." />
 
       <section className="ds-card mb-6 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" />
-            <h2 className="text-lg font-bold">
-              {done} of {tasks.length} steps completed
-            </h2>
+            <h2 className="text-lg font-bold">{done} of {tasks.length} steps completed</h2>
           </div>
           <span className="text-sm font-bold">{pct}%</span>
         </div>
-        <div className="progress-track mt-3 h-2">
-          <div className="progress-fill" style={{ width: `${pct}%` }} />
-        </div>
+        <div className="progress-track mt-3 h-2"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
       </section>
 
       {profile ? (
         <section className="ds-card mb-6 p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
-            <h3 className="font-bold">Company profile</h3>
-          </div>
+          <div className="mb-3 flex items-center gap-2"><Building2 className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Company profile</h3></div>
           <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              ["Legal name", profile.legalName],
-              ["DBA", profile.dba],
-              ["Entity type", profile.entityType],
-              ["State of formation", profile.stateOfFormation],
-              ["Headquarters", profile.headquarters],
-              ["Website", profile.website],
-              ["Primary activity", profile.primaryActivity],
-              ["Jurisdictions", profile.jurisdictions.join(", ")]
+              ["Legal name", profile.legalName],["DBA", profile.dba],["Entity type", profile.entityType],
+              ["State of formation", profile.stateOfFormation],["Headquarters", profile.headquarters],["Website", profile.website],
+              ["Primary activity", profile.primaryActivity],["Jurisdictions", profile.jurisdictions.join(", ")]
             ].map(([label, value]) => (
-              <div key={label as string}>
-                <dt className="text-xs font-bold uppercase tracking-wide text-muted">{label}</dt>
-                <dd className="mt-0.5 text-sm">{value}</dd>
-              </div>
+              <div key={label as string}><dt className="text-xs font-bold uppercase tracking-wide text-muted">{label}</dt><dd className="mt-0.5 text-sm">{value}</dd></div>
             ))}
           </dl>
         </section>
@@ -602,44 +629,115 @@ function GdOnboardingView({ route }: { route: RouteDefinition }) {
             <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">{section.name}</h3>
             <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
               {section.items.map((task) => {
-                const complete = task.status === "accepted";
-                return (
-                  <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                const st = statusOf(task);
+                const complete = st === "accepted";
+                const fileCount = task.attachments.length + (uploads[task.id] ? 1 : 0);
+                const Row = (
+                  <>
                     <div className="flex items-start gap-3">
                       {complete ? (
                         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />
                       ) : (
                         <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
                       )}
-                      <div>
+                      <div className="text-left">
                         <p className="font-semibold">{task.title}</p>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-                          <span className={`tint-chip px-2 py-0.5 uppercase tracking-wide ${requirementTint(task.requirement)}`}>
-                            {task.requirement}
-                          </span>
+                          <span className={`tint-chip px-2 py-0.5 uppercase tracking-wide ${requirementTint(task.requirement)}`}>{task.requirement}</span>
                           {task.dueAt ? <span>Due {formatDate(task.dueAt)}</span> : null}
-                          {task.attachments.length > 0 ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Paperclip className="h-3 w-3" aria-hidden="true" />
-                              {task.attachments.length} file{task.attachments.length > 1 ? "s" : ""}
-                            </span>
-                          ) : null}
+                          {fileCount > 0 ? <span className="inline-flex items-center gap-1"><Paperclip className="h-3 w-3" aria-hidden="true" />{fileCount} file{fileCount > 1 ? "s" : ""}</span> : null}
                         </div>
                       </div>
                     </div>
-                    <StatusChip value={task.status} />
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <StatusChip value={st} />
+                      {!complete ? <ChevronRight className="h-4 w-4 text-muted" aria-hidden="true" /> : null}
+                    </div>
+                  </>
+                );
+                return complete ? (
+                  <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 p-4">{Row}</div>
+                ) : (
+                  <button key={task.id} type="button" onClick={() => openModal(task.id, task.title)} className="flex w-full flex-wrap items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-[color:var(--surface-hover,rgba(0,0,0,0.03))]">{Row}</button>
                 );
               })}
             </div>
           </section>
         ))}
       </div>
+
+      {modal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-black/40" onClick={closeModal} aria-hidden="true" />
+          <div className="ds-card relative z-10 w-full max-w-lg p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <h3 className="text-lg font-bold">{modal.title}</h3>
+              <button type="button" onClick={closeModal} aria-label="Close" className="text-muted hover:text-[color:var(--page-title,inherit)]"><X className="h-5 w-5" aria-hidden="true" /></button>
+            </div>
+
+            {modal.type === "upload" ? (
+              <div>
+                <p className="text-sm text-muted">Upload the requested documents. This is a simulation — no files leave your device.</p>
+                <div className="mt-3 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[color:var(--hairline,rgba(0,0,0,0.15))] p-8 text-center">
+                  <Upload className="h-8 w-8 text-muted" aria-hidden="true" />
+                  <p className="mt-2 text-sm text-muted">Drag &amp; drop or choose a file</p>
+                  <button type="button" className="ds-button ds-button-secondary mt-3 px-4 py-2 text-sm" onClick={() => setFileName("Termination_Documents.pdf")}>Choose file</button>
+                  {fileName ? <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"><Paperclip className="h-4 w-4" aria-hidden="true" />{fileName}</p> : null}
+                </div>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={closeModal}>Cancel</button>
+                  <button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={confirmUpload} disabled={!fileName}><Upload className="h-4 w-4" aria-hidden="true" />Upload</button>
+                </div>
+              </div>
+            ) : null}
+
+            {modal.type === "schedule" ? (
+              scheduleDone ? (
+                <div>
+                  <CheckCircle2 className="h-10 w-10 text-[color:var(--brand-accent)]" aria-hidden="true" />
+                  <h4 className="mt-2 font-bold">Kickoff call scheduled</h4>
+                  <p className="mt-1 text-sm text-muted">{callDate ? formatDate(callDate) : "Date TBD"}{callTime ? ` at ${callTime}` : ""} · {invitees.length} invitee{invitees.length === 1 ? "" : "s"}. Calendar invites sent (simulation).</p>
+                  <div className="mt-4 flex justify-end"><button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={closeModal}>Done</button></div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-muted">Pick a time and invite people from your company. This is a simulation.</p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <div><label className="block text-xs font-bold uppercase tracking-wide text-muted">Date</label><input type="date" className="ds-field mt-1 px-3 py-2 text-sm" value={callDate} onChange={(e) => setCallDate(e.target.value)} /></div>
+                    <div><label className="block text-xs font-bold uppercase tracking-wide text-muted">Time</label><input type="time" className="ds-field mt-1 px-3 py-2 text-sm" value={callTime} onChange={(e) => setCallTime(e.target.value)} /></div>
+                  </div>
+                  <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted">Invite attendees</p>
+                  <div className="mt-1 max-h-52 space-y-1 overflow-y-auto">
+                    {orgUsers.map((u) => (
+                      <label key={u.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-[color:var(--hairline,rgba(0,0,0,0.08))] px-3 py-2 text-sm">
+                        <input type="checkbox" checked={invitees.includes(u.id)} onChange={() => toggleInvitee(u.id)} />
+                        <span className="flex-1"><span className="font-semibold">{u.name}</span><span className="text-muted"> — {u.title ?? u.roles.join(", ")}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={closeModal}>Cancel</button>
+                    <button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={confirmSchedule} disabled={invitees.length === 0 || !callDate}><CalendarDays className="h-4 w-4" aria-hidden="true" />Schedule &amp; invite</button>
+                  </div>
+                </div>
+              )
+            ) : null}
+
+            {modal.type === "generic" ? (
+              <div>
+                <p className="text-sm text-muted">Mark this step as submitted for Greenwald Doherty to review. This is a simulation.</p>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={closeModal}>Cancel</button>
+                  <button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={confirmGeneric}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Submit for review</button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
-
-/* ------------------------- GD: plan & benefit usage ------------------------ */
 
 function GdBenefitsView({ route }: { route: RouteDefinition }) {
   const { store, activeUser } = useDemoStore();
@@ -656,11 +754,12 @@ function GdBenefitsView({ route }: { route: RouteDefinition }) {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="ds-card p-5 lg:col-span-1">
-          <div className="mb-2 flex items-center gap-2">
+        <section className="lg:col-span-1">
+          <div className="mb-3 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
             <h2 className="text-lg font-bold">Current plan</h2>
           </div>
+          <div className="ds-card p-5">
           {plan ? (
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-3"><dt className="text-muted">Plan</dt><dd className="font-semibold">{detail?.planName ?? plan.tier}</dd></div>
@@ -674,6 +773,7 @@ function GdBenefitsView({ route }: { route: RouteDefinition }) {
           ) : (
             <p className="text-muted">No active plan for this organization.</p>
           )}
+          </div>
         </section>
 
         <section className="lg:col-span-2">
@@ -1918,11 +2018,13 @@ function ReportsView({ route }: { route: RouteDefinition }) {
     orgUsers.some((user) => user.id === certificate.userId)
   ).length;
 
-  const monthly = MONTHS_2026.map((month) => ({
-    month: month.slice(0, 3),
-    value: seededPercent(`${activeOrganization?.id}:${month}`, 2, 12)
+  const MONTH_LABELS_12 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthly = MONTH_LABELS_12.map((month) => ({
+    month,
+    value: seededPercent(`${activeOrganization?.id}:completions:${month}`, 3, 19)
   }));
-  const monthlyMax = Math.max(...monthly.map((item) => item.value));
+  const monthlyMax = Math.max(...monthly.map((item) => item.value), 1);
+  const monthlyTotal = monthly.reduce((t, i) => t + i.value, 0);
 
   const courseStats = store.courses.map((course) => {
     const courseRows = rows.filter((row) => row.course.id === course.id);
@@ -1982,17 +2084,33 @@ function ReportsView({ route }: { route: RouteDefinition }) {
               <BarChart3 className="h-4 w-4" aria-hidden="true" />
             </span>
           </div>
-          <div className="mt-5 flex items-end justify-between gap-2" style={{ height: 140 }}>
-            {monthly.map((item) => (
-              <div key={item.month} className="flex flex-1 flex-col items-center gap-1.5">
-                <span className="text-xs font-bold">{item.value}</span>
+          <p className="mt-1 text-sm text-muted">{monthlyTotal} completions across 2026</p>
+          <div className="mt-5">
+            <div
+              className="flex items-end gap-1.5 border-b border-[color:var(--hairline,rgba(0,0,0,0.08))]"
+              style={{ height: 180 }}
+            >
+              {monthly.map((item) => (
                 <div
-                  className="report-bar w-full"
-                  style={{ height: `${Math.max((item.value / monthlyMax) * 100, 8)}%` }}
-                />
-                <span className="text-xs text-muted">{item.month}</span>
-              </div>
-            ))}
+                  key={item.month}
+                  title={`${item.month}: ${item.value} completions`}
+                  className="group flex h-full flex-1 flex-col items-center justify-end"
+                >
+                  <span className="mb-1 text-[10px] font-bold text-muted opacity-0 transition-opacity group-hover:opacity-100">
+                    {item.value}
+                  </span>
+                  <div
+                    className="report-bar w-full rounded-t-md transition-all"
+                    style={{ height: `${Math.max((item.value / monthlyMax) * 100, 4)}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-1.5 flex gap-1.5">
+              {monthly.map((item) => (
+                <span key={item.month} className="flex-1 text-center text-[10px] text-muted">{item.month}</span>
+              ))}
+            </div>
           </div>
         </section>
         <section className="ds-card p-5">
