@@ -139,6 +139,103 @@
       "approvedByUserId": null,
       "approvedAt": null,
       "publishedAt": null
+    },
+    {
+      "id": "alert_ca_harassment_training",
+      "title": "New Workplace Conduct Training Requirement (California)",
+      "summary": "California adopted a requirement that may change how employers train managers on workplace conduct.",
+      "impact": "Training materials and schedules may need updating before the effective date.",
+      "recommendedAction": "Review current training program and confirm manager coverage.",
+      "topic": "Workplace Training",
+      "jurisdictionIds": [
+        "US-CA"
+      ],
+      "effectiveDate": "2027-01-01",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "California agency notice"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-15T12:00:00Z",
+      "publishedAt": "2026-06-16T12:00:00Z"
+    },
+    {
+      "id": "alert_ny_privacy_notice",
+      "title": "Updated Privacy Notice Requirements (New York)",
+      "summary": "New York updated privacy-notice expectations for consumer-facing businesses.",
+      "impact": "Customer-facing privacy documents may need review.",
+      "recommendedAction": "Review customer-facing privacy notices and data practices.",
+      "topic": "Privacy",
+      "jurisdictionIds": [
+        "US-NY"
+      ],
+      "effectiveDate": "2027-01-01",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "New York legislative source"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-15T12:00:00Z",
+      "publishedAt": "2026-06-16T12:00:00Z"
+    },
+    {
+      "id": "alert_ai_hiring",
+      "title": "New Rules on Automated Hiring Tools (NY & CA)",
+      "summary": "New expectations apply to employers using automated tools in hiring decisions.",
+      "impact": "Recruiting processes and vendor tools may need review and notice updates.",
+      "recommendedAction": "Inventory automated hiring tools and review notice practices.",
+      "topic": "Hiring",
+      "jurisdictionIds": [
+        "US-NY",
+        "US-CA"
+      ],
+      "effectiveDate": "2026-12-01",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "State legislative sources"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-15T12:00:00Z",
+      "publishedAt": "2026-06-16T12:00:00Z"
+    },
+    {
+      "id": "alert_fed_reporting",
+      "title": "Federal Corporate Reporting Guidance",
+      "summary": "Federal guidance clarifies certain corporate reporting practices.",
+      "impact": "Mostly informational for your profile; monitor for final rulemaking.",
+      "recommendedAction": "Monitor; no immediate action required.",
+      "topic": "Corporate Compliance",
+      "jurisdictionIds": [
+        "US-FED"
+      ],
+      "effectiveDate": "2026-11-15",
+      "status": "published",
+      "audiences": [
+        "GD",
+        "HR"
+      ],
+      "sourceReferences": [
+        "Federal agency notice"
+      ],
+      "createdByUserId": "user_sam",
+      "approvedByUserId": "user_rachel",
+      "approvedAt": "2026-06-15T12:00:00Z",
+      "publishedAt": "2026-06-16T12:00:00Z"
     }
   ],
   "coverage": [
@@ -207,6 +304,371 @@
       "userId": "user_omar",
       "deliveryStatus": "delivered",
       "readAt": null
+    },
+    {
+      "id": "rec_cah_maya",
+      "alertId": "alert_ca_harassment_training",
+      "organizationId": "org_acme",
+      "userId": "user_maya",
+      "deliveryStatus": "delivered",
+      "readAt": null
+    },
+    {
+      "id": "rec_nyp_maya",
+      "alertId": "alert_ny_privacy_notice",
+      "organizationId": "org_acme",
+      "userId": "user_maya",
+      "deliveryStatus": "delivered",
+      "readAt": "2026-07-02T09:00:00Z"
+    },
+    {
+      "id": "rec_ai_maya",
+      "alertId": "alert_ai_hiring",
+      "organizationId": "org_acme",
+      "userId": "user_maya",
+      "deliveryStatus": "delivered",
+      "readAt": null
+    }
+  ],
+  "alertMeta": [
+    {
+      "alertId": "alert_nyc_safe_time",
+      "relevance": "High",
+      "riskLevel": "Moderate",
+      "affectedDepartments": [
+        "HR",
+        "Operations"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-07-05",
+      "whatChanged": [
+        "Expanded accrual and usage terms",
+        "New notice language for employees"
+      ],
+      "whoAffected": [
+        "Employers with NYC employees",
+        "HR teams"
+      ],
+      "businessImpact": [
+        "Leave policy may need updating",
+        "Manager communications may need review"
+      ],
+      "nextSteps": [
+        "Confirm you have NYC employees",
+        "Review current leave policy",
+        "Update the employee handbook if needed",
+        "Schedule a GD consultation for a company-specific review"
+      ],
+      "relatedGdServices": [
+        "Policy review",
+        "Employee handbook update",
+        "Compliance consultation"
+      ],
+      "relatedTraining": [
+        {
+          "label": "Documentation and Escalation module",
+          "href": "/app/signatrain/courses/course_hr_bootcamp"
+        }
+      ],
+      "sourceType": "Municipal source",
+      "sourceTitle": "NYC Safe & Sick Time Amendment",
+      "sourceDate": "2026-06-01"
+    },
+    {
+      "alertId": "alert_ca_wpvp",
+      "relevance": "High",
+      "riskLevel": "High",
+      "affectedDepartments": [
+        "HR",
+        "Safety",
+        "Operations"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-06-10",
+      "whatChanged": [
+        "New written plan requirement",
+        "New training-record expectations"
+      ],
+      "whoAffected": [
+        "California employers",
+        "Safety and HR teams"
+      ],
+      "businessImpact": [
+        "A written workplace violence plan may be required",
+        "Training records may need to be maintained"
+      ],
+      "nextSteps": [
+        "Confirm California operations",
+        "Assign responsible plan owner",
+        "Review training records",
+        "Consider a GD policy review"
+      ],
+      "relatedGdServices": [
+        "Policy drafting",
+        "Compliance consultation"
+      ],
+      "relatedTraining": [
+        {
+          "label": "HR Risk Scenarios",
+          "href": "/app/signatrain/courses/course_hr_risk"
+        }
+      ],
+      "sourceType": "State source",
+      "sourceTitle": "California Workplace Violence Plan Update",
+      "sourceDate": "2026-05-20"
+    },
+    {
+      "alertId": "alert_ca_harassment_training",
+      "relevance": "High",
+      "riskLevel": "Moderate",
+      "affectedDepartments": [
+        "HR",
+        "Managers"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-07-05",
+      "whatChanged": [
+        "Updated required training topics",
+        "Possible change to training frequency"
+      ],
+      "whoAffected": [
+        "Employers with California employees",
+        "Managers"
+      ],
+      "businessImpact": [
+        "Training materials may need updating",
+        "Managers may need refreshed training"
+      ],
+      "nextSteps": [
+        "Confirm California employees",
+        "Review current workplace-conduct training",
+        "Assign the related Signatrain module",
+        "Schedule a GD consultation if needed"
+      ],
+      "relatedGdServices": [
+        "Policy review",
+        "Compliance consultation"
+      ],
+      "relatedTraining": [
+        {
+          "label": "Workplace Harassment Prevention for Managers",
+          "href": "/app/signatrain/courses/course_harassment_mgr"
+        },
+        {
+          "label": "Employee Complaint Intake scenario",
+          "href": "/app/signatrain/scenarios/scenario_complaint_intake"
+        }
+      ],
+      "sourceType": "State agency notice",
+      "sourceTitle": "California workplace conduct training rule",
+      "sourceDate": "2026-06-01"
+    },
+    {
+      "alertId": "alert_ny_privacy_notice",
+      "relevance": "Medium",
+      "riskLevel": "Moderate",
+      "affectedDepartments": [
+        "Legal",
+        "Marketing",
+        "IT"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-06-30",
+      "whatChanged": [
+        "Updated privacy-notice content expectations"
+      ],
+      "whoAffected": [
+        "Consumer-facing businesses in New York"
+      ],
+      "businessImpact": [
+        "Customer-facing privacy documents may need review"
+      ],
+      "nextSteps": [
+        "Review current privacy notices",
+        "Confirm data practices",
+        "Request a GD template review"
+      ],
+      "relatedGdServices": [
+        "Template review",
+        "Compliance consultation"
+      ],
+      "relatedTraining": [
+        {
+          "label": "Compliance Basics",
+          "href": "/app/signatrain/courses/course_compliance_basics"
+        }
+      ],
+      "sourceType": "State legislative source",
+      "sourceTitle": "NY privacy notice update",
+      "sourceDate": "2026-06-01"
+    },
+    {
+      "alertId": "alert_ai_hiring",
+      "relevance": "Medium",
+      "riskLevel": "Moderate",
+      "affectedDepartments": [
+        "HR",
+        "Talent",
+        "Legal"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-07-02",
+      "whatChanged": [
+        "New notice expectations for automated hiring tools",
+        "Possible bias-audit considerations"
+      ],
+      "whoAffected": [
+        "Employers using automated hiring tools in NY or CA"
+      ],
+      "businessImpact": [
+        "Recruiting workflows and vendor tools may need review",
+        "Candidate notices may need updating"
+      ],
+      "nextSteps": [
+        "Inventory automated hiring tools",
+        "Review candidate notices",
+        "Schedule a GD consultation"
+      ],
+      "relatedGdServices": [
+        "Compliance consultation",
+        "Vendor/template review"
+      ],
+      "relatedTraining": [
+        {
+          "label": "Employment Law Essentials",
+          "href": "/app/signatrain/courses/course_employment_law"
+        }
+      ],
+      "sourceType": "State legislative sources",
+      "sourceTitle": "Automated hiring tool rules (NY & CA)",
+      "sourceDate": "2026-06-10"
+    },
+    {
+      "alertId": "alert_fed_reporting",
+      "relevance": "Informational",
+      "riskLevel": "Low",
+      "affectedDepartments": [
+        "Finance",
+        "Legal"
+      ],
+      "lastReviewedBy": "Rachel Kim",
+      "lastReviewedAt": "2026-06-28",
+      "whatChanged": [
+        "Clarified corporate reporting guidance"
+      ],
+      "whoAffected": [
+        "Most corporate entities (informational)"
+      ],
+      "businessImpact": [
+        "Likely no immediate action for your profile"
+      ],
+      "nextSteps": [
+        "Monitor for final rulemaking"
+      ],
+      "relatedGdServices": [
+        "Compliance consultation"
+      ],
+      "relatedTraining": [],
+      "sourceType": "Federal agency notice",
+      "sourceTitle": "Federal corporate reporting guidance",
+      "sourceDate": "2026-06-05"
+    }
+  ],
+  "coverageDetail": [
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-CA",
+      "status": "Active coverage",
+      "topics": [
+        "Employment",
+        "HR Compliance",
+        "Workplace Training",
+        "Privacy"
+      ],
+      "relevance": "High",
+      "lastReviewed": "2026-07-05",
+      "notes": "Primary operating state."
+    },
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-NY",
+      "status": "Active coverage",
+      "topics": [
+        "Employment",
+        "Privacy",
+        "Consumer Protection"
+      ],
+      "relevance": "High",
+      "lastReviewed": "2026-07-01",
+      "notes": "Headquarters state."
+    },
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-NY-NYC",
+      "status": "Active coverage",
+      "topics": [
+        "Employment",
+        "Leave and Accommodation"
+      ],
+      "relevance": "High",
+      "lastReviewed": "2026-07-01",
+      "notes": "City-level leave rules."
+    },
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-NJ",
+      "status": "Monitoring only",
+      "topics": [
+        "Employment",
+        "Hiring"
+      ],
+      "relevance": "Medium",
+      "lastReviewed": "2026-06-20",
+      "notes": "Key changes monitored."
+    },
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-CA-SF",
+      "status": "Limited coverage",
+      "topics": [
+        "Workplace Training"
+      ],
+      "relevance": "Medium",
+      "lastReviewed": "2026-06-15",
+      "notes": "Training obligations only."
+    },
+    {
+      "organizationId": "org_acme",
+      "jurisdictionId": "US-FED",
+      "status": "Monitoring only",
+      "topics": [
+        "Corporate Compliance"
+      ],
+      "relevance": "Low",
+      "lastReviewed": "2026-06-28",
+      "notes": "Federal guidance monitored."
+    }
+  ],
+  "operatingLocations": [
+    {
+      "organizationId": "org_acme",
+      "location": "Newark, NJ (HQ)",
+      "kind": "Office / employees"
+    },
+    {
+      "organizationId": "org_acme",
+      "location": "New York, NY",
+      "kind": "Employees"
+    },
+    {
+      "organizationId": "org_acme",
+      "location": "Los Angeles, CA",
+      "kind": "Employees"
+    },
+    {
+      "organizationId": "org_acme",
+      "location": "San Francisco, CA",
+      "kind": "Employees"
     }
   ]
 }

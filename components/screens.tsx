@@ -24,6 +24,7 @@ import {
   ListChecks,
   LockKeyhole,
   Mail,
+  MapPin,
   MessageCircle,
   Paperclip,
   Phone,
@@ -51,6 +52,7 @@ import learningProgressJson from "@/mock-data/learning-progress.json";
 import signatrainContentJson from "@/mock-data/signatrain-content.json";
 import sessionsCohortsJson from "@/mock-data/sessions-cohorts.json";
 import usersJson from "@/mock-data/users.json";
+import legislativeAlertsJson from "@/mock-data/legislative-alerts.json";
 import { isInternalUser } from "@/lib/access";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 import { useDemoStore } from "@/lib/store";
@@ -122,7 +124,10 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/profile",
   "/app/company",
   "/app/company/users",
-  "/app/company/seats"
+  "/app/company/seats",
+  "/app/alerts",
+  "/app/alerts/[alertId]",
+  "/app/alerts/coverage"
 ];
 
 export function hasCustomScreen(path: string): boolean {
@@ -183,6 +188,12 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <ProgressView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
+    case "/app/alerts":
+      return <EligibleAlertsView route={route} />;
+    case "/app/alerts/[alertId]":
+      return <AlertDetailView route={route} pathname={pathname} />;
+    case "/app/alerts/coverage":
+      return <JurisdictionCoverageView route={route} />;
     case "/app/profile":
       return <ProfileView route={route} />;
     case "/app/company":
@@ -4489,6 +4500,390 @@ function CompanyReportExtras() {
         </div>
       </section>
     </>
+  );
+}
+
+
+/* ========================= Legislative Tracking =========================== */
+
+interface AlertMeta {
+  alertId: string;
+  relevance: string;
+  riskLevel: string;
+  affectedDepartments: string[];
+  lastReviewedBy: string;
+  lastReviewedAt: string;
+  whatChanged: string[];
+  whoAffected: string[];
+  businessImpact: string[];
+  nextSteps: string[];
+  relatedGdServices: string[];
+  relatedTraining: { label: string; href: string }[];
+  sourceType: string;
+  sourceTitle: string;
+  sourceDate: string;
+}
+interface Jurisdiction { id: string; name: string; type: string; parentId?: string | null }
+interface CoverageRec { id: string; organizationId: string; jurisdictionIds: string[]; status: string }
+interface CoverageDetail { organizationId: string; jurisdictionId: string; status: string; topics: string[]; relevance: string; lastReviewed: string; notes: string }
+interface OperatingLocation { organizationId: string; location: string; kind: string }
+interface AlertRecipient { id: string; alertId: string; organizationId: string; userId: string; deliveryStatus: string; readAt?: string | null }
+
+const alertMetaList = legislativeAlertsJson.alertMeta as unknown as AlertMeta[];
+const jurisdictionsList = legislativeAlertsJson.jurisdictions as unknown as Jurisdiction[];
+const coverageList = legislativeAlertsJson.coverage as unknown as CoverageRec[];
+const coverageDetailList = legislativeAlertsJson.coverageDetail as unknown as CoverageDetail[];
+const operatingLocationsList = legislativeAlertsJson.operatingLocations as unknown as OperatingLocation[];
+const alertRecipients = legislativeAlertsJson.recipients as unknown as AlertRecipient[];
+
+function jurisdictionName(id: string): string {
+  return jurisdictionsList.find((j) => j.id === id)?.name ?? id;
+}
+function relevanceTint(level: string): string {
+  const l = level.toLowerCase();
+  if (l.includes("high")) return "tint-rose";
+  if (l.includes("medium")) return "tint-amber";
+  if (l.includes("low")) return "tint-blue";
+  return "tint-brand";
+}
+function riskTint(level: string): string {
+  const l = level.toLowerCase();
+  if (l.includes("critical") || l.includes("high")) return "tint-rose";
+  if (l.includes("moderate")) return "tint-amber";
+  return "tint-emerald";
+}
+function alertMetaFor(id: string): AlertMeta | undefined {
+  return alertMetaList.find((m) => m.alertId === id);
+}
+function eligibleAlertsForOrg<T extends { id: string; status: string; jurisdictionIds: string[] }>(
+  orgId: string | undefined,
+  alerts: T[]
+): T[] {
+  const cov = coverageList.find((c) => c.organizationId === orgId);
+  const covJur = new Set(cov?.jurisdictionIds ?? []);
+  return alerts.filter(
+    (a) => a.status === "published" && (a.jurisdictionIds.some((j) => covJur.has(j)) || a.jurisdictionIds.includes("US-FED"))
+  );
+}
+
+/* -------------------------- Eligible alert list --------------------------- */
+
+function EligibleAlertsView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const eligible = eligibleAlertsForOrg(orgId, store.alerts);
+  const [jur, setJur] = useState("all");
+  const [topic, setTopic] = useState("all");
+  const [relevance, setRelevance] = useState("all");
+  const [actionOnly, setActionOnly] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const unread = alertRecipients.filter((r) => r.organizationId === orgId && !r.readAt && eligible.some((a) => a.id === r.alertId)).length;
+  const jurOptions = ["all", ...Array.from(new Set(eligible.flatMap((a) => a.jurisdictionIds)))];
+  const topicOptions = ["all", ...Array.from(new Set(eligible.map((a) => a.topic)))];
+
+  const hasAction = (a: { recommendedAction: string }) => !!a.recommendedAction && !/no action/i.test(a.recommendedAction);
+
+  const alerts = eligible.filter((a) => {
+    const m = alertMetaFor(a.id);
+    if (jur !== "all" && !a.jurisdictionIds.includes(jur)) return false;
+    if (topic !== "all" && a.topic !== topic) return false;
+    if (relevance !== "all" && (m?.relevance ?? "").toLowerCase() !== relevance) return false;
+    if (actionOnly && !hasAction(a)) return false;
+    if (query.trim() && !`${a.title} ${a.summary}`.toLowerCase().includes(query.trim().toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Legal and regulatory changes Greenwald Doherty has flagged as potentially relevant to your company." />
+
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-3">
+        <MiniStat label="Eligible alerts" value={String(eligible.length)} tint="tint-blue" />
+        <MiniStat label="Action recommended" value={String(eligible.filter(hasAction).length)} tint="tint-amber" />
+        <MiniStat label="Unread" value={String(unread)} tint={unread > 0 ? "tint-rose" : "tint-emerald"} />
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm">
+          <Search className="h-4 w-4 opacity-60" aria-hidden="true" />
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search alerts" className="w-44 bg-transparent outline-none" />
+        </label>
+        <select className="ds-field px-3 py-2 text-sm" value={jur} onChange={(e) => setJur(e.target.value)}>
+          {jurOptions.map((j) => <option key={j} value={j}>{j === "all" ? "All jurisdictions" : jurisdictionName(j)}</option>)}
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={topic} onChange={(e) => setTopic(e.target.value)}>
+          {topicOptions.map((t) => <option key={t} value={t}>{t === "all" ? "All topics" : t}</option>)}
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={relevance} onChange={(e) => setRelevance(e.target.value)}>
+          <option value="all">All relevance</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+          <option value="informational">Informational</option>
+        </select>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={actionOnly} onChange={(e) => setActionOnly(e.target.checked)} />
+          Action required
+        </label>
+        <Link href="/app/alerts/coverage" className="ml-auto inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">
+          <MapPin className="h-4 w-4" aria-hidden="true" />Jurisdiction coverage
+        </Link>
+      </div>
+
+      {alerts.length === 0 ? (
+        <p className="text-muted">No alerts match these filters.</p>
+      ) : (
+        <div className="stagger grid gap-4 md:grid-cols-2">
+          {alerts.map((a) => {
+            const m = alertMetaFor(a.id);
+            return (
+              <Link key={a.id} href={`/app/alerts/${a.id}`} className="ds-card ds-card-interactive block p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="action-icon inline-flex h-10 w-10 items-center justify-center"><Scale className="h-5 w-5" aria-hidden="true" /></span>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {m ? <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${relevanceTint(m.relevance)}`}>{m.relevance}</span> : null}
+                    {m ? <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${riskTint(m.riskLevel)}`}>{m.riskLevel} impact</span> : null}
+                  </div>
+                </div>
+                <h3 className="mt-3 text-base font-bold">{a.title}</h3>
+                <p className="mt-1 text-xs font-semibold text-muted">{a.jurisdictionIds.map(jurisdictionName).join(", ")} · {a.topic}</p>
+                <p className="mt-2 text-sm text-muted">{a.summary}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                  <StatusChip value={a.status} />
+                  <span className="text-muted">Effective {a.effectiveDate ? formatDate(a.effectiveDate) : "pending"}</span>
+                </div>
+                <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">View detail<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></p>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+      <p className="mt-6 flex items-start gap-2 text-xs text-muted">
+        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        Alerts are prepared by Greenwald Doherty to help identify potentially relevant changes. They are not a substitute for a full legal review of your situation.
+      </p>
+    </div>
+  );
+}
+
+/* --------------------------- Alert detail --------------------------------- */
+
+function AlertDetailView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const alertId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const eligible = eligibleAlertsForOrg(activeUser?.organizationId, store.alerts);
+  const alert = eligible.find((a) => a.id === alertId) ?? store.alerts.find((a) => a.id === alertId && a.status === "published");
+  const m = alertMetaFor(alertId);
+  const [tracking, setTracking] = useState("none");
+
+  if (!alert) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <Scale className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Alert not available</h1>
+          <p className="mt-2 text-muted">This alert does not exist or is not eligible for your company.</p>
+          <Link href="/app/alerts" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to alerts</Link>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="What changed, whether it applies to you, and what to consider next — in plain language." />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">{alert.title}</h2>
+            <p className="mt-1 text-sm text-muted">{alert.jurisdictionIds.map(jurisdictionName).join(", ")} · {alert.topic}</p>
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            <StatusChip value={alert.status} />
+            {m ? <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${relevanceTint(m.relevance)}`}>{m.relevance} relevance</span> : null}
+            {m ? <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${riskTint(m.riskLevel)}`}>{m.riskLevel} impact</span> : null}
+          </div>
+        </div>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Effective date</dt><dd className="mt-0.5 text-sm">{alert.effectiveDate ? formatDate(alert.effectiveDate) : "Pending"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Affected departments</dt><dd className="mt-0.5 text-sm">{m?.affectedDepartments.join(", ") ?? "—"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Last reviewed by GD</dt><dd className="mt-0.5 text-sm">{m ? `${m.lastReviewedBy} (${formatDate(m.lastReviewedAt)})` : "—"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Status</dt><dd className="mt-0.5 text-sm">{alert.status}</dd></div>
+        </dl>
+      </section>
+
+      <section className="ds-card mb-6 p-5 tint-blue">
+        <h3 className="font-bold">Plain-English summary</h3>
+        <p className="mt-2 text-sm">{alert.summary}</p>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {m?.whatChanged.length ? (
+            <section className="ds-card p-5"><h3 className="font-bold">What changed</h3><ul className="mt-2 space-y-1.5 text-sm">{m.whatChanged.map((w) => <li key={w} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{w}</li>)}</ul></section>
+          ) : null}
+          {m?.whoAffected.length ? (
+            <section className="ds-card p-5"><h3 className="font-bold">Who may be affected</h3><ul className="mt-2 space-y-1.5 text-sm text-muted">{m.whoAffected.map((w) => <li key={w}>{w}</li>)}</ul></section>
+          ) : null}
+          {m?.businessImpact.length ? (
+            <section className="ds-card p-5"><h3 className="font-bold">Potential business impact</h3><ul className="mt-2 space-y-1.5 text-sm text-muted">{m.businessImpact.map((w) => <li key={w}>{w}</li>)}</ul></section>
+          ) : null}
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Recommended next steps</h3>
+            <ol className="mt-2 space-y-1.5 text-sm">
+              {(m?.nextSteps ?? [alert.recommendedAction]).map((step, i) => (
+                <li key={i} className="flex gap-2"><span className="font-bold text-[color:var(--brand-accent)]">{i + 1}.</span>{step}</li>
+              ))}
+            </ol>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Related GD services</h3>
+            <ul className="mt-2 space-y-1.5 text-sm text-muted">{(m?.relatedGdServices ?? []).map((g) => <li key={g}>{g}</li>)}</ul>
+            <div className="mt-3 flex flex-col gap-2">
+              <Link href="/app/gd/requests/new" className="ds-button ds-button-primary inline-flex justify-center px-3 py-2 text-sm"><Send className="h-4 w-4" aria-hidden="true" />Submit legal request</Link>
+              <Link href="/app/gd/schedule" className="ds-button ds-button-secondary inline-flex justify-center px-3 py-2 text-sm"><CalendarDays className="h-4 w-4" aria-hidden="true" />Schedule consultation</Link>
+            </div>
+          </section>
+          {m?.relatedTraining.length ? (
+            <section className="ds-card p-5">
+              <div className="mb-2 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Related training</h3></div>
+              <ul className="space-y-2 text-sm">
+                {m.relatedTraining.map((t) => <li key={t.href}><Link href={t.href} className="inline-flex items-center gap-1.5 font-semibold text-[color:var(--brand-accent)] hover:underline">{t.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link></li>)}
+              </ul>
+            </section>
+          ) : null}
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Source</h3>
+            <p className="mt-1 text-sm">{m?.sourceTitle ?? alert.sourceReferences[0]}</p>
+            <p className="text-xs text-muted">{m?.sourceType}{m?.sourceDate ? ` · ${formatDate(m.sourceDate)}` : ""}</p>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Your tracking</h3>
+            <select className="ds-field mt-2 w-full px-3 py-2 text-sm" value={tracking} onChange={(e) => setTracking(e.target.value)}>
+              <option value="none">No action needed</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="assigned_hr">Assigned to HR</option>
+              <option value="assigned_legal">Assigned to legal</option>
+              <option value="in_progress">Action in progress</option>
+              <option value="follow_up">Follow-up requested</option>
+            </select>
+            {tracking !== "none" ? <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-[color:var(--brand-accent)]"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />Saved for your company (simulation).</p> : null}
+          </section>
+        </div>
+      </div>
+      <div className="mt-6"><Link href="/app/alerts" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to alerts</Link></div>
+    </div>
+  );
+}
+
+/* ------------------------- Jurisdiction coverage -------------------------- */
+
+function JurisdictionCoverageView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const details = coverageDetailList.filter((c) => c.organizationId === orgId);
+  const locations = operatingLocationsList.filter((l) => l.organizationId === orgId);
+  const eligible = eligibleAlertsForOrg(orgId, store.alerts);
+  const activeAlertsIn = (jurId: string) => eligible.filter((a) => a.jurisdictionIds.includes(jurId)).length;
+  const allTopics = Array.from(new Set(details.flatMap((d) => d.topics)));
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [requested, setRequested] = useState(false);
+
+  const COVERAGE_STATUS_NOTES: { status: string; note: string }[] = [
+    { status: "Active coverage", note: "GD actively monitors relevant changes and can create alerts." },
+    { status: "Monitoring only", note: "Only key changes are monitored, not full analysis." },
+    { status: "Limited coverage", note: "Only a specific area is covered (e.g., training obligations)." },
+    { status: "Available on request", note: "GD can add this jurisdiction if you request it." },
+    { status: "Not currently covered", note: "Not part of the current scope." }
+  ];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Which jurisdictions and topics Greenwald Doherty monitors for your company — and where the limits are." />
+
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Covered jurisdictions" value={String(details.length)} tint="tint-blue" />
+        <MiniStat label="Monitored topics" value={String(allTopics.length)} tint="tint-violet" />
+        <MiniStat label="Active alerts" value={String(eligible.length)} tint="tint-amber" />
+        <MiniStat label="Primary GD contact" value="Rachel Kim" tint="tint-brand" />
+      </div>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-bold">Jurisdiction coverage</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Jurisdiction</th><th>Coverage</th><th>Topics monitored</th><th>Relevance</th><th>Active alerts</th><th>Last reviewed</th></tr></thead>
+            <tbody>
+              {details.map((c) => (
+                <tr key={c.jurisdictionId}>
+                  <td className="font-semibold">{jurisdictionName(c.jurisdictionId)}</td>
+                  <td><span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${c.status.includes("Active") ? "tint-emerald" : c.status.includes("Monitoring") ? "tint-blue" : "tint-amber"}`}>{c.status}</span></td>
+                  <td className="text-sm text-muted">{c.topics.join(", ")}</td>
+                  <td className="text-sm">{c.relevance}</td>
+                  <td className="text-sm">{activeAlertsIn(c.jurisdictionId)}</td>
+                  <td className="text-sm text-muted">{formatDate(c.lastReviewed)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-lg font-bold">Coverage statuses</h2>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {COVERAGE_STATUS_NOTES.map((c) => (
+              <div key={c.status} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                <span className="font-semibold">{c.status}</span>
+                <span className="text-muted">{c.note}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section>
+          <div className="mb-2 flex items-center gap-2"><MapPin className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Your operating locations</h2></div>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {locations.map((l) => (
+              <div key={l.location} className="flex items-center justify-between gap-3 p-3 text-sm">
+                <span className="font-semibold">{l.location}</span>
+                <span className="text-xs text-muted">{l.kind}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="ds-card mt-6 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-bold">Request additional jurisdiction coverage</h2>
+          <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={() => { setAddOpen((v) => !v); setRequested(false); }}>{addOpen ? "Close" : "Add jurisdiction"}</button>
+        </div>
+        {addOpen ? (
+          requested ? (
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-[color:var(--brand-accent)]"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Coverage request sent to Greenwald Doherty (simulation).</p>
+          ) : (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <input className="ds-field px-3 py-2 text-sm" placeholder="Which jurisdiction?" />
+              <input className="ds-field px-3 py-2 text-sm" placeholder="Why is it relevant?" />
+              <input className="ds-field px-3 py-2 text-sm sm:col-span-2" placeholder="Topics to monitor (e.g., Employment, Privacy)" />
+              <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm sm:col-span-2" onClick={() => setRequested(true)}><Send className="h-4 w-4" aria-hidden="true" />Send coverage request</button>
+            </div>
+          )
+        ) : null}
+      </section>
+
+      <p className="mt-6 flex items-start gap-2 text-xs text-muted">
+        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        Jurisdiction coverage reflects the monitoring scope currently configured for your company. Alerts help identify potentially relevant changes and are not a substitute for a full legal review of your specific situation.
+      </p>
+    </div>
   );
 }
 
