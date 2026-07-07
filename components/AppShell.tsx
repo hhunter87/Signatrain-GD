@@ -750,6 +750,18 @@ function Sidebar({ pathname }: { pathname: string }) {
     return route ? sidebarPlacement(route) : null;
   }, [activeRoutePath]);
 
+  // Inside a product context the sidebar shows only that product plus Shared.
+  const sidebarContext = routeProduct(pathname);
+  const allowedGroups =
+    sidebarContext === "signatrain"
+      ? ["Shared", "Signatrain"]
+      : sidebarContext === "gd"
+        ? ["Shared", "Greenwald Doherty"]
+        : null;
+  const visibleTree = allowedGroups
+    ? tree.filter(({ group }) => allowedGroups.includes(group))
+    : tree;
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [closedSections, setClosedSections] = useState<Record<string, boolean>>({});
 
@@ -766,7 +778,7 @@ function Sidebar({ pathname }: { pathname: string }) {
   return (
     <aside className="shell-sidebar sticky top-16 hidden h-[calc(100vh-64px)] w-72 shrink-0 overflow-y-auto p-4 lg:block">
       <nav aria-label="Primary" className="space-y-2">
-        {tree.map(({ group, sections }) => {
+        {visibleTree.map(({ group, sections }) => {
           const GroupIcon = SIDEBAR_GROUP_ICONS[group] ?? LayoutDashboard;
           const alwaysOpen = group === "Shared";
           const isOpen = alwaysOpen || Boolean(openGroups[group]);

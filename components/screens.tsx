@@ -1,14 +1,18 @@
 "use client";
 
 import {
+  BarChart3,
   BriefcaseBusiness,
   CalendarDays,
   CheckCircle2,
   Clock,
+  CreditCard,
+  Download,
   GraduationCap,
   LockKeyhole,
   Scale,
   Send,
+  UserPlus,
   Video
 } from "lucide-react";
 import Link from "next/link";
@@ -61,7 +65,9 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/signatrain/live",
   "/app/signatrain/library",
   "/app/signatrain/progress",
-  "/admin/alerts"
+  "/admin/alerts",
+  "/app/company/billing",
+  "/app/company/reports"
 ];
 
 export function hasCustomScreen(path: string): boolean {
@@ -84,6 +90,10 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <ProgressView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
+    case "/app/company/billing":
+      return <BillingView route={route} />;
+    case "/app/company/reports":
+      return <ReportsView route={route} />;
     default:
       return null;
   }
@@ -677,6 +687,568 @@ function ProgressView({ route }: { route: RouteDefinition }) {
           ) : null}
         </>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------ Shared: billing ---------------------------- */
+
+const MONTHS_2026 = ["January", "February", "March", "April", "May", "June"];
+
+interface InvoiceLine {
+  id: string;
+  month: string;
+  monthIndex: number;
+  description: string;
+  amount: number;
+  status: "paid" | "due";
+}
+
+function firstAmount(display: string): number {
+  const match = display.replaceAll(",", "").match(/\$(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function money(value: number): string {
+  return `$${value.toLocaleString("en-US")}`;
+}
+
+function BillingView({ route }: { route: RouteDefinition }) {
+  const { store, activeOrganization, recordSimulation } = useDemoStore();
+  const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
+  const subs = store.subscriptions.filter(
+    (sub) => sub.organizationId === activeOrganization?.id
+  );
+  const pools = store.seatPools.filter(
+    (pool) => pool.organizationId === activeOrganization?.id
+  );
+  const poolCapacity = (code: string) =>
+    pools.find((pool) => pool.entitlementCode === code)?.capacity ?? 1;
+
+  const invoices: InvoiceLine[] = [];
+  subs.forEach((sub) => {
+    const base = firstAmount(sub.amountDisplay);
+    if (sub.cadence === "monthly") {
+      MONTHS_2026.forEach((month, index) => {
+        invoices.push({
+          id: `${sub.id}_${index}`,
+          month,
+          monthIndex: index,
+          description: `${sub.product.replaceAll("_", " ")} — monthly subscription`,
+          amount: base,
+          status: index < 5 ? "paid" : "due"
+        });
+      });
+      if (sub.amountDisplay.toLowerCase().includes("setup")) {
+        invoices.push({
+          id: `${sub.id}_setup`,
+          month: "January",
+          monthIndex: 0,
+          description: `${sub.product.replaceAll("_", " ")} — one-time setup fee`,
+          amount: 2500,
+          status: "paid"
+        });
+      }
+    } else {
+      const anniversaryIndex = Math.min(new Date(sub.renewsAt).getMonth(), 5);
+      const capacity = poolCapacity(sub.product);
+      const amount =
+        sub.product === "SIGNATRAIN_HR" ? 3500 + 2000 * Math.max(capacity - 1, 0) : base * capacity;
+      invoices.push({
+        id: `${sub.id}_annual`,
+        month: MONTHS_2026[anniversaryIndex],
+        monthIndex: anniversaryIndex,
+        description: `${sub.product.replaceAll("_", " ")} — annual (${capacity} ${capacity === 1 ? "seat" : "seats"})`,
+        amount,
+        status: anniversaryIndex < 5 ? "paid" : "due"
+      });
+    }
+  });
+  invoices.sort((a, b) => b.monthIndex - a.monthIndex);
+
+  const monthlySpend = subs
+    .filter((sub) => sub.cadence === "monthly")
+    .reduce((total, sub) => total + firstAmount(sub.amountDisplay), 0);
+  const ytdTotal = invoices.filter((line) => line.status === "paid").reduce((t, l) => t + l.amount, 0);
+  const nextRenewal = subs
+    .map((sub) => sub.renewsAt)
+    .sort()[0];
+
+  const downloadInvoice = (line: InvoiceLine) => {
+    setDownloaded((current) => ({ ...current, [line.id]: true }));
+    recordSimulation({
+      title: "Invoice downloaded",
+      body: `${line.month} 2026 — ${line.description}`,
+      href: "/app/company/billing",
+      emailSubject: `Invoice copy — ${line.month} 2026`,
+      emailBody: `This simulated email contains the invoice copy for ${line.description} (${money(line.amount)}).`,
+      action: "invoice_download_simulated",
+      objectType: "invoice",
+      objectId: line.id
+    });
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading
+        route={route}
+        description="Subscriptions, payment method, and monthly invoice history for this organization."
+      />
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Monthly spend" value={money(monthlySpend)} tint="tint-emerald" />
+        <MiniStat label="Paid year to date" value={money(ytdTotal)} tint="tint-blue" />
+        <MiniStat label="Active subscriptions" value={String(subs.length)} tint="tint-violet" />
+        <MiniStat
+          label="Next renewal"
+          value={nextRenewal ? formatDate(nextRenewal) : "—"}
+          tint="tint-amber"
+        />
+      </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="ds-card p-5">
+          <h2 className="text-xl font-bold">Subscriptions</h2>
+          <div className="stagger mt-4 space-y-3">
+            {subs.map((sub) => (
+              <div key={sub.id} className="ds-card-muted flex flex-wrap items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-bold">{sub.product.replaceAll("_", " ")}</p>
+                  <p className="mt-0.5 text-sm text-muted">
+                    {sub.amountDisplay} · {sub.cadence} · via {sub.source.replaceAll("_", " ")}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">Renews {formatDate(sub.renewsAt)}</p>
+                </div>
+                <StatusChip value={sub.status} />
+              </div>
+            ))}
+            {subs.length === 0 ? (
+              <p className="text-sm text-muted">No subscriptions for this organization.</p>
+            ) : null}
+          </div>
+        </section>
+        <div className="space-y-4">
+          <section className="ds-card p-5 tint-blue">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-lg font-bold">Payment method</h2>
+              <span className="action-icon inline-flex h-9 w-9 items-center justify-center">
+                <CreditCard className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </div>
+            <p className="mt-3 font-mono text-sm font-semibold tracking-widest">•••• •••• •••• 4242</p>
+            <p className="mt-1 text-sm text-muted">Visa corporate · expires 08/28</p>
+            <p className="mt-2 text-xs text-muted">Billing contact: billing@{activeOrganization?.id.replace("org_", "")}.com</p>
+          </section>
+          <AddSeatsPanel />
+        </div>
+      </div>
+
+      <section className="ds-card overflow-x-auto">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
+          <h2 className="text-xl font-bold">Invoice history — 2026</h2>
+          <span className="text-xs text-muted">Simulated billing data</span>
+        </div>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Invoice</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map((line, index) => (
+              <tr key={line.id}>
+                <td className="font-semibold">{line.month}</td>
+                <td className="text-muted">{line.description}</td>
+                <td className="font-bold">{money(line.amount)}</td>
+                <td>
+                  <StatusChip value={line.status} />
+                </td>
+                <td>
+                  {downloaded[line.id] ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-accent)]">
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Sent to outbox
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-accent)] hover:underline"
+                      onClick={() => downloadInvoice(line)}
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                      INV-2026-{String(100 + index)}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------ Add seats wizard --------------------------- */
+
+const SEAT_ROLES = [
+  {
+    code: "HR" as const,
+    label: "HR seat",
+    detail: "Full HR training library, Masterclasses, Risk Roundtable, HR Bot",
+    annualCost: 2000,
+    costNote: "$2,000 / year (additional seat)"
+  },
+  {
+    code: "MANAGER" as const,
+    label: "Manager seat",
+    detail: "Manager core program, scenario library, private cohort access",
+    annualCost: 1000,
+    costNote: "$1,000 / year per manager"
+  }
+];
+
+function AddSeatsPanel() {
+  const { recordSimulation } = useDemoStore();
+  const [step, setStep] = useState<"idle" | "role" | "details" | "processing" | "done">("idle");
+  const [role, setRole] = useState<(typeof SEAT_ROLES)[number] | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+
+  const reset = () => {
+    setStep("idle");
+    setRole(null);
+    setFullName("");
+    setEmail("");
+  };
+
+  const confirm = () => {
+    setStep("processing");
+    window.setTimeout(() => {
+      if (role) {
+        recordSimulation({
+          title: "Seat added",
+          body: `${fullName} (${role.label}) — invitation queued.`,
+          href: "/app/company/seats",
+          emailSubject: `You have been invited — ${role.label}`,
+          emailBody: `This simulated email invites ${fullName} <${email}> to activate a ${role.label}. Billing adds ${money(role.annualCost)}/year at the next invoice.`,
+          action: "seat_added_simulated",
+          objectType: "seat",
+          objectId: email || "new_seat"
+        });
+      }
+      setStep("done");
+    }, 750);
+  };
+
+  const detailsValid = fullName.trim().length > 1 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+
+  return (
+    <section className="ds-card p-5 tint-emerald">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-lg font-bold">Add seats</h2>
+        <span className="action-icon inline-flex h-9 w-9 items-center justify-center">
+          <UserPlus className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </div>
+
+      {step === "idle" ? (
+        <>
+          <p className="mt-2 text-sm text-muted">
+            Add an HR or Manager seat — cost is calculated before you confirm.
+          </p>
+          <button
+            type="button"
+            className="ds-button ds-button-primary mt-4 w-full px-4 py-2 text-sm"
+            onClick={() => setStep("role")}
+          >
+            Add seats
+          </button>
+        </>
+      ) : null}
+
+      {step === "role" ? (
+        <div className="mt-3 space-y-2.5">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">1 / 2 — Choose role</p>
+          {SEAT_ROLES.map((option) => (
+            <button
+              key={option.code}
+              type="button"
+              className="option-card p-3.5 text-left"
+              onClick={() => {
+                setRole(option);
+                setStep("details");
+              }}
+            >
+              <span className="flex items-start justify-between gap-3">
+                <span>
+                  <span className="block font-bold">{option.label}</span>
+                  <span className="mt-0.5 block text-sm text-muted">{option.detail}</span>
+                </span>
+                <span className="tint-chip shrink-0 px-2 py-0.5 text-xs">{money(option.annualCost)}/yr</span>
+              </span>
+            </button>
+          ))}
+          <button type="button" className="text-xs font-bold text-muted hover:underline" onClick={reset}>
+            Cancel
+          </button>
+        </div>
+      ) : null}
+
+      {step === "details" && role ? (
+        <div className="mt-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">2 / 2 — User details</p>
+          <label className="mt-2 block">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">Full name</span>
+            <input
+              className="ds-field w-full px-3 py-2 text-sm"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              placeholder="Jane Smith"
+            />
+          </label>
+          <label className="mt-2.5 block">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">Email</span>
+            <input
+              className="ds-field w-full px-3 py-2 text-sm"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="jane@company.com"
+            />
+          </label>
+          <div className="ds-card-muted mt-3 p-3 text-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Cost summary</p>
+            <p className="mt-1.5 flex items-baseline justify-between">
+              <span className="font-semibold">{role.label}</span>
+              <span className="font-bold">{money(role.annualCost)}/yr</span>
+            </p>
+            <p className="mt-1 text-xs text-muted">{role.costNote} · added to the next invoice</p>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="ds-button ds-button-primary px-4 py-2 text-sm"
+              onClick={confirm}
+              disabled={!detailsValid}
+            >
+              Add user
+            </button>
+            <button
+              type="button"
+              className="ds-button ds-button-secondary px-3 py-2 text-sm"
+              onClick={() => setStep("role")}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {step === "processing" ? (
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <span className="spinner" aria-hidden="true" />
+          <p className="text-sm font-semibold text-muted">Adding seat…</p>
+        </div>
+      ) : null}
+
+      {step === "done" && role ? (
+        <div className="mt-3">
+          <p className="flex items-start gap-2 text-sm font-semibold">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--tint)]" aria-hidden="true" />
+            {fullName} added as {role.label} — invitation email queued in the outbox.
+          </p>
+          <p className="mt-2 text-xs text-muted">
+            Simulation only — no real user was created. {money(role.annualCost)}/year lands on the next invoice.
+          </p>
+          <button
+            type="button"
+            className="ds-button ds-button-secondary mt-3 px-3 py-2 text-sm"
+            onClick={reset}
+          >
+            Add another seat
+          </button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+/* ------------------------------ Shared: reports ---------------------------- */
+
+function seededPercent(seed: string, min: number, max: number): number {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 997;
+  }
+  return min + (hash % (max - min + 1));
+}
+
+function ReportsView({ route }: { route: RouteDefinition }) {
+  const { store, activeOrganization } = useDemoStore();
+  const orgUsers = store.users.filter((user) => user.organizationId === activeOrganization?.id);
+  const learners = orgUsers.filter((user) =>
+    user.roles.some((role) => ["HRS", "MGR", "CO", "CHA"].includes(role))
+  );
+
+  const rows = learners.flatMap((user) =>
+    store.courses
+      .filter((course) =>
+        course.audience === "MANAGER"
+          ? user.roles.includes("MGR")
+          : user.roles.some((role) => ["HRS", "CO", "CHA"].includes(role))
+      )
+      .map((course) => {
+        const progress = seededPercent(`${user.id}:${course.id}`, 24, 100);
+        return { user, course, progress, completed: progress >= 95 };
+      })
+  );
+
+  const avgProgress = rows.length
+    ? Math.round(rows.reduce((total, row) => total + row.progress, 0) / rows.length)
+    : 0;
+  const completionRate = rows.length
+    ? Math.round((rows.filter((row) => row.completed).length / rows.length) * 100)
+    : 0;
+  const certificates = store.certificates.filter((certificate) =>
+    orgUsers.some((user) => user.id === certificate.userId)
+  ).length;
+
+  const monthly = MONTHS_2026.map((month) => ({
+    month: month.slice(0, 3),
+    value: seededPercent(`${activeOrganization?.id}:${month}`, 2, 12)
+  }));
+  const monthlyMax = Math.max(...monthly.map((item) => item.value));
+
+  const courseStats = store.courses.map((course) => {
+    const courseRows = rows.filter((row) => row.course.id === course.id);
+    return {
+      course,
+      enrolled: courseRows.length,
+      avg: courseRows.length
+        ? Math.round(courseRows.reduce((total, row) => total + row.progress, 0) / courseRows.length)
+        : 0
+    };
+  });
+
+  const exportCsv = () => {
+    const header = "User,Email,Course,Progress %,Completed\n";
+    const body = rows
+      .map(
+        (row) =>
+          `${row.user.name},${row.user.email},${row.course.title},${row.progress},${row.completed ? "yes" : "no"}`
+      )
+      .join("\n");
+    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `training-report-${activeOrganization?.id ?? "org"}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading
+        route={route}
+        description="Company-wide training metrics: completion, watch coverage, and learner activity."
+      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <span className="tint-chip px-2.5 py-1 text-xs uppercase tracking-wide tint-blue">
+          {activeOrganization?.name ?? "Organization"} · 2026 YTD
+        </span>
+        <button type="button" className="ds-button ds-button-secondary px-3 py-2 text-sm" onClick={exportCsv}>
+          <Download className="h-4 w-4" aria-hidden="true" />
+          Export CSV
+        </button>
+      </div>
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Active learners" value={String(learners.length)} tint="tint-blue" />
+        <MiniStat label="Completion rate" value={`${completionRate}%`} tint="tint-emerald" />
+        <MiniStat label="Avg watch coverage" value={`${avgProgress}%`} tint="tint-violet" />
+        <MiniStat label="Certificates issued" value={String(certificates)} tint="tint-amber" />
+      </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <section className="ds-card p-5 tint-emerald">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-bold">Completions per month</h2>
+            <span className="action-icon inline-flex h-9 w-9 items-center justify-center">
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-5 flex items-end justify-between gap-2" style={{ height: 140 }}>
+            {monthly.map((item) => (
+              <div key={item.month} className="flex flex-1 flex-col items-center gap-1.5">
+                <span className="text-xs font-bold">{item.value}</span>
+                <div
+                  className="report-bar w-full"
+                  style={{ height: `${Math.max((item.value / monthlyMax) * 100, 8)}%` }}
+                />
+                <span className="text-xs text-muted">{item.month}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="ds-card p-5">
+          <h2 className="text-lg font-bold">Course performance</h2>
+          <div className="stagger mt-4 space-y-4">
+            {courseStats.map(({ course, enrolled, avg }) => (
+              <div key={course.id}>
+                <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                  <span className="min-w-0 truncate font-semibold">{course.title}</span>
+                  <span className="shrink-0 text-xs text-muted">
+                    {enrolled} learners · avg {avg}%
+                  </span>
+                </div>
+                <div className="progress-track">
+                  <div className="progress-fill" style={{ width: `${avg}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="ds-card overflow-x-auto">
+        <div className="p-5 pb-3">
+          <h2 className="text-xl font-bold">Learner detail</h2>
+        </div>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Learner</th>
+              <th>Course</th>
+              <th>Watch coverage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={`${row.user.id}-${row.course.id}`}>
+                <td>
+                  <p className="font-semibold">{row.user.name}</p>
+                  <p className="text-xs text-muted">{row.user.email}</p>
+                </td>
+                <td className="text-muted">{row.course.title}</td>
+                <td style={{ minWidth: 160 }}>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${row.progress}%` }} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted">{row.progress}%</p>
+                </td>
+                <td>
+                  <StatusChip value={row.completed ? "completed" : "in_progress"} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
