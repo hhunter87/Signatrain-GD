@@ -71,6 +71,137 @@
       "objectId": "alert_nyc_safe_time",
       "metadata": {},
       "createdAt": "2026-06-18T15:00:00Z"
+    },
+    {
+      "id": "audit_004",
+      "actorUserId": "user_dana",
+      "action": "org.product.enabled",
+      "objectType": "Organization",
+      "objectId": "org_acme",
+      "metadata": {
+        "product": "LEGISLATIVE_TRACKING"
+      },
+      "createdAt": "2026-06-01T09:00:00Z"
+    },
+    {
+      "id": "audit_005",
+      "actorUserId": "user_dana",
+      "action": "user.invited",
+      "objectType": "User",
+      "objectId": "user_avery",
+      "metadata": {
+        "role": "MGR"
+      },
+      "createdAt": "2026-06-05T10:30:00Z"
+    },
+    {
+      "id": "audit_006",
+      "actorUserId": "user_maya",
+      "action": "user.role_changed",
+      "objectType": "User",
+      "objectId": "user_jordan",
+      "metadata": {
+        "from": "HRS",
+        "to": "CHA"
+      },
+      "createdAt": "2026-06-06T11:00:00Z"
+    },
+    {
+      "id": "audit_007",
+      "actorUserId": "user_sam",
+      "action": "template.published",
+      "objectType": "Template",
+      "objectId": "tpl_remote",
+      "metadata": {
+        "version": "1.0"
+      },
+      "createdAt": "2026-06-12T14:00:00Z"
+    },
+    {
+      "id": "audit_008",
+      "actorUserId": "user_rachel",
+      "action": "legislative.alert.approved",
+      "objectType": "LegislativeAlert",
+      "objectId": "alert_ca_wpvp",
+      "metadata": {},
+      "createdAt": "2026-06-10T12:00:00Z"
+    },
+    {
+      "id": "audit_009",
+      "actorUserId": "user_alex",
+      "action": "content.published",
+      "objectType": "Course",
+      "objectId": "course_harassment_mgr",
+      "metadata": {
+        "version": "1.0"
+      },
+      "createdAt": "2026-06-15T13:00:00Z"
+    },
+    {
+      "id": "audit_010",
+      "actorUserId": "user_priya",
+      "action": "certificate.issued",
+      "objectType": "Certificate",
+      "objectId": "CERT-ST-2026-0011",
+      "metadata": {
+        "learner": "user_elena"
+      },
+      "createdAt": "2026-06-15T15:30:00Z"
+    },
+    {
+      "id": "audit_011",
+      "actorUserId": "user_priya",
+      "action": "learner.progress_reset",
+      "objectType": "User",
+      "objectId": "user_marcus",
+      "metadata": {
+        "course": "course_manager_decisions",
+        "reason": "learner request"
+      },
+      "createdAt": "2026-06-22T09:15:00Z"
+    },
+    {
+      "id": "audit_012",
+      "actorUserId": "user_taylor",
+      "action": "entitlement.changed",
+      "objectType": "Organization",
+      "objectId": "org_acme",
+      "metadata": {
+        "seats": "+4 SIGNATRAIN_MANAGER"
+      },
+      "createdAt": "2026-06-25T16:00:00Z"
+    },
+    {
+      "id": "audit_013",
+      "actorUserId": "user_dana",
+      "action": "gd.request.status_changed",
+      "objectType": "LegalRequest",
+      "objectId": "req_acme_002",
+      "metadata": {
+        "from": "assigned",
+        "to": "waiting_for_client"
+      },
+      "createdAt": "2026-06-28T10:00:00Z"
+    },
+    {
+      "id": "audit_014",
+      "actorUserId": "user_priya",
+      "action": "certificate.revoked",
+      "objectType": "Certificate",
+      "objectId": "CERT-ST-2026-0007",
+      "metadata": {
+        "reason": "issued in error — reissued"
+      },
+      "createdAt": "2026-07-01T08:45:00Z"
+    },
+    {
+      "id": "audit_015",
+      "actorUserId": "user_taylor",
+      "action": "organization.created",
+      "objectType": "Organization",
+      "objectId": "org_brightline",
+      "metadata": {},
+      "createdAt": "2026-05-10T09:00:00Z"
     }
   ]
 }

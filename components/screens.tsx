@@ -135,6 +135,10 @@ const CUSTOM_SCREEN_PATHS = [
   "/admin/signatrain/learners",
   "/admin/signatrain/certificates",
   "/admin/alerts",
+  "/admin/alerts/[alertId]",
+  "/admin/alerts/distribution",
+  "/admin/platform/organizations",
+  "/admin/platform/audit",
   "/app/company/billing",
   "/app/company/reports",
   "/app/profile",
@@ -234,6 +238,14 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <StCertificateAdminView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
+    case "/admin/alerts/[alertId]":
+      return <AlertEditorView route={route} pathname={pathname} />;
+    case "/admin/alerts/distribution":
+      return <AlertDistributionView route={route} />;
+    case "/admin/platform/organizations":
+      return <OrgAdminView route={route} />;
+    case "/admin/platform/audit":
+      return <AuditViewerView route={route} />;
     case "/app/alerts":
       return <EligibleAlertsView route={route} />;
     case "/app/alerts/[alertId]":
@@ -5820,6 +5832,247 @@ function StCertificateAdminView({ route }: { route: RouteDefinition }) {
           <div className="mt-3 flex flex-wrap gap-2">{["Issue manually", "Revoke", "Reissue", "Correct learner name", "Verify ID"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
         </section>
       </div>
+    </div>
+  );
+}
+
+
+/* ===================== Legislative + Platform Admin ======================= */
+
+/* --- Alert editor and legal review --- */
+function AlertEditorView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store } = useDemoStore();
+  const alertId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const alert = store.alerts.find((a) => a.id === alertId);
+  const m = alertMetaFor(alertId);
+  const [note, setNote] = useState("");
+
+  if (!alert) {
+    return <div className="narrow-shell"><section className="ds-card p-6"><h1 className="page-title text-2xl font-bold">Alert not found</h1><Link href="/admin/alerts" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2">Back to pipeline</Link></section></div>;
+  }
+  const clientOrgs = store.organizations.filter((o) => o.id !== "org_internal");
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Edit and legally review a legislative alert before distribution." />
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 className="text-2xl font-bold">{alert.title}</h2><p className="mt-1 text-sm text-muted">{alert.jurisdictionIds.map(jurisdictionName).join(", ")} · {alert.topic}</p></div>
+          <div className="flex flex-wrap gap-2"><StatusChip value={alert.status} />{m ? <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${relevanceTint(m.relevance)}`}>{m.relevance}</span> : null}</div>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Alert content</h3>
+            <div className="mt-3 space-y-3">
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Title</label><input className="ds-field mt-1 w-full px-3 py-2 text-sm" defaultValue={alert.title} /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Executive summary</label><textarea className="ds-field mt-1 w-full px-3 py-2 text-sm" rows={2} defaultValue={alert.summary} /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Compliance impact</label><textarea className="ds-field mt-1 w-full px-3 py-2 text-sm" rows={2} defaultValue={alert.impact} /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Recommended action</label><textarea className="ds-field mt-1 w-full px-3 py-2 text-sm" rows={2} defaultValue={alert.recommendedAction} /></div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Effective date</label><input type="date" className="ds-field mt-1 w-full px-3 py-2 text-sm" defaultValue={alert.effectiveDate} /></div>
+                <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Source</label><input className="ds-field mt-1 w-full px-3 py-2 text-sm" defaultValue={alert.sourceReferences[0] ?? ""} /></div>
+              </div>
+            </div>
+          </section>
+
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Legal review</h3>
+            <ul className="mt-2 space-y-1.5 text-sm text-muted">
+              {["Legal accuracy", "Jurisdiction accuracy", "Not too broad", "Action steps are safe", "Disclaimer present", "Avoids client-specific advice"].map((c) => (
+                <li key={c} className="flex items-center gap-2"><input type="checkbox" defaultChecked />{c}</li>
+              ))}
+            </ul>
+            <textarea className="ds-field mt-3 w-full px-3 py-2 text-sm" rows={2} placeholder="Reviewer note…" value={note} onChange={(e) => setNote(e.target.value)} />
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Distribution settings</h3>
+            <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Eligible clients</p>
+            <div className="mt-1 space-y-1 text-sm">
+              {clientOrgs.map((o) => {
+                const cov = coverageList.find((c) => c.organizationId === o.id);
+                const eligible = cov && alert.jurisdictionIds.some((j) => cov.jurisdictionIds.includes(j));
+                return <label key={o.id} className="flex items-center gap-2"><input type="checkbox" defaultChecked={!!eligible} />{o.name}</label>;
+              })}
+            </div>
+            <p className="mt-3 text-xs text-muted">Targeting also uses topic/industry tags and plan entitlement.</p>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Workflow</h3>
+            <div className="mt-2 flex flex-col gap-2">{["Submit for review", "Approve", "Request changes", "Schedule distribution", "Publish now", "Archive"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+          </section>
+        </div>
+      </div>
+      <div className="mt-6"><Link href="/admin/alerts" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to pipeline</Link></div>
+    </div>
+  );
+}
+
+/* --- Alert distribution report --- */
+function AlertDistributionView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const orgName = (id: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  const published = store.alerts.filter((a) => a.status === "published");
+  const recs = alertRecipients;
+  const delivered = recs.length;
+  const opened = recs.filter((r) => r.readAt).length;
+  const openRate = delivered ? Math.round((opened / delivered) * 100) : 0;
+  const clientsReached = new Set(recs.map((r) => r.organizationId)).size;
+
+  const perAlert = published.map((a) => {
+    const rs = recs.filter((r) => r.alertId === a.id);
+    return { a, delivered: rs.length, opened: rs.filter((r) => r.readAt).length };
+  });
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Who received each alert, who opened it, and where follow-up may be needed." />
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Alerts published" value={String(published.length)} tint="tint-blue" />
+        <MiniStat label="Clients reached" value={String(clientsReached)} tint="tint-brand" />
+        <MiniStat label="Deliveries" value={String(delivered)} tint="tint-cyan" />
+        <MiniStat label="Open rate" value={`${openRate}%`} tint="tint-emerald" />
+      </div>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-bold">Alert-level report</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Alert</th><th>Jurisdiction</th><th>Delivered</th><th>Opened</th><th>Open rate</th></tr></thead>
+            <tbody>
+              {perAlert.map(({ a, delivered: dcount, opened: ocount }) => (
+                <tr key={a.id}>
+                  <td><Link href={`/admin/alerts/${a.id}`} className="font-bold text-[color:var(--brand-accent)] hover:underline">{a.title}</Link></td>
+                  <td className="text-sm text-muted">{a.jurisdictionIds.map(jurisdictionName).join(", ")}</td>
+                  <td className="text-sm">{dcount}</td>
+                  <td className="text-sm">{ocount}</td>
+                  <td className="text-sm">{dcount ? Math.round((ocount / dcount) * 100) : 0}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-bold">Client-level report</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Client</th><th>Alert</th><th>Delivered</th><th>Opened</th></tr></thead>
+            <tbody>
+              {recs.map((r) => (
+                <tr key={r.id}>
+                  <td className="text-sm font-semibold">{orgName(r.organizationId)}</td>
+                  <td className="text-sm">{store.alerts.find((a) => a.id === r.alertId)?.title ?? r.alertId}</td>
+                  <td className="text-sm">{r.deliveryStatus}</td>
+                  <td className="text-sm">{r.readAt ? formatDate(r.readAt) : "Not opened"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="ds-card p-5">
+        <h2 className="text-lg font-bold">Follow-up</h2>
+        <div className="mt-2 flex flex-wrap gap-2">{["Create legal request from response", "Assign follow-up", "Resend alert", "Export report", "Flag for attorney outreach"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+      </section>
+    </div>
+  );
+}
+
+/* --- Organization administration (platform) --- */
+function OrgAdminView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const [query, setQuery] = useState("");
+  const orgs = store.organizations.filter((o) => o.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const has = (orgId: string, prefix: string) => store.entitlements.some((e) => e.organizationId === orgId && e.code.startsWith(prefix) && e.status === "active");
+  const seatsFor = (orgId: string) => store.seatPools.filter((sp) => sp.organizationId === orgId).reduce((t, sp) => t + sp.capacity, 0);
+  const usersFor = (orgId: string) => store.users.filter((u) => u.organizationId === orgId).length;
+  const sub = (orgId: string) => store.subscriptions.find((sb) => sb.organizationId === orgId);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="System-level administration of all organizations, products, entitlements, and access." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search organizations" className="w-56 bg-transparent outline-none" /></label>
+        <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create organization</button>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Organization</th><th>Status</th><th>GD</th><th>Signatrain</th><th>Seats</th><th>Users</th><th>Billing</th><th>Type</th></tr></thead>
+          <tbody>
+            {orgs.map((o) => (
+              <tr key={o.id}>
+                <td className="font-semibold">{o.name}</td>
+                <td><StatusChip value={(o as { status?: string }).status ?? "active"} /></td>
+                <td className="text-sm">{has(o.id, "GD") ? "Yes" : "No"}</td>
+                <td className="text-sm">{has(o.id, "SIGNATRAIN") ? "Yes" : "No"}</td>
+                <td className="text-sm">{seatsFor(o.id)}</td>
+                <td className="text-sm">{usersFor(o.id)}</td>
+                <td className="text-sm text-muted">{sub(o.id) ? sub(o.id)!.status : "—"}</td>
+                <td className="text-sm text-muted">{(o as { type?: string }).type ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <section className="ds-card mt-6 p-5">
+        <div className="mb-2 flex items-center gap-2"><Shield className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Product enablement &amp; entitlements</h2></div>
+        <p className="text-sm text-muted">Select an organization to enable products (GD, Signatrain, Legislative, Templates, Live Sessions, Cohorts, HR Bot, Reports), set seats and plan limits, assign an org admin, and manage security. System-level changes are audit-logged.</p>
+        <div className="mt-3 flex flex-wrap gap-2">{["Enable / disable product", "Update entitlements", "Assign org admin", "Suspend", "Archive"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+      </section>
+    </div>
+  );
+}
+
+/* --- Audit event viewer --- */
+function AuditViewerView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const userName = (id: string) => store.users.find((u) => u.id === id)?.name ?? id;
+  const userRole = (id: string) => (store.users.find((u) => u.id === id)?.roles ?? []).join(", ");
+  const [type, setType] = useState("all");
+  const [query, setQuery] = useState("");
+  const events = [...store.auditEvents].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter((e) => {
+    if (type !== "all" && !e.action.startsWith(type)) return false;
+    if (query.trim() && !`${e.action} ${e.objectId} ${userName(e.actorUserId)}`.toLowerCase().includes(query.trim().toLowerCase())) return false;
+    return true;
+  });
+  const prefixes = Array.from(new Set(store.auditEvents.map((e) => e.action.split(".")[0])));
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Who did what, when, and to which object — across legal, billing, certificate, and permission activity." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search events" className="w-56 bg-transparent outline-none" /></label>
+        <div className="flex gap-2">
+          <select className="ds-field px-3 py-2 text-sm" value={type} onChange={(e) => setType(e.target.value)}><option value="all">All event types</option>{prefixes.map((p2) => <option key={p2} value={p2}>{p2}</option>)}</select>
+          <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm"><Download className="h-4 w-4" aria-hidden="true" />Export CSV</button>
+        </div>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Timestamp</th><th>Actor</th><th>Role</th><th>Event</th><th>Object</th><th>Details</th></tr></thead>
+          <tbody>
+            {events.map((e) => (
+              <tr key={e.id}>
+                <td className="text-sm text-muted">{formatDateTime(e.createdAt)}</td>
+                <td className="text-sm font-semibold">{userName(e.actorUserId)}</td>
+                <td className="text-xs text-muted">{userRole(e.actorUserId)}</td>
+                <td className="text-sm">{e.action.replaceAll(".", " · ")}</td>
+                <td className="text-sm text-muted">{e.objectType}: {e.objectId}</td>
+                <td className="text-xs text-muted">{Object.entries(e.metadata ?? {}).map(([k, v]) => `${k}: ${String(v)}`).join(", ") || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 flex items-start gap-2 text-xs text-muted"><Shield className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />Audit records are append-only. Access is controlled through permissions rather than by editing history.</p>
     </div>
   );
 }
