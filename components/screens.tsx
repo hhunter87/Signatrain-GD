@@ -1,18 +1,28 @@
 "use client";
 
 import {
+  AlertTriangle,
+  ArrowRight,
   BarChart3,
   BriefcaseBusiness,
+  Building2,
   CalendarDays,
   CheckCircle2,
+  Circle,
   Clock,
   CreditCard,
   Download,
+  FileText,
   GraduationCap,
+  ListChecks,
   LockKeyhole,
+  Paperclip,
   Scale,
+  Search,
   Send,
+  Sparkles,
   UserPlus,
+  Users,
   Video
 } from "lucide-react";
 import Link from "next/link";
@@ -59,6 +69,9 @@ const enrollments = learningProgressJson.enrollments as Enrollment[];
 const videoProgress = learningProgressJson.videoProgress as VideoProgress[];
 
 const CUSTOM_SCREEN_PATHS = [
+  "/app/gd",
+  "/app/gd/onboarding",
+  "/app/gd/benefits",
   "/app/gd/requests",
   "/app/gd/requests/[requestId]",
   "/app/gd/matters",
@@ -76,6 +89,12 @@ export function hasCustomScreen(path: string): boolean {
 
 export function CustomScreen({ route, pathname }: { route: RouteDefinition; pathname: string }) {
   switch (route.path) {
+    case "/app/gd":
+      return <GdDashboardView route={route} />;
+    case "/app/gd/onboarding":
+      return <GdOnboardingView route={route} />;
+    case "/app/gd/benefits":
+      return <GdBenefitsView route={route} />;
     case "/app/gd/requests":
       return <RequestListView route={route} />;
     case "/app/gd/requests/[requestId]":
@@ -170,82 +189,632 @@ function MiniStat({ label, value, tint }: { label: string; value: string; tint: 
   );
 }
 
-/* ------------------------------ GD: requests ------------------------------ */
 
-function RequestListView({ route }: { route: RouteDefinition }) {
+/* --------------------------- GD: shared datasets --------------------------- */
+
+interface OnboardingTask {
+  id: string;
+  organizationId: string;
+  title: string;
+  status: string;
+  assignedToUserId?: string;
+  dueAt?: string;
+  attachments: { id: string; name: string; size: number; type: string }[];
+  section: string;
+  requirement: string;
+}
+interface GdAppointment {
+  id: string;
+  organizationId: string;
+  type: string;
+  attorneyUserId?: string;
+  withUserId?: string;
+  startsAt: string;
+  durationMinutes: number;
+  relatedRequestId?: string | null;
+  topic: string;
+  includedInPlan: boolean;
+  location: string;
+  status: string;
+}
+interface ActionItem {
+  id: string;
+  organizationId: string;
+  title: string;
+  detail: string;
+  dueAt?: string;
+  severity: string;
+  ctaLabel: string;
+  href: string;
+}
+interface ActivityItem {
+  id: string;
+  organizationId: string;
+  at: string;
+  kind: string;
+  text: string;
+}
+interface PlanDetail {
+  organizationId: string;
+  planName: string;
+  startsAt: string;
+  renewsAt: string;
+  billingModel: string;
+  monthlyDisplay: string;
+  primaryContactName: string;
+  primaryContactRole: string;
+  responseSla: string;
+  includedSupport: string[];
+}
+interface BenefitUsage {
+  id: string;
+  organizationId: string;
+  name: string;
+  category: string;
+  used: number | null;
+  allowance: number | null;
+  unit: string;
+  period: string;
+}
+interface CompanyProfile {
+  organizationId: string;
+  legalName: string;
+  dba: string;
+  entityType: string;
+  stateOfFormation: string;
+  headquarters: string;
+  website: string;
+  primaryActivity: string;
+  jurisdictions: string[];
+}
+
+const onboardingTasks = gdDataJson.onboardingTasks as unknown as OnboardingTask[];
+const gdAppointments = gdDataJson.appointments as unknown as GdAppointment[];
+const gdActionItems = gdDataJson.actionItems as unknown as ActionItem[];
+const gdActivity = gdDataJson.activity as unknown as ActivityItem[];
+const gdPlanDetails = gdDataJson.planDetails as unknown as PlanDetail[];
+const gdBenefitUsage = gdDataJson.benefitUsage as unknown as BenefitUsage[];
+const gdCompanyProfile = gdDataJson.companyProfile as unknown as CompanyProfile;
+
+function severityTint(sev: string): string {
+  if (sev === "high") return "tint-rose";
+  if (sev === "medium") return "tint-amber";
+  return "tint-blue";
+}
+
+function requirementTint(req: string): string {
+  if (req === "required") return "tint-rose";
+  if (req === "recommended") return "tint-amber";
+  return "tint-blue";
+}
+
+function shortMeeting(value: string): string {
+  return new Date(value).toLocaleString("en-US", {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+/* ----------------------------- GD: dashboard ------------------------------ */
+
+function GdDashboardView({ route }: { route: RouteDefinition }) {
   const { store, activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const org = store.organizations.find((o) => o.id === orgId);
+
   const requests = visibleLegalRequestsForUser(activeUser, store);
-  const openCount = requests.filter((request) =>
-    ["submitted", "triage", "assigned", "in_progress"].includes(request.status)
-  ).length;
-  const waitingCount = requests.filter((request) => request.status === "waiting_for_client").length;
-  const resolvedCount = requests.filter((request) =>
-    ["resolved", "converted_to_matter", "closed"].includes(request.status)
-  ).length;
+  const openRequests = requests.filter((r) =>
+    ["submitted", "triage", "assigned", "in_progress", "waiting_for_client"].includes(r.status)
+  );
+  const orgMatters = matterReferences.filter((m) => m.organizationId === orgId);
+  const activeMatters = orgMatters.filter((m) => !/closed|completed/i.test(m.status));
+  const orgTasks = onboardingTasks.filter((t) => t.organizationId === orgId);
+  const doneTasks = orgTasks.filter((t) => t.status === "accepted");
+  const onbPct = orgTasks.length ? Math.round((doneTasks.length / orgTasks.length) * 100) : 0;
+  const actions = gdActionItems.filter((a) => a.organizationId === orgId);
+  const activity = [...gdActivity]
+    .filter((a) => a.organizationId === orgId)
+    .sort((a, b) => b.at.localeCompare(a.at));
+  const plan = store.gdPlans.find((pl) => pl.organizationId === orgId);
+  const detail = gdPlanDetails.find((pl) => pl.organizationId === orgId);
+  const seatsIncluded = plan?.includedHrSeats ?? 0;
+  const seatUsage = gdBenefitUsage.find((b) => b.organizationId === orgId && /seat/i.test(b.name));
+  const seatsUsed = typeof seatUsage?.used === "number" ? seatUsage.used : 0;
+  const nextAppt = [...gdAppointments]
+    .filter((a) => a.organizationId === orgId)
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
 
   return (
     <div className="content-shell">
       <ScreenHeading
         route={route}
-        description="Legal requests visible to this persona. Restricted requests are hidden from non-participants."
+        description="Where things stand across your Greenwald Doherty relationship — what is active, what needs you, and where to pick up next."
+      />
+
+      <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted">
+        <Building2 className="h-4 w-4" aria-hidden="true" />
+        <span className="font-bold text-[color:var(--page-title,inherit)]">{org?.name ?? "Your company"}</span>
+        {plan ? <span className="ds-pill px-2 py-0.5 text-xs">{detail?.planName ?? `${plan.tier} plan`}</span> : null}
+      </div>
+
+      <div className="stagger mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MiniStat label="Open legal requests" value={String(openRequests.length)} tint="tint-blue" />
+        <MiniStat label="Active matters" value={String(activeMatters.length)} tint="tint-violet" />
+        <MiniStat label="Action required" value={String(actions.length)} tint="tint-amber" />
+        <MiniStat label="Onboarding complete" value={`${onbPct}%`} tint="tint-emerald" />
+        <MiniStat label="Signatrain seats used" value={`${seatsUsed} of ${seatsIncluded}`} tint="tint-cyan" />
+        <MiniStat
+          label="Next attorney meeting"
+          value={nextAppt ? shortMeeting(nextAppt.startsAt) : "None scheduled"}
+          tint="tint-brand"
+        />
+      </div>
+
+      <section className="mb-8">
+        <div className="mb-3 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-[color:var(--brand-warm)]" aria-hidden="true" />
+          <h2 className="text-xl font-bold">Action required</h2>
+        </div>
+        {actions.length === 0 ? (
+          <div className="ds-card p-5 text-muted">Nothing needs your attention right now.</div>
+        ) : (
+          <div className="stagger grid gap-3 md:grid-cols-2">
+            {actions.map((a) => (
+              <Link key={a.id} href={a.href} className={`ds-card ds-card-interactive block p-4 ${severityTint(a.severity)}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    {a.severity === "high" ? (
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    ) : (
+                      <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    )}
+                    <div>
+                      <p className="font-bold">{a.title}</p>
+                      <p className="mt-1 text-sm text-muted">{a.detail}</p>
+                    </div>
+                  </div>
+                  <StatusChip value={a.severity} />
+                </div>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">
+                  {a.ctaLabel}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+                {a.dueAt ? <p className="mt-1 text-xs text-muted">Due {formatDate(a.dueAt)}</p> : null}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-xl font-bold">Recent activity</h2>
+          <div className="ds-card p-5">
+            <ul className="space-y-4">
+              {activity.map((item) => (
+                <li key={item.id} className="flex items-start gap-3">
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand-accent)]" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm">{item.text}</p>
+                    <p className="text-xs text-muted">{formatDateTime(item.at)}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="ds-card p-5">
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
+              <h3 className="font-bold">Your plan</h3>
+            </div>
+            <p className="text-sm text-muted">{detail?.planName ?? plan?.tier ?? "No active plan"}</p>
+            {plan ? <p className="mt-1 text-sm">Renews {formatDate(plan.renewsAt)}</p> : null}
+            {detail ? <p className="mt-1 text-sm text-muted">Primary contact: {detail.primaryContactName}</p> : null}
+            <Link href="/app/gd/benefits" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">
+              View plan & benefits
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="ds-card p-5">
+            <div className="mb-2 flex items-center gap-2">
+              <Users className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
+              <h3 className="font-bold">Quick links</h3>
+            </div>
+            <ul className="space-y-2 text-sm">
+              {[
+                { label: "Submit a legal request", href: "/app/gd/requests/new", icon: Send },
+                { label: "Continue onboarding", href: "/app/gd/onboarding", icon: ListChecks },
+                { label: "Browse template library", href: "/app/gd/templates", icon: FileText }
+              ].map((q) => (
+                <li key={q.href}>
+                  <Link href={q.href} className="inline-flex items-center gap-2 font-semibold text-[color:var(--brand-accent)] hover:underline">
+                    <q.icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {q.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------- GD: onboarding ------------------------------ */
+
+const ONBOARDING_SECTION_ORDER = [
+  "Company profile",
+  "Main contacts",
+  "Authorization & communication",
+  "Document collection",
+  "Portal setup"
+];
+
+function GdOnboardingView({ route }: { route: RouteDefinition }) {
+  const { activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const tasks = onboardingTasks.filter((t) => t.organizationId === orgId);
+  const done = tasks.filter((t) => t.status === "accepted").length;
+  const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+  const profile = gdCompanyProfile.organizationId === orgId ? gdCompanyProfile : undefined;
+
+  const sections = ONBOARDING_SECTION_ORDER.map((name) => ({
+    name,
+    items: tasks.filter((t) => t.section === name)
+  })).filter((s) => s.items.length > 0);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading
+        route={route}
+        description="Complete these steps so Greenwald Doherty has everything needed to represent you well."
+      />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <ListChecks className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" />
+            <h2 className="text-lg font-bold">
+              {done} of {tasks.length} steps completed
+            </h2>
+          </div>
+          <span className="text-sm font-bold">{pct}%</span>
+        </div>
+        <div className="progress-track mt-3 h-2">
+          <div className="progress-fill" style={{ width: `${pct}%` }} />
+        </div>
+      </section>
+
+      {profile ? (
+        <section className="ds-card mb-6 p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
+            <h3 className="font-bold">Company profile</h3>
+          </div>
+          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Legal name", profile.legalName],
+              ["DBA", profile.dba],
+              ["Entity type", profile.entityType],
+              ["State of formation", profile.stateOfFormation],
+              ["Headquarters", profile.headquarters],
+              ["Website", profile.website],
+              ["Primary activity", profile.primaryActivity],
+              ["Jurisdictions", profile.jurisdictions.join(", ")]
+            ].map(([label, value]) => (
+              <div key={label as string}>
+                <dt className="text-xs font-bold uppercase tracking-wide text-muted">{label}</dt>
+                <dd className="mt-0.5 text-sm">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
+
+      <div className="stagger space-y-6">
+        {sections.map((section) => (
+          <section key={section.name}>
+            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">{section.name}</h3>
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+              {section.items.map((task) => {
+                const complete = task.status === "accepted";
+                return (
+                  <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="flex items-start gap-3">
+                      {complete ? (
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />
+                      ) : (
+                        <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+                      )}
+                      <div>
+                        <p className="font-semibold">{task.title}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                          <span className={`tint-chip px-2 py-0.5 uppercase tracking-wide ${requirementTint(task.requirement)}`}>
+                            {task.requirement}
+                          </span>
+                          {task.dueAt ? <span>Due {formatDate(task.dueAt)}</span> : null}
+                          {task.attachments.length > 0 ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Paperclip className="h-3 w-3" aria-hidden="true" />
+                              {task.attachments.length} file{task.attachments.length > 1 ? "s" : ""}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                    <StatusChip value={task.status} />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------- GD: plan & benefit usage ------------------------ */
+
+function GdBenefitsView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const plan = store.gdPlans.find((pl) => pl.organizationId === orgId);
+  const detail = gdPlanDetails.find((pl) => pl.organizationId === orgId);
+  const usage = gdBenefitUsage.filter((b) => b.organizationId === orgId);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading
+        route={route}
+        description="What is included in your Greenwald Doherty relationship and how much of it you have used."
+      />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-1">
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
+            <h2 className="text-lg font-bold">Current plan</h2>
+          </div>
+          {plan ? (
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between gap-3"><dt className="text-muted">Plan</dt><dd className="font-semibold">{detail?.planName ?? plan.tier}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted">Started</dt><dd>{formatDate(plan.startsAt)}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted">Renews</dt><dd>{formatDate(plan.renewsAt)}</dd></div>
+              {detail ? <div className="flex justify-between gap-3"><dt className="text-muted">Billing</dt><dd className="text-right">{detail.billingModel}</dd></div> : null}
+              {detail ? <div className="flex justify-between gap-3"><dt className="text-muted">Retainer</dt><dd className="font-semibold">{detail.monthlyDisplay}</dd></div> : null}
+              {detail ? <div className="flex justify-between gap-3"><dt className="text-muted">Primary contact</dt><dd className="text-right">{detail.primaryContactName}<br /><span className="text-xs text-muted">{detail.primaryContactRole}</span></dd></div> : null}
+              {detail ? <div className="flex justify-between gap-3"><dt className="text-muted">Response time</dt><dd>{detail.responseSla}</dd></div> : null}
+            </dl>
+          ) : (
+            <p className="text-muted">No active plan for this organization.</p>
+          )}
+        </section>
+
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-lg font-bold">Included benefits</h2>
+          <div className="ds-card p-5">
+            {detail && detail.includedSupport.length > 0 ? (
+              <ul className="grid gap-2.5 sm:grid-cols-2">
+                {detail.includedSupport.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted">No included benefits listed.</p>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" />
+          <h2 className="text-lg font-bold">Usage overview</h2>
+        </div>
+        <div className="stagger grid gap-4 md:grid-cols-2">
+          {usage.map((b) => {
+            const unlimited = b.allowance === null;
+            const used = typeof b.used === "number" ? b.used : null;
+            const pct = unlimited || used === null || !b.allowance ? 0 : Math.min(100, Math.round((used / b.allowance) * 100));
+            return (
+              <article key={b.id} className="ds-card p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold">{b.name}</p>
+                  <span className="text-xs uppercase tracking-wide text-muted">{b.period}</span>
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  {unlimited || used === null
+                    ? "Included"
+                    : `${used} of ${b.allowance} ${b.unit} used`}
+                </p>
+                {!unlimited && used !== null && b.allowance ? (
+                  <div className="progress-track mt-2 h-2">
+                    <div className="progress-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+        <p className="mt-4 flex items-start gap-2 text-xs text-muted">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Usage is a benefit estimate for planning only and is not an official invoice or financial statement.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------ GD: requests ------------------------------ */
+
+function RequestListView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const all = visibleLegalRequestsForUser(activeUser, store);
+  const [status, setStatus] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const userName = (id?: string) => store.users.find((u) => u.id === id)?.name ?? "Unassigned";
+  const lastUpdate = (requestId: string) => {
+    const times = store.legalMessages
+      .filter((m) => m.requestId === requestId)
+      .map((m) => m.createdAt);
+    return times.length ? times.sort().slice(-1)[0] : undefined;
+  };
+
+  const openCount = all.filter((r) =>
+    ["submitted", "triage", "assigned", "in_progress"].includes(r.status)
+  ).length;
+  const waitingCount = all.filter((r) => r.status === "waiting_for_client").length;
+  const resolvedCount = all.filter((r) =>
+    ["resolved", "converted_to_matter", "closed"].includes(r.status)
+  ).length;
+
+  const requests = all.filter(
+    (r) =>
+      (status === "all" || r.status === status) &&
+      (priority === "all" || r.priority === priority) &&
+      (query.trim() === "" ||
+        `${r.subject} ${r.topic}`.toLowerCase().includes(query.trim().toLowerCase()))
+  );
+
+  const statusOptions = [
+    "all",
+    "submitted",
+    "triage",
+    "assigned",
+    "in_progress",
+    "waiting_for_client",
+    "resolved",
+    "converted_to_matter",
+    "closed"
+  ];
+  const priorityOptions = ["all", "low", "medium", "high"];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading
+        route={route}
+        description="Every legal request you have sent, in one structured place. Restricted requests are hidden from non-participants."
       />
       <div className="stagger mb-6 grid gap-4 sm:grid-cols-3">
         <MiniStat label="Open" value={String(openCount)} tint="tint-blue" />
         <MiniStat label="Waiting for client" value={String(waitingCount)} tint="tint-amber" />
         <MiniStat label="Resolved" value={String(resolvedCount)} tint="tint-emerald" />
       </div>
-      {requests.length === 0 ? (
+
+      {all.length === 0 ? (
         <section className="ds-card p-6 text-center">
           <h2 className="text-xl font-bold">No visible requests</h2>
           <p className="mt-2 text-muted">This persona has no legal requests in view.</p>
+          <Link href="/app/gd/requests/new" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">
+            <Send className="h-4 w-4" aria-hidden="true" />
+            Submit a request
+          </Link>
         </section>
       ) : (
-        <section className="ds-card overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Topic</th>
-                <th>Status</th>
-                <th>Privacy</th>
-                <th>Priority</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((request) => (
-                <tr key={request.id}>
-                  <td>
-                    <Link
-                      href={`/app/gd/requests/${request.id}`}
-                      className="font-bold text-[color:var(--brand-accent)] hover:underline"
-                    >
-                      {request.subject}
-                    </Link>
-                  </td>
-                  <td className="text-muted">{request.topic}</td>
-                  <td>
-                    <StatusChip value={request.status} />
-                  </td>
-                  <td>
-                    {request.privacy === "restricted" ? (
-                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
-                        <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                        Restricted
-                      </span>
-                    ) : (
-                      <span className="text-sm text-muted">Company visible</span>
-                    )}
-                  </td>
-                  <td>
-                    <StatusChip value={request.priority} />
-                  </td>
-                  <td className="text-sm text-muted">{formatDate(request.createdAt)}</td>
-                </tr>
+        <>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm">
+              <Search className="h-4 w-4 opacity-60" aria-hidden="true" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search subject or category"
+                className="w-56 bg-transparent outline-none"
+              />
+            </label>
+            <select className="ds-field px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+              {statusOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o === "all" ? "All statuses" : o.replaceAll("_", " ")}
+                </option>
               ))}
-            </tbody>
-          </table>
-        </section>
+            </select>
+            <select className="ds-field px-3 py-2 text-sm" value={priority} onChange={(e) => setPriority(e.target.value)}>
+              {priorityOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o === "all" ? "All priorities" : o}
+                </option>
+              ))}
+            </select>
+            <Link href="/app/gd/requests/new" className="ds-button ds-button-primary ml-auto inline-flex px-4 py-2 text-sm">
+              <Send className="h-4 w-4" aria-hidden="true" />
+              New request
+            </Link>
+          </div>
+
+          <section className="ds-card overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Category</th>
+                  <th>Assigned to</th>
+                  <th>Status</th>
+                  <th>Privacy</th>
+                  <th>Priority</th>
+                  <th>Last update</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-6 text-center text-muted">
+                      No requests match these filters.
+                    </td>
+                  </tr>
+                ) : (
+                  requests.map((request) => {
+                    const updated = lastUpdate(request.id) ?? request.createdAt;
+                    return (
+                      <tr key={request.id}>
+                        <td>
+                          <Link
+                            href={`/app/gd/requests/${request.id}`}
+                            className="font-bold text-[color:var(--brand-accent)] hover:underline"
+                          >
+                            {request.subject}
+                          </Link>
+                        </td>
+                        <td className="text-muted">{request.topic}</td>
+                        <td className="text-sm">{userName(request.assignedAttorneyUserId)}</td>
+                        <td>
+                          <StatusChip value={request.status} />
+                        </td>
+                        <td>
+                          {request.privacy === "restricted" ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
+                              <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                              Restricted
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted">Company visible</span>
+                          )}
+                        </td>
+                        <td>
+                          <StatusChip value={request.priority} />
+                        </td>
+                        <td className="text-sm text-muted">{formatDate(updated)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </section>
+        </>
       )}
     </div>
   );

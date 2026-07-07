@@ -400,7 +400,15 @@ function ProductSwitcher({
           ].join(" ")}
           title={`Switch to ${productLabel(product)}`}
         >
-          {product === "gd" ? <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" /> : null}
+          {product === "gd" ? (
+            <Image
+              src="/brand/gd/gd-icon-white.svg"
+              alt=""
+              width={16}
+              height={16}
+              unoptimized
+            />
+          ) : null}
           {product === "signatrain" ? (
             <Image
               src="/brand/signatrain/signatrain-icon-white.svg"
@@ -801,6 +809,14 @@ function Sidebar({ pathname }: { pathname: string }) {
                   {group === "Signatrain" ? (
                     <Image
                       src="/brand/signatrain/signatrain-icon-white.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      unoptimized
+                    />
+                  ) : group === "Greenwald Doherty" ? (
+                    <Image
+                      src="/brand/gd/gd-icon-white.svg"
                       alt=""
                       width={16}
                       height={16}
@@ -1678,7 +1694,7 @@ function ProductsView() {
             >
               <span className="action-icon inline-flex h-11 w-11 items-center justify-center">
                 {product === "gd" ? (
-                  <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+                  <Image src="/brand/gd/gd-icon.svg" alt="" width={22} height={22} unoptimized />
                 ) : (
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 )}

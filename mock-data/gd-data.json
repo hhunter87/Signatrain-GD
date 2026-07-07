@@ -61,7 +61,9 @@
       "status": "accepted",
       "assignedToUserId": "user_maya",
       "dueAt": "2026-01-10",
-      "attachments": []
+      "attachments": [],
+      "section": "Main contacts",
+      "requirement": "required"
     },
     {
       "id": "onb_acme_2",
@@ -77,13 +79,15 @@
           "size": 428000,
           "type": "application/pdf"
         }
-      ]
+      ],
+      "section": "Document collection",
+      "requirement": "required"
     },
     {
       "id": "onb_acme_3",
       "organizationId": "org_acme",
       "title": "Upload hiring documents",
-      "status": "submitted",
+      "status": "accepted",
       "assignedToUserId": "user_jordan",
       "dueAt": "2026-01-15",
       "attachments": [
@@ -93,7 +97,9 @@
           "size": 812000,
           "type": "application/zip"
         }
-      ]
+      ],
+      "section": "Document collection",
+      "requirement": "recommended"
     },
     {
       "id": "onb_acme_4",
@@ -102,7 +108,9 @@
       "status": "in_progress",
       "assignedToUserId": "user_jordan",
       "dueAt": "2026-01-15",
-      "attachments": []
+      "attachments": [],
+      "section": "Document collection",
+      "requirement": "required"
     },
     {
       "id": "onb_acme_5",
@@ -111,7 +119,86 @@
       "status": "not_started",
       "assignedToUserId": "user_maya",
       "dueAt": "2026-01-20",
-      "attachments": []
+      "attachments": [],
+      "section": "Portal setup",
+      "requirement": "recommended"
+    },
+    {
+      "id": "onb_acme_6",
+      "organizationId": "org_acme",
+      "title": "Complete company profile",
+      "status": "accepted",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-08",
+      "attachments": [],
+      "section": "Company profile",
+      "requirement": "required"
+    },
+    {
+      "id": "onb_acme_7",
+      "organizationId": "org_acme",
+      "title": "Confirm entity type & state of formation",
+      "status": "accepted",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-08",
+      "attachments": [],
+      "section": "Company profile",
+      "requirement": "required"
+    },
+    {
+      "id": "onb_acme_8",
+      "organizationId": "org_acme",
+      "title": "Designate billing contact",
+      "status": "accepted",
+      "assignedToUserId": "user_jordan",
+      "dueAt": "2026-01-10",
+      "attachments": [],
+      "section": "Main contacts",
+      "requirement": "required"
+    },
+    {
+      "id": "onb_acme_9",
+      "organizationId": "org_acme",
+      "title": "Set authorization preferences (who may submit requests)",
+      "status": "accepted",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-14",
+      "attachments": [],
+      "section": "Authorization & communication",
+      "requirement": "required"
+    },
+    {
+      "id": "onb_acme_10",
+      "organizationId": "org_acme",
+      "title": "Choose communication preferences",
+      "status": "not_started",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-18",
+      "attachments": [],
+      "section": "Authorization & communication",
+      "requirement": "recommended"
+    },
+    {
+      "id": "onb_acme_11",
+      "organizationId": "org_acme",
+      "title": "Confirm included Signatrain seats",
+      "status": "not_started",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-22",
+      "attachments": [],
+      "section": "Portal setup",
+      "requirement": "recommended"
+    },
+    {
+      "id": "onb_acme_12",
+      "organizationId": "org_acme",
+      "title": "Select preferred practice areas",
+      "status": "not_started",
+      "assignedToUserId": "user_maya",
+      "dueAt": "2026-01-24",
+      "attachments": [],
+      "section": "Portal setup",
+      "requirement": "optional"
     }
   ],
   "legalRequests": [
@@ -132,6 +219,113 @@
       "participantUserIds": [
         "user_maya",
         "user_jordan"
+      ]
+    },
+    {
+      "id": "req_acme_002",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "subject": "Vendor MSA review — ABC Supplier",
+      "topic": "Contract review",
+      "description": "Review master services agreement received from ABC Supplier before signature.",
+      "urgency": "time_sensitive",
+      "privacy": "company_visible",
+      "status": "waiting_for_client",
+      "priority": "high",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-06-28T09:30:00Z",
+      "clientVisibleSummary": "We need the countersigned draft and the vendor's redline to continue.",
+      "participantUserIds": [
+        "user_maya"
+      ]
+    },
+    {
+      "id": "req_acme_003",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_jordan",
+      "subject": "Remote work policy update",
+      "topic": "Policy review",
+      "description": "Update the remote work policy for the New Jersey and New York teams.",
+      "urgency": "standard",
+      "privacy": "company_visible",
+      "status": "assigned",
+      "priority": "medium",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-06-30T13:15:00Z",
+      "clientVisibleSummary": "Assigned to your attorney; initial review scheduled.",
+      "participantUserIds": [
+        "user_jordan"
+      ]
+    },
+    {
+      "id": "req_acme_004",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "subject": "Employee classification question",
+      "topic": "Employment issue",
+      "description": "Question on exempt vs non-exempt classification for two new operations roles.",
+      "urgency": "standard",
+      "privacy": "company_visible",
+      "status": "in_progress",
+      "priority": "medium",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-07-01T10:00:00Z",
+      "clientVisibleSummary": "Attorney is drafting guidance; a follow-up question is pending your reply.",
+      "participantUserIds": [
+        "user_maya"
+      ]
+    },
+    {
+      "id": "req_acme_005",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_jordan",
+      "subject": "Data handling & privacy compliance",
+      "topic": "Compliance question",
+      "description": "Assess current data handling practices against state privacy expectations.",
+      "urgency": "time_sensitive",
+      "privacy": "company_visible",
+      "status": "submitted",
+      "priority": "high",
+      "createdAt": "2026-07-03T15:45:00Z",
+      "clientVisibleSummary": "Received and awaiting triage by the GD operations team.",
+      "participantUserIds": [
+        "user_jordan"
+      ]
+    },
+    {
+      "id": "req_acme_006",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "subject": "NDA for new partnership",
+      "topic": "General legal question",
+      "description": "Mutual NDA needed for exploratory partnership discussions.",
+      "urgency": "standard",
+      "privacy": "company_visible",
+      "status": "resolved",
+      "priority": "low",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-05-15T11:00:00Z",
+      "clientVisibleSummary": "Executed mutual NDA template provided; request closed.",
+      "participantUserIds": [
+        "user_maya"
+      ]
+    },
+    {
+      "id": "req_acme_007",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "subject": "Severance agreement — confidential",
+      "topic": "Termination",
+      "description": "Confidential severance terms for a departing senior employee.",
+      "urgency": "urgent",
+      "privacy": "restricted",
+      "status": "in_progress",
+      "priority": "high",
+      "assignedAttorneyUserId": "user_rachel",
+      "createdAt": "2026-07-05T08:20:00Z",
+      "clientVisibleSummary": "Restricted request; visible only to named participants.",
+      "participantUserIds": [
+        "user_maya"
       ]
     }
   ],
@@ -174,7 +368,36 @@
       "updatedAt": "2026-06-21T09:00:00Z"
     }
   ],
-  "appointments": [],
+  "appointments": [
+    {
+      "id": "appt_acme_1",
+      "organizationId": "org_acme",
+      "type": "Matter strategy call",
+      "attorneyUserId": "user_rachel",
+      "withUserId": "user_maya",
+      "startsAt": "2026-07-09T14:00:00Z",
+      "durationMinutes": 30,
+      "relatedRequestId": "req_acme_002",
+      "topic": "Vendor MSA review — ABC Supplier",
+      "includedInPlan": true,
+      "location": "Video call",
+      "status": "confirmed"
+    },
+    {
+      "id": "appt_acme_2",
+      "organizationId": "org_acme",
+      "type": "Quarterly compliance check-in",
+      "attorneyUserId": "user_rachel",
+      "withUserId": "user_maya",
+      "startsAt": "2026-07-22T15:00:00Z",
+      "durationMinutes": 45,
+      "relatedRequestId": null,
+      "topic": "Q3 compliance review",
+      "includedInPlan": true,
+      "location": "Video call",
+      "status": "confirmed"
+    }
+  ],
   "templates": [
     {
       "id": "tpl_termination",
@@ -242,6 +465,207 @@
       "status": "open",
       "amountDisplay": "View in Centerbase",
       "externalSystem": "Centerbase"
+    }
+  ],
+  "actionItems": [
+    {
+      "id": "act_1",
+      "organizationId": "org_acme",
+      "title": "Upload the ABC Supplier MSA draft",
+      "detail": "Your attorney is waiting on the countersigned draft to continue the vendor review.",
+      "dueAt": "2026-07-10",
+      "severity": "high",
+      "ctaLabel": "Open request",
+      "href": "/app/gd/requests/req_acme_002"
+    },
+    {
+      "id": "act_2",
+      "organizationId": "org_acme",
+      "title": "Answer the classification follow-up",
+      "detail": "One follow-up question is pending on the employee classification request.",
+      "dueAt": "2026-07-09",
+      "severity": "medium",
+      "ctaLabel": "Reply in thread",
+      "href": "/app/gd/requests/req_acme_004"
+    },
+    {
+      "id": "act_3",
+      "organizationId": "org_acme",
+      "title": "Confirm Thursday attorney meeting",
+      "detail": "Matter strategy call on Thu, Jul 9 at 2:00 PM — please confirm attendance.",
+      "dueAt": "2026-07-09",
+      "severity": "medium",
+      "ctaLabel": "Review scheduling",
+      "href": "/app/gd/schedule"
+    },
+    {
+      "id": "act_4",
+      "organizationId": "org_acme",
+      "title": "Finish onboarding: termination documents",
+      "detail": "Upload termination documents to complete document collection.",
+      "dueAt": "2026-07-12",
+      "severity": "medium",
+      "ctaLabel": "Open onboarding",
+      "href": "/app/gd/onboarding"
+    },
+    {
+      "id": "act_5",
+      "organizationId": "org_acme",
+      "title": "Approve handbook update proposal",
+      "detail": "The New Jersey handbook update proposal is ready for your approval.",
+      "dueAt": "2026-07-15",
+      "severity": "low",
+      "ctaLabel": "Review project",
+      "href": "/app/gd/projects"
+    }
+  ],
+  "activity": [
+    {
+      "id": "feed_1",
+      "organizationId": "org_acme",
+      "at": "2026-07-05T08:20:00Z",
+      "kind": "request",
+      "text": "New restricted legal request submitted: “Severance agreement — confidential”."
+    },
+    {
+      "id": "feed_2",
+      "organizationId": "org_acme",
+      "at": "2026-07-03T15:45:00Z",
+      "kind": "request",
+      "text": "New legal request submitted: “Data handling & privacy compliance”."
+    },
+    {
+      "id": "feed_3",
+      "organizationId": "org_acme",
+      "at": "2026-07-02T09:10:00Z",
+      "kind": "project",
+      "text": "Project “New Jersey handbook update” proposal is ready for review."
+    },
+    {
+      "id": "feed_4",
+      "organizationId": "org_acme",
+      "at": "2026-06-25T12:00:00Z",
+      "kind": "template",
+      "text": "New template added to the library: “Handbook Review Preparation Guide”."
+    },
+    {
+      "id": "feed_5",
+      "organizationId": "org_acme",
+      "at": "2026-06-21T09:00:00Z",
+      "kind": "matter",
+      "text": "Matter CB-2026-0142 summary was updated."
+    },
+    {
+      "id": "feed_6",
+      "organizationId": "org_acme",
+      "at": "2026-06-20T16:10:00Z",
+      "kind": "message",
+      "text": "Attorney replied on “Termination decision review”."
+    },
+    {
+      "id": "feed_7",
+      "organizationId": "org_acme",
+      "at": "2026-06-01T00:00:00Z",
+      "kind": "billing",
+      "text": "Billing reference updated: June 2026 GD Concierge."
+    }
+  ],
+  "companyProfile": {
+    "organizationId": "org_acme",
+    "legalName": "Acme Manufacturing, Inc.",
+    "dba": "Acme Mfg",
+    "entityType": "Delaware C-Corporation",
+    "stateOfFormation": "Delaware",
+    "headquarters": "120 Industrial Way, Newark, NJ 07102",
+    "website": "acme-mfg.example.com",
+    "primaryActivity": "Industrial equipment manufacturing",
+    "jurisdictions": [
+      "New Jersey",
+      "New York",
+      "Pennsylvania"
+    ]
+  },
+  "planDetails": [
+    {
+      "organizationId": "org_acme",
+      "planName": "GD Concierge",
+      "startsAt": "2026-01-01",
+      "renewsAt": "2027-01-01",
+      "billingModel": "Monthly retainer + discounted flat-fee projects",
+      "monthlyDisplay": "$1,000.00 / month",
+      "primaryContactName": "Rachel Kim",
+      "primaryContactRole": "Assigned Attorney",
+      "responseSla": "1 business day",
+      "includedSupport": [
+        "Unlimited legal request intake",
+        "Priority response — 1 business day",
+        "Discounted flat-fee projects",
+        "Legislative tracking",
+        "1 included Signatrain HR seat",
+        "Access to the GD template library"
+      ]
+    }
+  ],
+  "benefitUsage": [
+    {
+      "id": "bu_consult",
+      "organizationId": "org_acme",
+      "name": "Attorney consultation time",
+      "category": "Consultation",
+      "used": 3.5,
+      "allowance": 10,
+      "unit": "hours",
+      "period": "this quarter"
+    },
+    {
+      "id": "bu_docrev",
+      "organizationId": "org_acme",
+      "name": "Document reviews",
+      "category": "Review",
+      "used": 4,
+      "allowance": 6,
+      "unit": "reviews",
+      "period": "this quarter"
+    },
+    {
+      "id": "bu_flatfee",
+      "organizationId": "org_acme",
+      "name": "Discounted flat-fee projects",
+      "category": "Projects",
+      "used": 1,
+      "allowance": 2,
+      "unit": "projects",
+      "period": "this year"
+    },
+    {
+      "id": "bu_templates",
+      "organizationId": "org_acme",
+      "name": "Template downloads",
+      "category": "Templates",
+      "used": 3,
+      "allowance": null,
+      "unit": "downloads",
+      "period": "this year"
+    },
+    {
+      "id": "bu_seats",
+      "organizationId": "org_acme",
+      "name": "Included Signatrain HR seats",
+      "category": "Training",
+      "used": 1,
+      "allowance": 1,
+      "unit": "seats",
+      "period": "current"
+    },
+    {
+      "id": "bu_lt",
+      "organizationId": "org_acme",
+      "name": "Legislative tracking",
+      "category": "Alerts",
+      "used": null,
+      "allowance": null,
+      "unit": "",
+      "period": "included"
     }
   ]
 }

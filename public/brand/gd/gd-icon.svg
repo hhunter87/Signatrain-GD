@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Greenwald Doherty">
+  <g>
+    <circle cx="28" cy="29" r="21" fill="#1e3f68"/>
+    <circle cx="72" cy="29" r="21" fill="#1e3f68"/>
+    <rect x="83" y="8" width="9" height="21" fill="#1e3f68"/>
+    <circle cx="28" cy="71" r="21" fill="#1e3f68"/>
+    <circle cx="72" cy="71" r="21" fill="#28a4db"/>
+  </g>
+</svg>
