@@ -1707,7 +1707,7 @@ function ProductsView() {
                     {isGd ? (
                       <Image src="/brand/gd/gd-icon.svg" alt="" width={22} height={22} unoptimized />
                     ) : (
-                      <GraduationCap className="h-5 w-5" aria-hidden="true" />
+                      <Image src="/brand/signatrain/signatrain-icon.svg" alt="" width={22} height={22} unoptimized />
                     )}
                   </span>
                   <span className="tint-chip tint-emerald px-2 py-0.5 text-xs font-bold uppercase tracking-wide">Active</span>
