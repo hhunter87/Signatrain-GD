@@ -11,12 +11,17 @@ import {
   Circle,
   Clock,
   CreditCard,
+  DollarSign,
   Download,
+  ExternalLink,
   FileText,
   GraduationCap,
   ListChecks,
   LockKeyhole,
+  Mail,
   Paperclip,
+  Phone,
+  Plus,
   Scale,
   Search,
   Send,
@@ -75,6 +80,13 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/gd/requests",
   "/app/gd/requests/[requestId]",
   "/app/gd/matters",
+  "/app/gd/matters/[matterId]",
+  "/app/gd/schedule",
+  "/app/gd/templates",
+  "/app/gd/projects",
+  "/app/gd/projects/new",
+  "/app/gd/billing",
+  "/app/gd/signatrain-seats",
   "/app/signatrain/live",
   "/app/signatrain/library",
   "/app/signatrain/progress",
@@ -101,6 +113,20 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <RequestThreadView route={route} pathname={pathname} />;
     case "/app/gd/matters":
       return <MattersView route={route} />;
+    case "/app/gd/matters/[matterId]":
+      return <MatterSummaryView route={route} pathname={pathname} />;
+    case "/app/gd/schedule":
+      return <ScheduleView route={route} />;
+    case "/app/gd/templates":
+      return <TemplatesView route={route} />;
+    case "/app/gd/projects":
+      return <ProjectsView route={route} />;
+    case "/app/gd/projects/new":
+      return <SubmitProjectView route={route} />;
+    case "/app/gd/billing":
+      return <BillingRefView route={route} />;
+    case "/app/gd/signatrain-seats":
+      return <SeatsView route={route} />;
     case "/app/signatrain/live":
       return <LiveCatalogView route={route} />;
     case "/app/signatrain/library":
@@ -880,7 +906,31 @@ function RequestThreadView({ route, pathname }: { route: RouteDefinition; pathna
             {request.privacy === "restricted" ? <StatusChip value="restricted" /> : null}
           </div>
         </div>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Request ID</dt><dd className="mt-0.5 text-sm">{request.id}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Category</dt><dd className="mt-0.5 text-sm">{request.topic}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Submitted by</dt><dd className="mt-0.5 text-sm">{authorName(request.submittedByUserId)}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Assigned to</dt><dd className="mt-0.5 text-sm">{request.assignedAttorneyUserId ? authorName(request.assignedAttorneyUserId) : "Unassigned"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Created</dt><dd className="mt-0.5 text-sm">{formatDate(request.createdAt)}</dd></div>
+        </dl>
       </section>
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-2">
+          <h3 className="font-bold">Decision & next steps</h3>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" /><span><span className="font-semibold">What GD is working on:</span> {requestWorkingOn(request.status)}</span></li>
+            <li className="flex items-start gap-2"><UserPlus className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" /><span><span className="font-semibold">What GD needs from you:</span> {requestNeedsFromYou(request.status)}</span></li>
+            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" /><span><span className="font-semibold">Recommended next step:</span> {request.clientVisibleSummary ?? "Await the attorney's next update."}</span></li>
+          </ul>
+        </section>
+        <section className="ds-card p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Paperclip className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />
+            <h3 className="font-bold">Attachments</h3>
+          </div>
+          <p className="text-sm text-muted">No attachments have been shared in the portal for this request.</p>
+        </section>
+      </div>
       <section className="stagger space-y-3">
         {messages.map((message) => (
           <article
@@ -945,17 +995,16 @@ function RequestThreadView({ route, pathname }: { route: RouteDefinition; pathna
 
 function MattersView({ route }: { route: RouteDefinition }) {
   const { store, activeOrganization } = useDemoStore();
-  const matters = matterReferences.filter(
-    (matter) => matter.organizationId === activeOrganization?.id
-  );
+  const matters = matterReferences.filter((matter) => matter.organizationId === activeOrganization?.id);
   const attorneyName = (userId?: string) =>
     store.users.find((user) => user.id === userId)?.name ?? "Assigned attorney";
+  const detailFor = (matterId: string) => gdMatterDetails.find((det) => det.id === matterId);
 
   return (
     <div className="content-shell">
       <ScreenHeading
         route={route}
-        description="Limited Centerbase matter references with attorney-approved summaries only."
+        description="A client-safe view of your matters. Internal notes, billing entries, and strategy stay inside Greenwald Doherty."
       />
       {matters.length === 0 ? (
         <section className="ds-card p-6 text-center">
@@ -964,25 +1013,32 @@ function MattersView({ route }: { route: RouteDefinition }) {
         </section>
       ) : (
         <div className="stagger grid gap-4 md:grid-cols-2">
-          {matters.map((matter) => (
-            <article key={matter.id} className="ds-card p-5 tint-blue">
-              <div className="flex items-start justify-between gap-3">
-                <span className="action-icon inline-flex h-10 w-10 items-center justify-center">
-                  <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <StatusChip value={matter.status} />
-              </div>
-              <h2 className="mt-4 text-lg font-bold">{matter.externalReference}</h2>
-              <p className="mt-1 text-sm font-semibold text-muted">{matter.type}</p>
-              {matter.approvedSummary ? (
-                <p className="mt-2 text-sm text-muted">{matter.approvedSummary}</p>
-              ) : null}
-              <div className="action-meta-row mt-4 text-sm">
-                <span className="font-semibold">{attorneyName(matter.responsibleAttorneyUserId)}</span>
-                <span className="text-xs text-muted">Updated {formatDate(matter.updatedAt)}</span>
-              </div>
-            </article>
-          ))}
+          {matters.map((matter) => {
+            const det = detailFor(matter.id);
+            return (
+              <Link key={matter.id} href={`/app/gd/matters/${matter.id}`} className="ds-card ds-card-interactive block p-5 tint-blue">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="action-icon inline-flex h-10 w-10 items-center justify-center">
+                    <Scale className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <StatusChip value={matter.status} />
+                </div>
+                <h2 className="mt-4 text-lg font-bold">{matter.externalReference}</h2>
+                <p className="mt-1 text-sm font-semibold text-muted">{matter.type}</p>
+                {matter.approvedSummary ? <p className="mt-2 text-sm text-muted">{matter.approvedSummary}</p> : null}
+                {det?.nextMilestone ? (
+                  <p className="mt-3 text-sm">
+                    <span className="font-semibold">Next:</span> {det.nextMilestone}
+                    {det.nextMilestoneDate ? ` — ${formatDate(det.nextMilestoneDate)}` : ""}
+                  </p>
+                ) : null}
+                <div className="action-meta-row mt-4 text-sm">
+                  <span className="font-semibold">{attorneyName(matter.responsibleAttorneyUserId)}</span>
+                  <span className="text-xs text-muted">Updated {formatDate(matter.updatedAt)}</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -1886,3 +1942,750 @@ function AlertPipelineView({ route }: { route: RouteDefinition }) {
     </div>
   );
 }
+
+
+/* =============================== GD: Batch 2 =============================== */
+
+interface MatterDetail {
+  id: string;
+  matterType: string;
+  clientContactUserId?: string;
+  teamUserIds: string[];
+  nextMilestone: string;
+  nextMilestoneDate?: string;
+  relatedRequestIds: string[];
+  description: string;
+  focus: string;
+  timeline: { at: string; label: string }[];
+  openItems: { owner: string; text: string }[];
+  documents: { name: string; kind: string; status: string }[];
+}
+interface AppointmentType {
+  id: string;
+  name: string;
+  durationMinutes: number;
+  participants: string;
+  includedInPlan: boolean;
+  extraCharge: boolean;
+  prep: string;
+}
+interface SchedulingSlot { id: string; date: string; time: string }
+interface GdTemplate {
+  id: string;
+  title: string;
+  category: string;
+  status: string;
+  fileName: string;
+  audiencePlans: string[];
+  description?: string;
+  lastUpdated?: string;
+  intendedUse?: string;
+  attorneyReview?: string;
+}
+interface ProjectCatalogItem {
+  id: string;
+  name: string;
+  includes: string[];
+  excludes: string[];
+  timeline: string;
+  priceDisplay: string;
+  requiredDocuments: string[];
+  planNote: string;
+}
+interface ProjectRequest {
+  id: string;
+  organizationId: string;
+  submittedByUserId: string;
+  type: string;
+  title: string;
+  description: string;
+  status: string;
+  assignedAttorneyUserId?: string;
+  adobeSignReference?: string | null;
+  createdAt: string;
+}
+interface BillingContact { role: string; name: string; email: string; phone: string }
+interface BillingReference {
+  arrangement: string;
+  retainerDisplay: string;
+  flatFeeTerms: string;
+  hourlyReference: string;
+  paymentSchedule: string;
+}
+interface Invoice {
+  id: string;
+  number: string;
+  date: string;
+  amountDisplay: string;
+  dueDate: string;
+  status: string;
+  external: boolean;
+}
+interface SeatUser {
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  lastLogin: string;
+  program: string;
+  progress: number;
+}
+interface SeatSummary {
+  organizationId: string;
+  totalIncluded: number;
+  assigned: number;
+  available: number;
+  pendingInvites: number;
+  additionalAvailable: boolean;
+  assignedUsers: SeatUser[];
+}
+
+const gdMatterDetails = gdDataJson.matterDetails as unknown as MatterDetail[];
+const gdAppointmentTypes = gdDataJson.appointmentTypes as unknown as AppointmentType[];
+const gdSchedulingSlots = gdDataJson.schedulingSlots as unknown as SchedulingSlot[];
+const gdTemplates = gdDataJson.templates as unknown as GdTemplate[];
+const gdProjectCatalog = gdDataJson.projectCatalog as unknown as ProjectCatalogItem[];
+const gdProjectRequestsData = gdDataJson.projectRequests as unknown as ProjectRequest[];
+const gdProjectTypes = gdDataJson.projectTypes as unknown as string[];
+const gdBillingContacts = gdDataJson.billingContacts as unknown as BillingContact[];
+const gdBillingReference = gdDataJson.billingReference as unknown as BillingReference;
+const gdInvoices = gdDataJson.invoices as unknown as Invoice[];
+const gdBillingPolicies = gdDataJson.billingPolicies as unknown as string[];
+const gdSeats = gdDataJson.signatrainSeats as unknown as SeatSummary;
+
+function requestWorkingOn(status: string): string {
+  switch (status) {
+    case "submitted":
+    case "triage":
+      return "Reviewing and routing your request to the right attorney.";
+    case "assigned":
+      return "Your attorney is getting up to speed on the request.";
+    case "in_progress":
+      return "Preparing guidance and next steps.";
+    case "waiting_for_client":
+      return "Paused pending information from your side.";
+    case "resolved":
+    case "converted_to_matter":
+    case "closed":
+      return "This request has been addressed.";
+    default:
+      return "Reviewing your request.";
+  }
+}
+function requestNeedsFromYou(status: string): string {
+  return status === "waiting_for_client"
+    ? "Please provide the requested information or documents to continue."
+    : "Nothing right now — we'll reach out if we need anything.";
+}
+
+/* ---------------------------- Matter summary ------------------------------ */
+
+function MatterSummaryView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const matterId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const matter = matterReferences.find(
+    (m) => m.id === matterId && m.organizationId === activeUser?.organizationId
+  );
+  const det = gdMatterDetails.find((m) => m.id === matterId);
+  const userName = (id?: string) => store.users.find((u) => u.id === id)?.name ?? "Team member";
+  const visible = visibleLegalRequestsForUser(activeUser, store);
+
+  if (!matter) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <LockKeyhole className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Matter not visible</h1>
+          <p className="mt-2 text-muted">This matter does not exist or is not visible to the active persona.</p>
+          <Link href="/app/gd/matters" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to matters</Link>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="An executive summary of this matter — not a full legal file." />
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">{matter.externalReference}</h2>
+            <p className="mt-1 text-sm font-semibold text-muted">{det?.matterType ?? matter.type}</p>
+          </div>
+          <StatusChip value={matter.status} />
+        </div>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Responsible attorney</dt><dd className="mt-0.5 text-sm">{userName(matter.responsibleAttorneyUserId)}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Client contact</dt><dd className="mt-0.5 text-sm">{userName(det?.clientContactUserId)}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Next milestone</dt><dd className="mt-0.5 text-sm">{det?.nextMilestone ?? "—"}{det?.nextMilestoneDate ? ` (${formatDate(det.nextMilestoneDate)})` : ""}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Updated</dt><dd className="mt-0.5 text-sm">{formatDate(matter.updatedAt)}</dd></div>
+        </dl>
+      </section>
+
+      {det ? (
+        <>
+          <section className="ds-card mb-6 p-5">
+            <h3 className="font-bold">Overview</h3>
+            <p className="mt-2 text-sm text-muted">{det.description}</p>
+            <p className="mt-2 text-sm"><span className="font-semibold">Current focus:</span> {det.focus}</p>
+          </section>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <section className="lg:col-span-2">
+              <h3 className="mb-3 text-lg font-bold">Timeline</h3>
+              <div className="ds-card p-5">
+                <ul className="space-y-4">
+                  {det.timeline.map((ev, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand-accent)]" aria-hidden="true" />
+                      <div><p className="text-sm">{ev.label}</p><p className="text-xs text-muted">{formatDate(ev.at)}</p></div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+            <section className="space-y-4">
+              <div className="ds-card p-5">
+                <h3 className="font-bold">Open items</h3>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {det.openItems.map((it, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${it.owner === "Client" ? "tint-amber" : "tint-blue"}`}>{it.owner}</span>
+                      <span>{it.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          </div>
+
+          <section className="mt-6">
+            <h3 className="mb-3 text-lg font-bold">Documents</h3>
+            <div className="ds-card overflow-x-auto">
+              <table className="data-table">
+                <thead><tr><th>Document</th><th>Type</th><th>Status</th></tr></thead>
+                <tbody>
+                  {det.documents.map((doc) => (
+                    <tr key={doc.name}>
+                      <td className="flex items-center gap-2"><FileText className="h-4 w-4 text-muted" aria-hidden="true" />{doc.name}</td>
+                      <td className="text-muted">{doc.kind}</td>
+                      <td><StatusChip value={doc.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {det.relatedRequestIds.length > 0 ? (
+            <section className="mt-6">
+              <h3 className="mb-3 text-lg font-bold">Related requests</h3>
+              <ul className="space-y-2 text-sm">
+                {det.relatedRequestIds.map((rid) => {
+                  const req = visible.find((r) => r.id === rid);
+                  return (
+                    <li key={rid}>
+                      {req ? (
+                        <Link href={`/app/gd/requests/${rid}`} className="inline-flex items-center gap-1.5 font-semibold text-[color:var(--brand-accent)] hover:underline">
+                          {req.subject}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      ) : (
+                        <span className="text-muted">{rid} (restricted)</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
+        </>
+      ) : (
+        <section className="ds-card p-5"><p className="text-muted">{matter.approvedSummary ?? "Limited matter reference."}</p></section>
+      )}
+      <div className="mt-6"><Link href="/app/gd/matters" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to matters</Link></div>
+    </div>
+  );
+}
+
+/* --------------------------- Attorney scheduling -------------------------- */
+
+function ScheduleView({ route }: { route: RouteDefinition }) {
+  const { activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const upcoming = [...gdAppointments].filter((a) => a.organizationId === orgId).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const [typeId, setTypeId] = useState(gdAppointmentTypes[0]?.id ?? "");
+  const [slotId, setSlotId] = useState("");
+  const [topic, setTopic] = useState("");
+  const [booked, setBooked] = useState<{ type: string; slot: string } | null>(null);
+  const selectedType = gdAppointmentTypes.find((t) => t.id === typeId);
+
+  const confirm = () => {
+    const slot = gdSchedulingSlots.find((sl) => sl.id === slotId);
+    if (!selectedType || !slot) return;
+    setBooked({ type: selectedType.name, slot: `${formatDate(slot.date)} at ${slot.time}` });
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Book time with your attorney team. Choose a meeting type, then a slot — this is a simulation." />
+
+      {upcoming.length > 0 ? (
+        <section className="mb-6">
+          <h2 className="mb-3 text-lg font-bold">Upcoming meetings</h2>
+          <div className="stagger grid gap-3 md:grid-cols-2">
+            {upcoming.map((a) => (
+              <article key={a.id} className="ds-card p-4 tint-blue">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-bold">{a.type}</p>
+                  <StatusChip value={a.status} />
+                </div>
+                <p className="mt-1 text-sm text-muted">{a.topic}</p>
+                <p className="mt-2 inline-flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4" aria-hidden="true" />{formatDateTime(a.startsAt)} · {a.durationMinutes} min</p>
+                <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted"><Video className="h-4 w-4" aria-hidden="true" />{a.location}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-lg font-bold">Meeting types</h2>
+          <div className="stagger grid gap-3 md:grid-cols-2">
+            {gdAppointmentTypes.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTypeId(t.id)}
+                className={`ds-card ds-card-interactive p-4 text-left ${typeId === t.id ? "tint-brand" : ""}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-bold">{t.name}</p>
+                  <span className="text-xs text-muted">{t.durationMinutes} min</span>
+                </div>
+                <p className="mt-1 text-sm text-muted">{t.participants}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${t.includedInPlan ? "tint-emerald" : "tint-amber"}`}>
+                    {t.includedInPlan ? "Included in plan" : "May be billable"}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted">Prepare: {t.prep}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-bold">Book a time</h2>
+          <div className="ds-card p-5">
+            {booked ? (
+              <div>
+                <CheckCircle2 className="h-8 w-8 text-[color:var(--brand-accent)]" aria-hidden="true" />
+                <h3 className="mt-2 font-bold">Appointment reference created</h3>
+                <p className="mt-1 text-sm text-muted">{booked.type} — {booked.slot}. This is a simulation; no real booking was made.</p>
+                <button type="button" className="ds-button ds-button-secondary mt-4 px-4 py-2 text-sm" onClick={() => setBooked(null)}>Book another</button>
+              </div>
+            ) : (
+              <>
+                <label className="block text-xs font-bold uppercase tracking-wide text-muted">Meeting type</label>
+                <select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={typeId} onChange={(e) => setTypeId(e.target.value)}>
+                  {gdAppointmentTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                <label className="mt-3 block text-xs font-bold uppercase tracking-wide text-muted">Available slots</label>
+                <div className="mt-1 grid grid-cols-1 gap-2">
+                  {gdSchedulingSlots.map((sl) => (
+                    <button
+                      key={sl.id}
+                      type="button"
+                      onClick={() => setSlotId(sl.id)}
+                      className={`ds-field px-3 py-2 text-left text-sm ${slotId === sl.id ? "tint-brand" : ""}`}
+                    >
+                      <Clock className="mr-2 inline h-3.5 w-3.5" aria-hidden="true" />
+                      {formatDate(sl.date)} · {sl.time}
+                    </button>
+                  ))}
+                </div>
+                <label className="mt-3 block text-xs font-bold uppercase tracking-wide text-muted">Topic (optional)</label>
+                <input type="text" className="ds-field mt-1 w-full px-3 py-2 text-sm" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="What is this meeting about?" />
+                <button type="button" className="ds-button ds-button-primary mt-4 w-full px-4 py-2 text-sm" onClick={confirm} disabled={!slotId}>
+                  <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                  Confirm meeting
+                </button>
+              </>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------- Template library ---------------------------- */
+
+function TemplatesView({ route }: { route: RouteDefinition }) {
+  const [category, setCategory] = useState("all");
+  const [query, setQuery] = useState("");
+  const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
+  const categories = ["all", ...Array.from(new Set(gdTemplates.map((t) => t.category)))];
+  const templates = gdTemplates.filter(
+    (t) =>
+      (category === "all" || t.category === category) &&
+      (query.trim() === "" || `${t.title} ${t.description ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()))
+  );
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Templates and resources Greenwald Doherty makes available. Some are ready to use; others are best used after attorney review." />
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm">
+          <Search className="h-4 w-4 opacity-60" aria-hidden="true" />
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search templates" className="w-56 bg-transparent outline-none" />
+        </label>
+        <select className="ds-field px-3 py-2 text-sm" value={category} onChange={(e) => setCategory(e.target.value)}>
+          {categories.map((c) => <option key={c} value={c}>{c === "all" ? "All categories" : c}</option>)}
+        </select>
+      </div>
+
+      <div className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {templates.map((t) => (
+          <article key={t.id} className="ds-card flex flex-col p-5">
+            <div className="flex items-start justify-between gap-3">
+              <span className="action-icon inline-flex h-10 w-10 items-center justify-center"><FileText className="h-5 w-5" aria-hidden="true" /></span>
+              {t.attorneyReview === "recommended" ? <span className="tint-chip tint-amber px-2 py-0.5 text-xs uppercase tracking-wide">Attorney review</span> : null}
+            </div>
+            <h2 className="mt-3 text-base font-bold">{t.title}</h2>
+            <p className="mt-1 text-xs font-semibold text-muted">{t.category}</p>
+            {t.description ? <p className="mt-2 text-sm text-muted">{t.description}</p> : null}
+            <p className="mt-2 text-xs text-muted">{t.intendedUse}{t.lastUpdated ? ` · Updated ${formatDate(t.lastUpdated)}` : ""}</p>
+            <div className="mt-auto flex flex-wrap gap-2 pt-4">
+              <button type="button" className="ds-button ds-button-primary px-3 py-1.5 text-sm" onClick={() => setDownloaded((d) => ({ ...d, [t.id]: true }))}>
+                <Download className="h-4 w-4" aria-hidden="true" />
+                {downloaded[t.id] ? "Downloaded" : "Download"}
+              </button>
+              <button type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">Request GD review</button>
+            </div>
+          </article>
+        ))}
+      </div>
+      {templates.length === 0 ? <p className="mt-6 text-muted">No templates match these filters.</p> : null}
+      <p className="mt-6 flex items-start gap-2 text-xs text-muted">
+        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        Templates are general resources and are not a substitute for specific legal advice.
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------ Flat-fee project requests ----------------------- */
+
+function ProjectsView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const orgId = activeUser?.organizationId;
+  const requests = gdProjectRequestsData.filter((pr) => pr.organizationId === orgId);
+  const attorney = (id?: string) => store.users.find((u) => u.id === id)?.name ?? "Unassigned";
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Standardized, scoped legal work at a predictable price. Review a package, then submit a request." />
+
+      {requests.length > 0 ? (
+        <section className="mb-8">
+          <h2 className="mb-3 text-lg font-bold">Your project requests</h2>
+          <div className="ds-card overflow-x-auto">
+            <table className="data-table">
+              <thead><tr><th>Project</th><th>Type</th><th>Assigned to</th><th>Status</th><th>Submitted</th></tr></thead>
+              <tbody>
+                {requests.map((pr) => (
+                  <tr key={pr.id}>
+                    <td className="font-semibold">{pr.title}</td>
+                    <td className="text-muted">{pr.type}</td>
+                    <td className="text-sm">{attorney(pr.assignedAttorneyUserId)}</td>
+                    <td><StatusChip value={pr.status} /></td>
+                    <td className="text-sm text-muted">{formatDate(pr.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-bold">Available packages</h2>
+        <Link href="/app/gd/projects/new" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm">
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Submit project request
+        </Link>
+      </div>
+      <div className="stagger grid gap-4 md:grid-cols-2">
+        {gdProjectCatalog.map((pc) => (
+          <article key={pc.id} className="ds-card flex flex-col p-5">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-base font-bold">{pc.name}</h3>
+              <span className="inline-flex items-center gap-1 text-sm font-bold text-[color:var(--brand-accent)]"><DollarSign className="h-3.5 w-3.5" aria-hidden="true" />{pc.priceDisplay}</span>
+            </div>
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-muted">Includes</p>
+            <ul className="mt-1 space-y-1 text-sm">
+              {pc.includes.map((it) => <li key={it} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{it}</li>)}
+            </ul>
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-muted">Not included</p>
+            <p className="mt-1 text-sm text-muted">{pc.excludes.join("; ")}</p>
+            <p className="mt-3 text-sm"><span className="font-semibold">Timeline:</span> {pc.timeline}</p>
+            <p className="mt-1 text-sm text-muted">Required: {pc.requiredDocuments.join(", ")}</p>
+            {pc.planNote ? <p className="mt-1 text-xs font-semibold text-[color:var(--brand-accent)]">{pc.planNote}</p> : null}
+            <Link href="/app/gd/projects/new" className="ds-button ds-button-secondary mt-auto inline-flex px-3 py-1.5 pt-1.5 text-sm" style={{ marginTop: "1rem" }}>
+              Request this project<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------- Submit project ------------------------------- */
+
+function SubmitProjectView({ route }: { route: RouteDefinition }) {
+  const [type, setType] = useState(gdProjectTypes[0] ?? "");
+  const [goal, setGoal] = useState("");
+  const [context, setContext] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [hardDeadline, setHardDeadline] = useState(false);
+  const [submitted, setSubmitted] = useState<string | null>(null);
+
+  const reference = `PRJ-2026-${String(gdProjectRequestsData.length + 1).padStart(3, "0")}`;
+
+  if (submitted) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <CheckCircle2 className="h-10 w-10 text-[color:var(--brand-accent)]" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Project request submitted</h1>
+          <p className="mt-2 text-muted">This is a simulation; no real project was created.</p>
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Reference</dt><dd className="mt-0.5 text-sm">{submitted}</dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Status</dt><dd className="mt-0.5"><StatusChip value="submitted" /></dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Type</dt><dd className="mt-0.5 text-sm">{type}</dd></div>
+            <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Next step</dt><dd className="mt-0.5 text-sm">GD will send scope, cost, and timeline for your approval.</dd></div>
+          </dl>
+          <div className="mt-5 flex gap-2">
+            <Link href="/app/gd/projects" className="ds-button ds-button-primary px-4 py-2 text-sm">Back to projects</Link>
+            <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={() => setSubmitted(null)}>Submit another</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="narrow-shell">
+      <ScreenHeading route={route} description="Describe the project. GD will scope it and send cost and timeline before any work begins." />
+      <section className="ds-card p-6">
+        <label className="block text-xs font-bold uppercase tracking-wide text-muted">Project type</label>
+        <select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={type} onChange={(e) => setType(e.target.value)}>
+          {gdProjectTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+
+        <label className="mt-4 block text-xs font-bold uppercase tracking-wide text-muted">Project goal</label>
+        <textarea className="ds-field mt-1 w-full px-3 py-2 text-sm" rows={2} placeholder="What do you want completed?" value={goal} onChange={(e) => setGoal(e.target.value)} />
+
+        <label className="mt-4 block text-xs font-bold uppercase tracking-wide text-muted">Business context</label>
+        <textarea className="ds-field mt-1 w-full px-3 py-2 text-sm" rows={3} placeholder="Why is this needed? Who will use it? Is an external party waiting?" value={context} onChange={(e) => setContext(e.target.value)} />
+
+        <div className="mt-4 flex flex-wrap items-end gap-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wide text-muted">Desired completion date</label>
+            <input type="date" className="ds-field mt-1 px-3 py-2 text-sm" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          </div>
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={hardDeadline} onChange={(e) => setHardDeadline(e.target.checked)} />
+            This is a hard deadline
+          </label>
+        </div>
+
+        <p className="mt-4 text-xs text-muted">You can attach documents after submitting (simulation). GD provides scope and cost before work starts.</p>
+        <button type="button" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2 text-sm" onClick={() => setSubmitted(reference)} disabled={!goal.trim()}>
+          <Send className="h-4 w-4" aria-hidden="true" />
+          Submit for GD review
+        </button>
+      </section>
+    </div>
+  );
+}
+
+/* --------------------------- Billing references --------------------------- */
+
+function BillingRefView({ route }: { route: RouteDefinition }) {
+  const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="A billing reference center. Detailed invoicing lives in Greenwald Doherty's billing system." />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><CreditCard className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Plan &amp; retainer reference</h2></div>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-3"><dt className="text-muted">Arrangement</dt><dd className="text-right">{gdBillingReference.arrangement}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Retainer</dt><dd className="inline-flex items-center gap-1 font-semibold"><DollarSign className="h-3.5 w-3.5" aria-hidden="true" />{gdBillingReference.retainerDisplay}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Flat-fee terms</dt><dd className="text-right">{gdBillingReference.flatFeeTerms}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Hourly</dt><dd className="text-right">{gdBillingReference.hourlyReference}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Payment schedule</dt><dd className="text-right">{gdBillingReference.paymentSchedule}</dd></div>
+          </dl>
+        </section>
+
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><Mail className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Billing contacts</h2></div>
+          <ul className="space-y-3">
+            {gdBillingContacts.map((c) => (
+              <li key={c.email} className="text-sm">
+                <p className="font-semibold">{c.name}</p>
+                <p className="text-xs text-muted">{c.role}</p>
+                <p className="mt-1 inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" aria-hidden="true" />{c.email}</p>
+                <p className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" aria-hidden="true" />{c.phone}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <section className="mt-6">
+        <h2 className="mb-3 text-lg font-bold">Invoice references</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Due</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {gdInvoices.map((inv) => (
+                <tr key={inv.id}>
+                  <td className="font-semibold">{inv.number}</td>
+                  <td className="text-sm text-muted">{inv.date ? formatDate(inv.date) : "—"}</td>
+                  <td className="text-sm">{inv.amountDisplay}</td>
+                  <td className="text-sm text-muted">{inv.dueDate ? formatDate(inv.dueDate) : "—"}</td>
+                  <td><StatusChip value={inv.status} /></td>
+                  <td>
+                    {inv.external ? (
+                      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-accent)]"><ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />Open in Centerbase</span>
+                    ) : (
+                      <button type="button" className="ds-button ds-button-secondary px-3 py-1 text-xs" onClick={() => setDownloaded((d) => ({ ...d, [inv.id]: true }))}>
+                        <Download className="h-3.5 w-3.5" aria-hidden="true" />{downloaded[inv.id] ? "Downloaded" : "PDF"}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mt-6 ds-card p-5">
+        <h2 className="text-lg font-bold">Billing policies</h2>
+        <ul className="mt-2 space-y-1.5 text-sm">
+          {gdBillingPolicies.map((pol) => <li key={pol} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{pol}</li>)}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+/* --------------------------- Included Signatrain seats -------------------- */
+
+function SeatsView({ route }: { route: RouteDefinition }) {
+  const { activeUser } = useDemoStore();
+  const seats = gdSeats.organizationId === activeUser?.organizationId ? gdSeats : undefined;
+  const [users, setUsers] = useState<SeatUser[]>(seats ? seats.assignedUsers : []);
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
+  const [email, setEmail] = useState("");
+  const [seatRole, setSeatRole] = useState("HR");
+  const [notice, setNotice] = useState<string | null>(null);
+
+  if (!seats) {
+    return (
+      <div className="content-shell">
+        <ScreenHeading route={route} description="Included Signatrain seats." />
+        <section className="ds-card p-6 text-center"><p className="text-muted">No included Signatrain seats for this organization.</p></section>
+      </div>
+    );
+  }
+
+  const assignedCount = users.filter((u) => u.status === "active").length;
+  const pending = users.filter((u) => u.status === "invited").length;
+  const available = Math.max(0, seats.totalIncluded - users.length);
+
+  const invite = () => {
+    if (!first.trim() || !email.trim() || available <= 0) return;
+    setUsers((u) => [...u, { name: `${first} ${last}`.trim(), email, role: seatRole, status: "invited", lastLogin: "—", program: seatRole === "HR" ? "HR Compliance Path" : "Manager Core", progress: 0 }]);
+    setNotice(`Invitation to ${email} added to the outbox (simulation).`);
+    setFirst(""); setLast(""); setEmail("");
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Signatrain seats included in your GD plan, and how they are assigned." />
+
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat label="Included seats" value={String(seats.totalIncluded)} tint="tint-brand" />
+        <MiniStat label="Assigned" value={String(assignedCount)} tint="tint-blue" />
+        <MiniStat label="Available" value={String(available)} tint="tint-emerald" />
+        <MiniStat label="Pending invites" value={String(pending)} tint="tint-amber" />
+      </div>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-bold">Assigned users</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th><th>Program</th><th>Progress</th></tr></thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.email}>
+                  <td className="font-semibold">{u.name}</td>
+                  <td className="text-sm text-muted">{u.email}</td>
+                  <td className="text-sm">{u.role}</td>
+                  <td><StatusChip value={u.status} /></td>
+                  <td className="text-sm text-muted">{u.lastLogin}</td>
+                  <td className="text-sm">{u.program}</td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <div className="progress-track h-2 w-24"><div className="progress-fill" style={{ width: `${u.progress}%` }} /></div>
+                      <span className="text-xs text-muted">{u.progress}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-2">
+          <div className="mb-3 flex items-center gap-2"><UserPlus className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Invite a user to a seat</h2></div>
+          {available <= 0 ? <p className="mb-3 text-sm text-[color:var(--brand-warm)]">All included seats are used. Request more below.</p> : null}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input className="ds-field px-3 py-2 text-sm" placeholder="First name" value={first} onChange={(e) => setFirst(e.target.value)} />
+            <input className="ds-field px-3 py-2 text-sm" placeholder="Last name" value={last} onChange={(e) => setLast(e.target.value)} />
+            <input className="ds-field px-3 py-2 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <select className="ds-field px-3 py-2 text-sm" value={seatRole} onChange={(e) => setSeatRole(e.target.value)}>
+              <option value="HR">HR</option>
+              <option value="Manager">Manager</option>
+            </select>
+          </div>
+          <button type="button" className="ds-button ds-button-primary mt-3 inline-flex px-4 py-2 text-sm" onClick={invite} disabled={available <= 0 || !first.trim() || !email.trim()}>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add to seat
+          </button>
+          {notice ? <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-[color:var(--brand-accent)]"><Mail className="h-3.5 w-3.5" aria-hidden="true" />{notice}</p> : null}
+        </section>
+
+        <section className="ds-card p-5">
+          <div className="mb-2 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Need more?</h2></div>
+          <p className="text-sm text-muted">Expand training access or manage learning in the Signatrain portal.</p>
+          <button type="button" className="ds-button ds-button-secondary mt-3 w-full px-4 py-2 text-sm">Request additional seats</button>
+          <Link href="/app/signatrain" className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]"><ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />Open Signatrain portal</Link>
+        </section>
+      </div>
+    </div>
+  );
+}
+

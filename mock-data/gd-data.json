@@ -366,6 +366,39 @@
       "responsibleAttorneyUserId": "user_rachel",
       "approvedSummary": "Limited matter summary for client portal review.",
       "updatedAt": "2026-06-21T09:00:00Z"
+    },
+    {
+      "id": "matter_acme_0155",
+      "organizationId": "org_acme",
+      "requestId": "req_acme_002",
+      "externalReference": "CB-2026-0155",
+      "type": "Vendor contract review",
+      "status": "In drafting",
+      "responsibleAttorneyUserId": "user_rachel",
+      "approvedSummary": "Review and redline of the ABC Supplier master services agreement.",
+      "updatedAt": "2026-07-02T10:30:00Z"
+    },
+    {
+      "id": "matter_acme_0161",
+      "organizationId": "org_acme",
+      "requestId": "req_acme_003",
+      "externalReference": "CB-2026-0161",
+      "type": "Policy drafting",
+      "status": "Awaiting client input",
+      "responsibleAttorneyUserId": "user_rachel",
+      "approvedSummary": "Remote work policy refresh for NJ and NY teams.",
+      "updatedAt": "2026-07-04T14:00:00Z"
+    },
+    {
+      "id": "matter_acme_0130",
+      "organizationId": "org_acme",
+      "requestId": "req_acme_006",
+      "externalReference": "CB-2026-0130",
+      "type": "Corporate — NDA",
+      "status": "Completed",
+      "responsibleAttorneyUserId": "user_rachel",
+      "approvedSummary": "Mutual NDA finalized for partnership discussions.",
+      "updatedAt": "2026-05-18T09:00:00Z"
     }
   ],
   "appointments": [
@@ -408,7 +441,11 @@
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
-      ]
+      ],
+      "description": "Step-by-step checklist to prepare for a defensible termination.",
+      "lastUpdated": "2026-05-02",
+      "intendedUse": "Internal preparation",
+      "attorneyReview": "recommended"
     },
     {
       "id": "tpl_accommodation",
@@ -419,7 +456,11 @@
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
-      ]
+      ],
+      "description": "Intake worksheet to capture accommodation requests consistently.",
+      "lastUpdated": "2026-04-18",
+      "intendedUse": "Ready to use",
+      "attorneyReview": "optional"
     },
     {
       "id": "tpl_handbook",
@@ -430,7 +471,131 @@
       "audiencePlans": [
         "CONCIERGE",
         "ALL_ACCESS"
-      ]
+      ],
+      "description": "Guide to prepare materials before a handbook review engagement.",
+      "lastUpdated": "2026-06-25",
+      "intendedUse": "Internal preparation",
+      "attorneyReview": "recommended"
+    },
+    {
+      "id": "tpl_nda",
+      "title": "Mutual NDA Template",
+      "category": "Business",
+      "status": "published",
+      "fileName": "Mutual_NDA.docx",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Standard mutual non-disclosure agreement for partner discussions.",
+      "lastUpdated": "2026-03-10",
+      "intendedUse": "Attorney review recommended",
+      "attorneyReview": "recommended"
+    },
+    {
+      "id": "tpl_contractor",
+      "title": "Independent Contractor Agreement Checklist",
+      "category": "Business",
+      "status": "published",
+      "fileName": "Contractor_Checklist.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Checklist of key terms for engaging independent contractors.",
+      "lastUpdated": "2026-02-22",
+      "intendedUse": "Internal preparation",
+      "attorneyReview": "recommended"
+    },
+    {
+      "id": "tpl_offer",
+      "title": "Offer Letter Template",
+      "category": "Employment / HR",
+      "status": "published",
+      "fileName": "Offer_Letter.docx",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Baseline offer letter with placeholders for role, comp, and start date.",
+      "lastUpdated": "2026-05-30",
+      "intendedUse": "Attorney review recommended",
+      "attorneyReview": "recommended"
+    },
+    {
+      "id": "tpl_remote",
+      "title": "Remote Work Policy",
+      "category": "Employment / HR",
+      "status": "published",
+      "fileName": "Remote_Work_Policy.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Model remote work policy adaptable to your jurisdictions.",
+      "lastUpdated": "2026-06-12",
+      "intendedUse": "Attorney review recommended",
+      "attorneyReview": "recommended"
+    },
+    {
+      "id": "tpl_privacy",
+      "title": "Privacy Policy Checklist",
+      "category": "Compliance",
+      "status": "published",
+      "fileName": "Privacy_Checklist.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Checklist to assess data handling and privacy readiness.",
+      "lastUpdated": "2026-04-05",
+      "intendedUse": "Internal preparation",
+      "attorneyReview": "optional"
+    },
+    {
+      "id": "tpl_recordkeeping",
+      "title": "Recordkeeping Guide",
+      "category": "Compliance",
+      "status": "published",
+      "fileName": "Recordkeeping_Guide.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Guidance on retention periods for common employment records.",
+      "lastUpdated": "2026-01-28",
+      "intendedUse": "Ready to use",
+      "attorneyReview": "optional"
+    },
+    {
+      "id": "tpl_ack",
+      "title": "Employee Acknowledgment Form",
+      "category": "Training / Signatrain",
+      "status": "published",
+      "fileName": "Employee_Acknowledgment.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Acknowledgment form for policy and training completion.",
+      "lastUpdated": "2026-06-01",
+      "intendedUse": "Ready to use",
+      "attorneyReview": "optional"
+    },
+    {
+      "id": "tpl_rollout",
+      "title": "Compliance Training Rollout Checklist",
+      "category": "Training / Signatrain",
+      "status": "published",
+      "fileName": "Training_Rollout.pdf",
+      "audiencePlans": [
+        "CONCIERGE",
+        "ALL_ACCESS"
+      ],
+      "description": "Plan and track a company-wide compliance training rollout.",
+      "lastUpdated": "2026-05-20",
+      "intendedUse": "Internal preparation",
+      "attorneyReview": "optional"
     }
   ],
   "projectRequests": [
@@ -445,6 +610,30 @@
       "assignedAttorneyUserId": "user_rachel",
       "adobeSignReference": null,
       "createdAt": "2026-06-10"
+    },
+    {
+      "id": "project_acme_002",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_jordan",
+      "type": "Contract review",
+      "title": "ABC Supplier MSA review",
+      "description": "Flat-fee review of the ABC Supplier MSA.",
+      "status": "in_progress",
+      "assignedAttorneyUserId": "user_rachel",
+      "adobeSignReference": null,
+      "createdAt": "2026-06-29"
+    },
+    {
+      "id": "project_acme_003",
+      "organizationId": "org_acme",
+      "submittedByUserId": "user_maya",
+      "type": "Compliance review",
+      "title": "Data handling readiness review",
+      "description": "Scoping a compliance readiness review.",
+      "status": "under_scoping",
+      "assignedAttorneyUserId": "user_rachel",
+      "adobeSignReference": null,
+      "createdAt": "2026-07-03"
     }
   ],
   "invoiceReferences": [
@@ -667,5 +856,418 @@
       "unit": "",
       "period": "included"
     }
-  ]
+  ],
+  "matterDetails": [
+    {
+      "id": "matter_demo_0142",
+      "matterType": "Employment advice",
+      "clientContactUserId": "user_maya",
+      "teamUserIds": [
+        "user_rachel",
+        "user_dana"
+      ],
+      "nextMilestone": "Guidance memo to client",
+      "nextMilestoneDate": "2026-07-10",
+      "relatedRequestIds": [
+        "req_acme_001"
+      ],
+      "description": "Advice on a planned termination, including documentation review and a defensible timeline.",
+      "focus": "Confirming the termination timeline before issuing external guidance.",
+      "timeline": [
+        {
+          "at": "2026-06-20",
+          "label": "Matter opened from legal request"
+        },
+        {
+          "at": "2026-06-20",
+          "label": "Documents received from client"
+        },
+        {
+          "at": "2026-06-21",
+          "label": "First attorney review completed"
+        },
+        {
+          "at": "2026-06-24",
+          "label": "Client-safe summary updated"
+        }
+      ],
+      "openItems": [
+        {
+          "owner": "GD",
+          "text": "Finalize guidance memo"
+        },
+        {
+          "owner": "Client",
+          "text": "Confirm final termination date"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Termination_Timeline.pdf",
+          "kind": "Client upload",
+          "status": "Reviewed"
+        },
+        {
+          "name": "Guidance_Memo_Draft.pdf",
+          "kind": "GD draft",
+          "status": "In progress"
+        }
+      ]
+    },
+    {
+      "id": "matter_acme_0155",
+      "matterType": "Vendor contract review",
+      "clientContactUserId": "user_maya",
+      "teamUserIds": [
+        "user_rachel"
+      ],
+      "nextMilestone": "Send redline to client",
+      "nextMilestoneDate": "2026-07-09",
+      "relatedRequestIds": [
+        "req_acme_002"
+      ],
+      "description": "Review and redline of the ABC Supplier master services agreement before signature.",
+      "focus": "Flagging liability and termination-for-convenience clauses.",
+      "timeline": [
+        {
+          "at": "2026-06-28",
+          "label": "Matter opened from legal request"
+        },
+        {
+          "at": "2026-07-01",
+          "label": "Initial contract review started"
+        },
+        {
+          "at": "2026-07-02",
+          "label": "Awaiting countersigned draft from client"
+        }
+      ],
+      "openItems": [
+        {
+          "owner": "Client",
+          "text": "Upload countersigned MSA draft"
+        },
+        {
+          "owner": "GD",
+          "text": "Prepare redline and issue summary"
+        }
+      ],
+      "documents": [
+        {
+          "name": "ABC_MSA_v1.pdf",
+          "kind": "Client upload",
+          "status": "Reviewed"
+        },
+        {
+          "name": "ABC_MSA_Redline.docx",
+          "kind": "GD draft",
+          "status": "In progress"
+        }
+      ]
+    }
+  ],
+  "appointmentTypes": [
+    {
+      "id": "at_initial",
+      "name": "Initial consultation",
+      "durationMinutes": 45,
+      "participants": "Attorney",
+      "includedInPlan": true,
+      "extraCharge": false,
+      "prep": "Share a short summary of the issue."
+    },
+    {
+      "id": "at_followup",
+      "name": "Legal request follow-up",
+      "durationMinutes": 30,
+      "participants": "Assigned attorney",
+      "includedInPlan": true,
+      "extraCharge": false,
+      "prep": "Link the related legal request."
+    },
+    {
+      "id": "at_matter",
+      "name": "Matter strategy call",
+      "durationMinutes": 30,
+      "participants": "Assigned attorney",
+      "includedInPlan": true,
+      "extraCharge": false,
+      "prep": "Review the latest matter summary."
+    },
+    {
+      "id": "at_contract",
+      "name": "Contract review call",
+      "durationMinutes": 30,
+      "participants": "Attorney",
+      "includedInPlan": true,
+      "extraCharge": false,
+      "prep": "Upload the contract before the meeting."
+    },
+    {
+      "id": "at_billing",
+      "name": "Billing / plan review",
+      "durationMinutes": 30,
+      "participants": "GD operations",
+      "includedInPlan": true,
+      "extraCharge": false,
+      "prep": "Note any billing questions."
+    },
+    {
+      "id": "at_signatrain",
+      "name": "Signatrain implementation discussion",
+      "durationMinutes": 45,
+      "participants": "Attorney + training lead",
+      "includedInPlan": false,
+      "extraCharge": true,
+      "prep": "List teams that need training."
+    }
+  ],
+  "schedulingSlots": [
+    {
+      "id": "slot_1",
+      "date": "2026-07-09",
+      "time": "10:00 AM"
+    },
+    {
+      "id": "slot_2",
+      "date": "2026-07-09",
+      "time": "2:00 PM"
+    },
+    {
+      "id": "slot_3",
+      "date": "2026-07-10",
+      "time": "11:30 AM"
+    },
+    {
+      "id": "slot_4",
+      "date": "2026-07-11",
+      "time": "9:00 AM"
+    },
+    {
+      "id": "slot_5",
+      "date": "2026-07-14",
+      "time": "3:30 PM"
+    }
+  ],
+  "projectCatalog": [
+    {
+      "id": "pc_handbook",
+      "name": "Employee Handbook Review",
+      "includes": [
+        "Review of existing handbook",
+        "Issue spotting",
+        "Recommended edits"
+      ],
+      "excludes": [
+        "Litigation advice",
+        "Full state-by-state compliance unless specified"
+      ],
+      "timeline": "5–10 business days after documents received",
+      "priceDisplay": "Included / discounted under your plan",
+      "requiredDocuments": [
+        "Current handbook"
+      ],
+      "planNote": "1 discounted review remaining this year"
+    },
+    {
+      "id": "pc_contract",
+      "name": "Contract Review Package",
+      "includes": [
+        "Review of one contract",
+        "Risk flags",
+        "Redline with comments"
+      ],
+      "excludes": [
+        "Negotiation with counterparty"
+      ],
+      "timeline": "3–5 business days",
+      "priceDisplay": "From $1,200 flat",
+      "requiredDocuments": [
+        "Contract to review"
+      ],
+      "planNote": "Discounted rate under Concierge plan"
+    },
+    {
+      "id": "pc_policy",
+      "name": "Policy Drafting Package",
+      "includes": [
+        "Draft of one policy",
+        "One revision round"
+      ],
+      "excludes": [
+        "Ongoing policy maintenance"
+      ],
+      "timeline": "7–10 business days",
+      "priceDisplay": "From $1,800 flat",
+      "requiredDocuments": [
+        "Any existing policy or notes"
+      ],
+      "planNote": ""
+    },
+    {
+      "id": "pc_vendor",
+      "name": "Vendor Agreement Preparation",
+      "includes": [
+        "Draft vendor agreement",
+        "Key term guidance"
+      ],
+      "excludes": [
+        "Vendor-side negotiation"
+      ],
+      "timeline": "7–10 business days",
+      "priceDisplay": "From $2,000 flat",
+      "requiredDocuments": [
+        "Deal terms summary"
+      ],
+      "planNote": ""
+    },
+    {
+      "id": "pc_compliance",
+      "name": "Compliance Checklist Review",
+      "includes": [
+        "Review against a compliance checklist",
+        "Gap summary"
+      ],
+      "excludes": [
+        "Regulatory filing"
+      ],
+      "timeline": "5–7 business days",
+      "priceDisplay": "From $1,500 flat",
+      "requiredDocuments": [
+        "Relevant policies"
+      ],
+      "planNote": ""
+    },
+    {
+      "id": "pc_training",
+      "name": "Signatrain Implementation Legal Support",
+      "includes": [
+        "Review of training rollout",
+        "Acknowledgment form review"
+      ],
+      "excludes": [
+        "Course content authoring"
+      ],
+      "timeline": "5–10 business days",
+      "priceDisplay": "Scoped per request",
+      "requiredDocuments": [
+        "Rollout plan"
+      ],
+      "planNote": "Pairs with your included Signatrain seats"
+    }
+  ],
+  "projectTypes": [
+    "Contract drafting",
+    "Contract review",
+    "Policy drafting",
+    "Handbook review",
+    "Compliance review",
+    "Corporate governance",
+    "Employment matter",
+    "Training / legal education support",
+    "Custom project"
+  ],
+  "billingContacts": [
+    {
+      "role": "Client billing contact",
+      "name": "Jordan Lee",
+      "email": "jordan.lee@acme-mfg.example.com",
+      "phone": "+1 (973) 555-0148"
+    },
+    {
+      "role": "GD billing contact",
+      "name": "Dana Brooks",
+      "email": "billing@greenwald-doherty.example.com",
+      "phone": "+1 (212) 555-0199"
+    }
+  ],
+  "billingReference": {
+    "arrangement": "Monthly retainer + discounted flat-fee projects",
+    "retainerDisplay": "$1,000.00 / month",
+    "flatFeeTerms": "Flat-fee projects quoted and approved before work begins",
+    "hourlyReference": "Discounted hourly rate applies to out-of-scope work",
+    "paymentSchedule": "Monthly, due on receipt"
+  },
+  "invoices": [
+    {
+      "id": "inv_2026_06",
+      "number": "GD-2026-06",
+      "date": "2026-06-01",
+      "amountDisplay": "$1,000.00",
+      "dueDate": "2026-06-08",
+      "status": "paid",
+      "external": false
+    },
+    {
+      "id": "inv_2026_05",
+      "number": "GD-2026-05",
+      "date": "2026-05-01",
+      "amountDisplay": "$1,000.00",
+      "dueDate": "2026-05-08",
+      "status": "paid",
+      "external": false
+    },
+    {
+      "id": "inv_cb_0142",
+      "number": "CB-2026-0142",
+      "date": "2026-06-24",
+      "amountDisplay": "View in Centerbase",
+      "dueDate": "",
+      "status": "external",
+      "external": true
+    }
+  ],
+  "billingPolicies": [
+    "Flat-fee projects are quoted and approved before any work begins.",
+    "Hourly work only starts after you approve scope in writing.",
+    "Your plan includes intake, priority response, and legislative tracking.",
+    "Out-of-scope work is billed at your discounted hourly rate.",
+    "New work must be approved by your executive approver or company owner."
+  ],
+  "signatrainSeats": {
+    "organizationId": "org_acme",
+    "totalIncluded": 5,
+    "assigned": 3,
+    "available": 2,
+    "pendingInvites": 1,
+    "additionalAvailable": true,
+    "assignedUsers": [
+      {
+        "name": "Maya Patel",
+        "email": "maya.patel@acme-mfg.example.com",
+        "role": "HR",
+        "status": "active",
+        "lastLogin": "2026-07-05",
+        "program": "HR Compliance Path",
+        "progress": 80
+      },
+      {
+        "name": "Elena Ruiz",
+        "email": "elena.ruiz@acme-mfg.example.com",
+        "role": "HR",
+        "status": "active",
+        "lastLogin": "2026-07-04",
+        "program": "HR Compliance Path",
+        "progress": 55
+      },
+      {
+        "name": "Marcus Chen",
+        "email": "marcus.chen@acme-mfg.example.com",
+        "role": "Manager",
+        "status": "active",
+        "lastLogin": "2026-07-01",
+        "program": "Manager Core",
+        "progress": 40
+      },
+      {
+        "name": "Avery Johnson",
+        "email": "avery.johnson@acme-mfg.example.com",
+        "role": "Manager",
+        "status": "invited",
+        "lastLogin": "—",
+        "program": "Manager Core",
+        "progress": 0
+      }
+    ]
+  }
 }
