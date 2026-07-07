@@ -19,6 +19,20 @@
       "courseId": "course_manager_decisions",
       "status": "in_progress",
       "startedAt": "2026-05-15"
+    },
+    {
+      "id": "enr_elena_emp",
+      "userId": "user_elena",
+      "courseId": "course_employment_law",
+      "status": "in_progress",
+      "startedAt": "2026-06-20"
+    },
+    {
+      "id": "enr_marcus_har",
+      "userId": "user_marcus",
+      "courseId": "course_harassment_mgr",
+      "status": "in_progress",
+      "startedAt": "2026-06-25"
     }
   ],
   "videoProgress": [
@@ -94,6 +108,108 @@
       "status": "issued",
       "verificationSlug": "CERT-ST-2026-0007",
       "creditMetadata": null
+    },
+    {
+      "id": "CERT-ST-2026-0011",
+      "userId": "user_elena",
+      "title": "Workplace Harassment Prevention",
+      "courseId": "course_harassment_mgr",
+      "issuedAt": "2026-06-15",
+      "status": "issued",
+      "verificationSlug": "CERT-ST-2026-0011",
+      "creditMetadata": null
+    }
+  ],
+  "assignments": [
+    {
+      "id": "asg_elena_prog",
+      "userId": "user_elena",
+      "kind": "program",
+      "refId": "program_hr_compliance",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 45
+    },
+    {
+      "id": "asg_elena_c1",
+      "userId": "user_elena",
+      "kind": "course",
+      "refId": "course_hr_bootcamp",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 66
+    },
+    {
+      "id": "asg_elena_c2",
+      "userId": "user_elena",
+      "kind": "course",
+      "refId": "course_compliance_basics",
+      "status": "not_started",
+      "dueAt": "2026-09-01",
+      "assignedBy": "HR Admin",
+      "progress": 0
+    },
+    {
+      "id": "asg_elena_c3",
+      "userId": "user_elena",
+      "kind": "course",
+      "refId": "course_employment_law",
+      "status": "overdue",
+      "dueAt": "2026-07-01",
+      "assignedBy": "HR Admin",
+      "progress": 20
+    },
+    {
+      "id": "asg_elena_c4",
+      "userId": "user_elena",
+      "kind": "course",
+      "refId": "course_remote_policy",
+      "status": "not_started",
+      "dueAt": null,
+      "assignedBy": "HR Admin",
+      "progress": 0
+    },
+    {
+      "id": "asg_marcus_prog",
+      "userId": "user_marcus",
+      "kind": "program",
+      "refId": "program_manager_core",
+      "status": "in_progress",
+      "dueAt": "2026-08-01",
+      "assignedBy": "HR Admin",
+      "progress": 68
+    },
+    {
+      "id": "asg_marcus_c1",
+      "userId": "user_marcus",
+      "kind": "course",
+      "refId": "course_manager_decisions",
+      "status": "completed",
+      "dueAt": "2026-05-30",
+      "assignedBy": "HR Admin",
+      "progress": 100
+    },
+    {
+      "id": "asg_marcus_c2",
+      "userId": "user_marcus",
+      "kind": "course",
+      "refId": "course_harassment_mgr",
+      "status": "in_progress",
+      "dueAt": "2026-08-15",
+      "assignedBy": "HR Admin",
+      "progress": 33
+    },
+    {
+      "id": "asg_marcus_c3",
+      "userId": "user_marcus",
+      "kind": "course",
+      "refId": "course_manager_comms",
+      "status": "not_started",
+      "dueAt": "2026-08-20",
+      "assignedBy": "HR Admin",
+      "progress": 0
     }
   ]
 }

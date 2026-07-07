@@ -54,6 +54,62 @@
       "durationMinutes": 6,
       "summary": "Company-specific scenario for the Acme private cohort.",
       "cohortId": "cohort_acme_2026"
+    },
+    {
+      "id": "scenario_complaint_intake",
+      "title": "Employee Complaint Intake",
+      "audiences": [
+        "HR",
+        "MANAGER"
+      ],
+      "topic": "Harassment",
+      "status": "published",
+      "durationMinutes": 12,
+      "summary": "A team member raises a sensitive complaint. Decide how to respond, what to document, and when to escalate."
+    },
+    {
+      "id": "scenario_manager_misconduct",
+      "title": "Allegation of Manager Misconduct",
+      "audiences": [
+        "HR"
+      ],
+      "topic": "Retaliation",
+      "status": "published",
+      "durationMinutes": 14,
+      "summary": "Handle an allegation against a manager while protecting against retaliation risk."
+    },
+    {
+      "id": "scenario_client_escalation",
+      "title": "Client Escalation Under Pressure",
+      "audiences": [
+        "MANAGER"
+      ],
+      "topic": "Performance Management",
+      "status": "published",
+      "durationMinutes": 9,
+      "summary": "A client escalation tests how a manager balances speed, documentation, and policy."
+    },
+    {
+      "id": "scenario_sensitive_convo",
+      "title": "A Sensitive Performance Conversation",
+      "audiences": [
+        "MANAGER"
+      ],
+      "topic": "Performance Management",
+      "status": "published",
+      "durationMinutes": 10,
+      "summary": "Prepare for and lead a performance conversation without creating legal exposure."
+    },
+    {
+      "id": "scenario_investigation_intake",
+      "title": "Workplace Investigation Intake",
+      "audiences": [
+        "HR"
+      ],
+      "topic": "Harassment",
+      "status": "published",
+      "durationMinutes": 15,
+      "summary": "Open a workplace investigation: scope, confidentiality, and first steps."
     }
   ],
   "courses": [
@@ -105,6 +161,84 @@
         "evaluationRequired": false
       },
       "certificateTemplate": null
+    },
+    {
+      "id": "course_harassment_mgr",
+      "title": "Workplace Harassment Prevention for Managers",
+      "audience": "MANAGER",
+      "status": "published",
+      "topic": "Harassment",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_harassment"
+    },
+    {
+      "id": "course_compliance_basics",
+      "title": "Compliance Basics",
+      "audience": "HR",
+      "status": "published",
+      "topic": "Compliance",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_compliance_basics"
+    },
+    {
+      "id": "course_employment_law",
+      "title": "Employment Law Essentials",
+      "audience": "HR",
+      "status": "published",
+      "topic": "Employment Law",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_employment_law"
+    },
+    {
+      "id": "course_hr_risk",
+      "title": "HR Risk Scenarios",
+      "audience": "HR",
+      "status": "published",
+      "topic": "Harassment",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_hr_risk"
+    },
+    {
+      "id": "course_remote_policy",
+      "title": "Remote Work Policy Training",
+      "audience": "HR",
+      "status": "published",
+      "topic": "Remote Work",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_remote_policy"
+    },
+    {
+      "id": "course_manager_comms",
+      "title": "Manager Communication Training",
+      "audience": "MANAGER",
+      "status": "published",
+      "topic": "Performance Management",
+      "moduleIds": [],
+      "completionRule": {
+        "allModules": true,
+        "evaluationRequired": true
+      },
+      "certificateTemplate": "cert_manager_comms"
     }
   ],
   "modules": [
@@ -238,6 +372,636 @@
         "MANAGER_CORE"
       ],
       "certificateTemplate": "cert_manager_program"
+    },
+    {
+      "id": "program_hr_compliance",
+      "title": "HR Compliance Path",
+      "audience": "HR",
+      "requiredCourseIds": [
+        "course_hr_bootcamp",
+        "course_compliance_basics",
+        "course_employment_law"
+      ],
+      "requiredSessionTypes": [
+        "HR_MASTERCLASS"
+      ],
+      "certificateTemplate": "cert_hr_program"
+    }
+  ],
+  "courseMeta": [
+    {
+      "courseId": "course_hr_bootcamp",
+      "description": "Build a reliable decision framework for common HR situations, from incomplete facts to escalation and documentation.",
+      "level": "Beginner",
+      "durationMinutes": 45,
+      "audienceLabel": "HR",
+      "assignedBy": "HR Admin",
+      "dueAt": "2026-08-15",
+      "certificate": true,
+      "objectives": [
+        "Apply a repeatable HR decision framework",
+        "Recognize when facts are incomplete",
+        "Escalate and document correctly"
+      ],
+      "moduleTitles": [
+        {
+          "title": "The HR Decision Framework",
+          "type": "video",
+          "durationMinutes": 8
+        },
+        {
+          "title": "Recognizing When Facts Are Incomplete",
+          "type": "video",
+          "durationMinutes": 9
+        },
+        {
+          "title": "Escalation and Documentation",
+          "type": "quiz",
+          "durationMinutes": 7
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the final knowledge check (80%+)",
+        "Finish before the due date"
+      ]
+    },
+    {
+      "courseId": "course_manager_decisions",
+      "description": "Help managers slow down, ask better questions, and document workplace decisions defensibly.",
+      "level": "Intermediate",
+      "durationMinutes": 40,
+      "audienceLabel": "Managers",
+      "assignedBy": "HR Admin",
+      "dueAt": "2026-08-01",
+      "certificate": true,
+      "objectives": [
+        "Pause before reacting",
+        "Ask clarifying questions",
+        "Document the decision"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Pause Before You Act",
+          "type": "video",
+          "durationMinutes": 6
+        },
+        {
+          "title": "Ask Better Questions",
+          "type": "video",
+          "durationMinutes": 7
+        },
+        {
+          "title": "Document the Decision",
+          "type": "video",
+          "durationMinutes": 7
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the final knowledge check",
+        "Finish before the due date"
+      ]
+    },
+    {
+      "courseId": "course_hiring_firing",
+      "description": "Key decision points across hiring and firing, with the risks to watch at each step.",
+      "level": "Intermediate",
+      "durationMinutes": 20,
+      "audienceLabel": "Managers",
+      "assignedBy": "HR Admin",
+      "dueAt": null,
+      "certificate": false,
+      "objectives": [
+        "Map hiring and firing decision points",
+        "Spot common risks"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Decision Map",
+          "type": "video",
+          "durationMinutes": 10
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules"
+      ]
+    },
+    {
+      "courseId": "course_harassment_mgr",
+      "description": "Recognize workplace harassment risks, respond to complaints appropriately, and know when to escalate to HR or legal.",
+      "level": "Beginner",
+      "durationMinutes": 45,
+      "audienceLabel": "Managers",
+      "assignedBy": "HR Admin",
+      "dueAt": "2026-08-15",
+      "certificate": true,
+      "objectives": [
+        "Understand key workplace conduct risks",
+        "Identify inappropriate behavior",
+        "Respond to complaints properly",
+        "Avoid retaliation risk",
+        "Document and escalate correctly"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Introduction",
+          "type": "reading",
+          "durationMinutes": 4
+        },
+        {
+          "title": "What counts as workplace harassment",
+          "type": "video",
+          "durationMinutes": 9
+        },
+        {
+          "title": "Manager responsibilities",
+          "type": "video",
+          "durationMinutes": 8
+        },
+        {
+          "title": "Scenario: employee complaint",
+          "type": "scenario",
+          "durationMinutes": 12
+        },
+        {
+          "title": "Documentation and escalation",
+          "type": "reading",
+          "durationMinutes": 6
+        },
+        {
+          "title": "Final knowledge check",
+          "type": "quiz",
+          "durationMinutes": 6
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the final quiz (80%+)",
+        "Complete before the deadline"
+      ]
+    },
+    {
+      "courseId": "course_compliance_basics",
+      "description": "A practical introduction to compliance concepts every employee should understand.",
+      "level": "Beginner",
+      "durationMinutes": 30,
+      "audienceLabel": "All staff",
+      "assignedBy": "HR Admin",
+      "dueAt": "2026-09-01",
+      "certificate": true,
+      "objectives": [
+        "Understand core compliance concepts",
+        "Recognize reporting obligations"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Why compliance matters",
+          "type": "video",
+          "durationMinutes": 8
+        },
+        {
+          "title": "Reporting and ethics",
+          "type": "video",
+          "durationMinutes": 10
+        },
+        {
+          "title": "Knowledge check",
+          "type": "quiz",
+          "durationMinutes": 6
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the knowledge check"
+      ]
+    },
+    {
+      "courseId": "course_employment_law",
+      "description": "Essential employment-law concepts for HR, from classification to leave and accommodation.",
+      "level": "Intermediate",
+      "durationMinutes": 50,
+      "audienceLabel": "HR",
+      "assignedBy": "HR Admin",
+      "dueAt": null,
+      "certificate": true,
+      "objectives": [
+        "Understand classification basics",
+        "Navigate leave and accommodation",
+        "Recognize wage-and-hour pitfalls"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Classification basics",
+          "type": "video",
+          "durationMinutes": 12
+        },
+        {
+          "title": "Leave and accommodation",
+          "type": "video",
+          "durationMinutes": 14
+        },
+        {
+          "title": "Wage and hour",
+          "type": "video",
+          "durationMinutes": 12
+        },
+        {
+          "title": "Final assessment",
+          "type": "quiz",
+          "durationMinutes": 8
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the final assessment"
+      ]
+    },
+    {
+      "courseId": "course_hr_risk",
+      "description": "Scenario-driven practice across the highest-risk HR situations.",
+      "level": "Advanced",
+      "durationMinutes": 35,
+      "audienceLabel": "HR",
+      "assignedBy": "HR Admin",
+      "dueAt": null,
+      "certificate": false,
+      "objectives": [
+        "Practice high-risk HR decisions",
+        "Improve escalation judgment"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Complaint intake scenario",
+          "type": "scenario",
+          "durationMinutes": 12
+        },
+        {
+          "title": "Investigation intake scenario",
+          "type": "scenario",
+          "durationMinutes": 15
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all scenarios"
+      ]
+    },
+    {
+      "courseId": "course_remote_policy",
+      "description": "Understand and apply a modern remote work policy across jurisdictions.",
+      "level": "Beginner",
+      "durationMinutes": 25,
+      "audienceLabel": "All staff",
+      "assignedBy": "HR Admin",
+      "dueAt": null,
+      "certificate": true,
+      "objectives": [
+        "Understand remote work expectations",
+        "Apply the policy consistently"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Remote work expectations",
+          "type": "video",
+          "durationMinutes": 10
+        },
+        {
+          "title": "Policy walkthrough",
+          "type": "reading",
+          "durationMinutes": 8
+        },
+        {
+          "title": "Knowledge check",
+          "type": "quiz",
+          "durationMinutes": 5
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the knowledge check"
+      ]
+    },
+    {
+      "courseId": "course_manager_comms",
+      "description": "Strengthen difficult conversations, feedback, and documentation for managers.",
+      "level": "Intermediate",
+      "durationMinutes": 40,
+      "audienceLabel": "Managers",
+      "assignedBy": "HR Admin",
+      "dueAt": "2026-08-20",
+      "certificate": true,
+      "objectives": [
+        "Lead difficult conversations",
+        "Give effective feedback",
+        "Document conversations"
+      ],
+      "moduleTitles": [
+        {
+          "title": "Difficult conversations",
+          "type": "video",
+          "durationMinutes": 12
+        },
+        {
+          "title": "Feedback that works",
+          "type": "video",
+          "durationMinutes": 10
+        },
+        {
+          "title": "Documenting conversations",
+          "type": "reading",
+          "durationMinutes": 8
+        },
+        {
+          "title": "Knowledge check",
+          "type": "quiz",
+          "durationMinutes": 6
+        }
+      ],
+      "certificateCriteria": [
+        "Complete all modules",
+        "Pass the knowledge check"
+      ]
+    }
+  ],
+  "scenarioMeta": [
+    {
+      "scenarioId": "scenario_accommodation",
+      "difficulty": "Intermediate",
+      "overview": "An employee sends an accommodation request as a casual text message. You must decide how to treat it, what to document, and whether to involve HR.",
+      "objectives": [
+        "Recognize an accommodation request in any form",
+        "Avoid dismissive responses",
+        "Document the request",
+        "Know when to loop in HR"
+      ],
+      "structure": [
+        "Intro",
+        "Decision point 1",
+        "Feedback",
+        "Decision point 2",
+        "Consequence",
+        "Debrief",
+        "Mini quiz"
+      ],
+      "decisionPoints": [
+        {
+          "prompt": "An employee texts: 'my back is really bad, can I work from home more?' What do you do first?",
+          "options": [
+            {
+              "text": "Reply casually that it's fine for now",
+              "outcome": "risky",
+              "feedback": "A verbal OK can create inconsistent, undocumented accommodations.",
+              "risk": true
+            },
+            {
+              "text": "Acknowledge, ask clarifying questions, and start documentation",
+              "outcome": "good",
+              "feedback": "Treating it as a potential accommodation request and documenting is the safest first step.",
+              "risk": false
+            },
+            {
+              "text": "Tell them to submit a formal request or it doesn't count",
+              "outcome": "risky",
+              "feedback": "Requests don't need a specific form; dismissing it can create exposure.",
+              "risk": true
+            }
+          ]
+        },
+        {
+          "prompt": "They share more detail. What next?",
+          "options": [
+            {
+              "text": "Loop in HR and begin the interactive process",
+              "outcome": "good",
+              "feedback": "Involving HR early keeps the process consistent and compliant.",
+              "risk": false
+            },
+            {
+              "text": "Decide on your own what accommodation to grant",
+              "outcome": "risky",
+              "feedback": "Unilateral decisions bypass the interactive process.",
+              "risk": true
+            }
+          ]
+        }
+      ],
+      "result": {
+        "score": 88,
+        "strengths": [
+          "Recognized the request",
+          "Documented appropriately"
+        ],
+        "riskAreas": [
+          "Escalation timing"
+        ],
+        "recommended": "Review the 'Documentation and Escalation' module."
+      }
+    },
+    {
+      "scenarioId": "scenario_complaint_intake",
+      "difficulty": "Intermediate",
+      "overview": "A team member approaches you with a sensitive workplace complaint. You must decide how to respond, what to document, and when to escalate.",
+      "objectives": [
+        "Respond without escalating risk",
+        "Document the concern",
+        "Escalate to HR appropriately",
+        "Avoid promising absolute confidentiality"
+      ],
+      "structure": [
+        "Intro",
+        "Decision point 1",
+        "Feedback",
+        "Decision point 2",
+        "Consequence",
+        "Debrief",
+        "Mini quiz"
+      ],
+      "decisionPoints": [
+        {
+          "prompt": "An employee says they feel targeted by their supervisor. What do you do first?",
+          "options": [
+            {
+              "text": "Tell them to work it out directly with the supervisor",
+              "outcome": "risky",
+              "feedback": "This can discourage reporting and increase risk.",
+              "risk": true
+            },
+            {
+              "text": "Ask clarifying questions and document the concern",
+              "outcome": "good",
+              "feedback": "Listening, clarifying, and documenting is the right first move.",
+              "risk": false
+            },
+            {
+              "text": "Promise complete confidentiality no matter what",
+              "outcome": "risky",
+              "feedback": "You generally can't guarantee absolute confidentiality.",
+              "risk": true
+            },
+            {
+              "text": "Wait until they submit a written complaint",
+              "outcome": "risky",
+              "feedback": "Delay can worsen the situation and create liability.",
+              "risk": true
+            }
+          ]
+        },
+        {
+          "prompt": "After documenting, what next?",
+          "options": [
+            {
+              "text": "Escalate to your HR contact",
+              "outcome": "good",
+              "feedback": "Timely escalation to HR is appropriate.",
+              "risk": false
+            },
+            {
+              "text": "Investigate it yourself quietly",
+              "outcome": "risky",
+              "feedback": "Untrained solo investigations can compromise the process.",
+              "risk": true
+            }
+          ]
+        }
+      ],
+      "result": {
+        "score": 0,
+        "strengths": [],
+        "riskAreas": [],
+        "recommended": "Then review 'Documentation and Escalation'."
+      }
+    }
+  ],
+  "programMeta": [
+    {
+      "programId": "program_manager_core",
+      "description": "Core competencies for people managers: decisions, communication, and documentation.",
+      "skillAreas": [
+        {
+          "name": "Complaint handling",
+          "level": "Strong"
+        },
+        {
+          "name": "Documentation",
+          "level": "Needs improvement"
+        },
+        {
+          "name": "Escalation judgment",
+          "level": "Good"
+        },
+        {
+          "name": "Retaliation awareness",
+          "level": "Needs review"
+        }
+      ],
+      "timeline": [
+        {
+          "label": "Module 1 completed",
+          "done": true
+        },
+        {
+          "label": "Module 2 completed",
+          "done": true
+        },
+        {
+          "label": "Scenario 1 completed",
+          "done": true
+        },
+        {
+          "label": "Live session attended",
+          "done": true
+        },
+        {
+          "label": "Final quiz",
+          "done": false
+        },
+        {
+          "label": "Certificate",
+          "done": false
+        }
+      ],
+      "recommended": [
+        "Retake the retaliation awareness scenario",
+        "Attend the next Manager Core live session",
+        "Complete the final assessment"
+      ]
+    },
+    {
+      "programId": "program_hr_compliance",
+      "description": "A structured path covering HR foundations, compliance basics, and employment law.",
+      "skillAreas": [
+        {
+          "name": "Policy awareness",
+          "level": "Good"
+        },
+        {
+          "name": "Documentation",
+          "level": "Strong"
+        },
+        {
+          "name": "Escalation judgment",
+          "level": "Good"
+        },
+        {
+          "name": "Wage & hour",
+          "level": "Needs review"
+        }
+      ],
+      "timeline": [
+        {
+          "label": "New HR Bootcamp",
+          "done": true
+        },
+        {
+          "label": "Compliance Basics",
+          "done": false
+        },
+        {
+          "label": "Employment Law Essentials",
+          "done": false
+        },
+        {
+          "label": "HR masterclass session",
+          "done": false
+        },
+        {
+          "label": "Certificate",
+          "done": false
+        }
+      ],
+      "recommended": [
+        "Complete Compliance Basics",
+        "Register for the HR masterclass",
+        "Review wage & hour module"
+      ]
+    }
+  ],
+  "moduleQuizzes": [
+    {
+      "moduleId": "module_hr_3",
+      "passScore": 80,
+      "questions": [
+        {
+          "q": "When facts are incomplete, the best next step is to…",
+          "options": [
+            "Decide quickly to look decisive",
+            "Gather clarifying information and document",
+            "Escalate everything to legal immediately"
+          ],
+          "answer": 1,
+          "feedback": "Gather information and document before acting."
+        },
+        {
+          "q": "Documentation should capture…",
+          "options": [
+            "Only conclusions",
+            "Facts, dates, and next steps",
+            "Personal opinions about the employee"
+          ],
+          "answer": 1,
+          "feedback": "Stick to facts, dates, and next steps."
+        }
+      ]
     }
   ]
 }

@@ -3,9 +3,13 @@
 import {
   AlertTriangle,
   ArrowRight,
+  Award,
   BarChart3,
+  BookOpen,
   BriefcaseBusiness,
   Building2,
+  ChevronLeft,
+  ChevronRight,
   CalendarDays,
   CheckCircle2,
   Circle,
@@ -21,8 +25,10 @@ import {
   Mail,
   Paperclip,
   Phone,
+  PlayCircle,
   Plus,
   Scale,
+  Target,
   Search,
   Send,
   Sparkles,
@@ -34,6 +40,7 @@ import Link from "next/link";
 import { useState } from "react";
 import gdDataJson from "@/mock-data/gd-data.json";
 import learningProgressJson from "@/mock-data/learning-progress.json";
+import signatrainContentJson from "@/mock-data/signatrain-content.json";
 import { isInternalUser } from "@/lib/access";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 import { useDemoStore } from "@/lib/store";
@@ -87,6 +94,11 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/gd/projects/new",
   "/app/gd/billing",
   "/app/gd/signatrain-seats",
+  "/app/signatrain",
+  "/app/signatrain/courses/[courseId]",
+  "/app/signatrain/learn/[courseId]/[moduleId]",
+  "/app/signatrain/scenarios/[scenarioId]",
+  "/app/signatrain/programs/[programId]",
   "/app/signatrain/live",
   "/app/signatrain/library",
   "/app/signatrain/progress",
@@ -127,6 +139,16 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <BillingRefView route={route} />;
     case "/app/gd/signatrain-seats":
       return <SeatsView route={route} />;
+    case "/app/signatrain":
+      return <SignatrainDashboardView route={route} />;
+    case "/app/signatrain/courses/[courseId]":
+      return <CourseOverviewView route={route} pathname={pathname} />;
+    case "/app/signatrain/learn/[courseId]/[moduleId]":
+      return <LearningPlayerView route={route} pathname={pathname} />;
+    case "/app/signatrain/scenarios/[scenarioId]":
+      return <ScenarioDetailView route={route} pathname={pathname} />;
+    case "/app/signatrain/programs/[programId]":
+      return <ProgramProgressView route={route} pathname={pathname} />;
     case "/app/signatrain/live":
       return <LiveCatalogView route={route} />;
     case "/app/signatrain/library":
@@ -1156,62 +1178,100 @@ function SessionCard({ session }: { session: LiveSession }) {
 
 function LibraryView({ route }: { route: RouteDefinition }) {
   const { store } = useDemoStore();
+  const [topic, setTopic] = useState("all");
+  const [audience, setAudience] = useState("all");
+  const [format, setFormat] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const meta = (id: string) => courseMetaList.find((m) => m.courseId === id);
+  const topics = ["all", ...Array.from(new Set(store.courses.map((c) => c.topic)))];
+
+  const courses = store.courses.filter(
+    (c) =>
+      (topic === "all" || c.topic === topic) &&
+      (audience === "all" || c.audience === audience) &&
+      (query.trim() === "" || c.title.toLowerCase().includes(query.trim().toLowerCase()))
+  );
+  const scenarios = store.scenarios.filter(
+    (sc) =>
+      (audience === "all" || (sc.audiences as string[]).includes(audience)) &&
+      (query.trim() === "" || sc.title.toLowerCase().includes(query.trim().toLowerCase()))
+  );
+  const showCourses = format === "all" || format === "course";
+  const showScenarios = format === "all" || format === "scenario";
 
   return (
     <div className="content-shell">
-      <ScreenHeading
-        route={route}
-        description="Courses and standalone scenarios available to this audience."
-      />
-      <h2 className="group-label mb-4 text-sm font-bold uppercase tracking-wide text-muted">Courses</h2>
-      <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {store.courses.map((course) => (
-          <Link
-            key={course.id}
-            href={`/app/signatrain/courses/${course.id}`}
-            className="ds-card block p-5 tint-brand"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="action-icon inline-flex h-10 w-10 items-center justify-center">
-                <GraduationCap className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <StatusChip value={course.status} />
-            </div>
-            <h3 className="mt-4 text-lg font-bold">{course.title}</h3>
-            <p className="mt-1 text-sm text-muted">
-              {course.topic} · {course.audience} path
-            </p>
-            <p className="action-meta-row mt-4 text-sm">
-              <span className="font-semibold">{course.moduleIds.length} modules</span>
-              <span className="text-xs text-muted">Ordered sequence</span>
-            </p>
-          </Link>
-        ))}
+      <ScreenHeading route={route} description="Browse courses, scenarios, and resources available to your audience. Filter by topic, role, or format." />
+
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm">
+          <Search className="h-4 w-4 opacity-60" aria-hidden="true" />
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search content" className="w-48 bg-transparent outline-none" />
+        </label>
+        <select className="ds-field px-3 py-2 text-sm" value={topic} onChange={(e) => setTopic(e.target.value)}>
+          {topics.map((t) => <option key={t} value={t}>{t === "all" ? "All topics" : t}</option>)}
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={audience} onChange={(e) => setAudience(e.target.value)}>
+          <option value="all">All roles</option>
+          <option value="HR">HR</option>
+          <option value="MANAGER">Manager</option>
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={format} onChange={(e) => setFormat(e.target.value)}>
+          <option value="all">All formats</option>
+          <option value="course">Courses</option>
+          <option value="scenario">Scenarios</option>
+        </select>
       </div>
-      <h2 className="group-label mb-4 mt-10 text-sm font-bold uppercase tracking-wide text-muted">
-        Standalone scenarios
-      </h2>
-      <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {store.scenarios.map((scenario) => (
-          <Link
-            key={scenario.id}
-            href={`/app/signatrain/scenarios/${scenario.id}`}
-            className="ds-card block p-5 tint-cyan"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="tint-chip px-2 py-0.5 text-xs">{scenario.audiences.join(" + ")}</span>
-              <span className="text-xs font-semibold text-muted">{scenario.durationMinutes} min</span>
-            </div>
-            <h3 className="mt-3 text-base font-bold">{scenario.title}</h3>
-            <p className="mt-1 text-sm text-muted">{scenario.summary}</p>
-          </Link>
-        ))}
-      </div>
+
+      {showCourses ? (
+        <>
+          <h2 className="group-label mb-4 text-sm font-bold uppercase tracking-wide text-muted">Courses</h2>
+          <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {courses.map((course) => {
+              const m = meta(course.id);
+              return (
+                <Link key={course.id} href={`/app/signatrain/courses/${course.id}`} className="ds-card ds-card-interactive flex flex-col p-5 tint-brand">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="action-icon inline-flex h-10 w-10 items-center justify-center"><GraduationCap className="h-5 w-5" aria-hidden="true" /></span>
+                    {m?.certificate ? <span className="tint-chip tint-emerald px-2 py-0.5 text-xs uppercase tracking-wide">Certificate</span> : null}
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold">{course.title}</h3>
+                  <p className="mt-1 text-sm text-muted">{course.topic} · {m?.audienceLabel ?? course.audience}</p>
+                  {m?.description ? <p className="mt-2 text-sm text-muted">{m.description}</p> : null}
+                  <p className="action-meta-row mt-auto pt-4 text-sm">
+                    <span className="font-semibold">{(m?.moduleTitles?.length ?? course.moduleIds.length)} modules</span>
+                    <span className="text-xs text-muted">{m?.durationMinutes ? `${m.durationMinutes} min` : "Ordered sequence"}</span>
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+          {courses.length === 0 ? <p className="mt-3 text-sm text-muted">No courses match these filters.</p> : null}
+        </>
+      ) : null}
+
+      {showScenarios ? (
+        <>
+          <h2 className="group-label mb-4 mt-10 text-sm font-bold uppercase tracking-wide text-muted">Standalone scenarios</h2>
+          <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {scenarios.map((scenario) => (
+              <Link key={scenario.id} href={`/app/signatrain/scenarios/${scenario.id}`} className="ds-card ds-card-interactive block p-5 tint-cyan">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="tint-chip px-2 py-0.5 text-xs">{scenario.audiences.join(" + ")}</span>
+                  <span className="text-xs font-semibold text-muted">{scenario.durationMinutes} min</span>
+                </div>
+                <h3 className="mt-3 text-base font-bold">{scenario.title}</h3>
+                <p className="mt-1 text-sm text-muted">{scenario.summary}</p>
+              </Link>
+            ))}
+          </div>
+          {scenarios.length === 0 ? <p className="mt-3 text-sm text-muted">No scenarios match these filters.</p> : null}
+        </>
+      ) : null}
     </div>
   );
 }
-
-/* -------------------------- Signatrain: progress --------------------------- */
 
 function ProgressView({ route }: { route: RouteDefinition }) {
   const { store, activeUser } = useDemoStore();
@@ -2683,6 +2743,642 @@ function SeatsView({ route }: { route: RouteDefinition }) {
           <p className="text-sm text-muted">Expand training access or manage learning in the Signatrain portal.</p>
           <button type="button" className="ds-button ds-button-secondary mt-3 w-full px-4 py-2 text-sm">Request additional seats</button>
           <Link href="/app/signatrain" className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]"><ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />Open Signatrain portal</Link>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================== SignaTrain: Phase A ========================== */
+
+interface CourseMeta {
+  courseId: string;
+  description: string;
+  level: string;
+  durationMinutes: number;
+  audienceLabel: string;
+  assignedBy: string;
+  dueAt?: string | null;
+  certificate: boolean;
+  objectives: string[];
+  moduleTitles: { title: string; type: string; durationMinutes: number }[];
+  certificateCriteria: string[];
+}
+interface ScenarioOption { text: string; outcome: string; feedback: string; risk: boolean }
+interface ScenarioMeta {
+  scenarioId: string;
+  difficulty: string;
+  overview: string;
+  objectives: string[];
+  structure: string[];
+  decisionPoints: { prompt: string; options: ScenarioOption[] }[];
+  result: { score: number; strengths: string[]; riskAreas: string[]; recommended: string };
+}
+interface ProgramMeta {
+  programId: string;
+  description: string;
+  skillAreas: { name: string; level: string }[];
+  timeline: { label: string; done: boolean }[];
+  recommended: string[];
+}
+interface Assignment {
+  id: string;
+  userId: string;
+  kind: string;
+  refId: string;
+  status: string;
+  dueAt?: string | null;
+  assignedBy: string;
+  progress: number;
+}
+interface StModule { id: string; courseId: string; order: number; title: string; contentBlocks: string[]; status: string }
+interface StVideo { id: string; title: string; durationSeconds: number; poster?: string }
+interface StProgram { id: string; title: string; audience: string; requiredCourseIds: string[]; requiredSessionTypes: string[]; certificateTemplate: string }
+interface ModuleQuiz { moduleId: string; passScore: number; questions: { q: string; options: string[]; answer: number; feedback: string }[] }
+
+const stModules = signatrainContentJson.modules as unknown as StModule[];
+const stVideos = signatrainContentJson.videos as unknown as StVideo[];
+const stPrograms = signatrainContentJson.programs as unknown as StProgram[];
+const courseMetaList = signatrainContentJson.courseMeta as unknown as CourseMeta[];
+const scenarioMetaList = signatrainContentJson.scenarioMeta as unknown as ScenarioMeta[];
+const programMetaList = signatrainContentJson.programMeta as unknown as ProgramMeta[];
+const moduleQuizzes = signatrainContentJson.moduleQuizzes as unknown as ModuleQuiz[];
+const stAssignments = learningProgressJson.assignments as unknown as Assignment[];
+
+function skillTint(level: string): string {
+  const l = level.toLowerCase();
+  if (l.includes("strong")) return "tint-emerald";
+  if (l.includes("good")) return "tint-blue";
+  return "tint-amber";
+}
+
+/* ---------------------------- SignaTrain dashboard ------------------------ */
+
+function SignatrainDashboardView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const mine = stAssignments.filter((a) => a.userId === activeUser?.id);
+  const programAsg = mine.filter((a) => a.kind === "program");
+  const courseAsg = mine.filter((a) => a.kind === "course");
+  const courseTitle = (id: string) => store.courses.find((c) => c.id === id)?.title ?? id;
+  const programTitle = (id: string) => stPrograms.find((pr) => pr.id === id)?.title ?? id;
+  const cMeta = (id: string) => courseMetaList.find((m) => m.courseId === id);
+
+  const inProgress = courseAsg.filter((a) => a.status === "in_progress").sort((a, b) => b.progress - a.progress);
+  const cont = inProgress[0];
+  const contMeta = cont ? cMeta(cont.refId) : undefined;
+  const nextModule =
+    cont && contMeta && contMeta.moduleTitles.length
+      ? contMeta.moduleTitles[Math.min(contMeta.moduleTitles.length - 1, Math.floor((cont.progress / 100) * contMeta.moduleTitles.length))]
+      : undefined;
+
+  const completed = courseAsg.filter((a) => a.status === "completed").length;
+  const active = courseAsg.filter((a) => a.status === "in_progress").length;
+  const overdue = courseAsg.filter((a) => a.status === "overdue").length;
+  const certs = store.certificates.filter((c) => c.userId === activeUser?.id).length;
+  const upcoming = [...store.liveSessions]
+    .filter((ls) => ls.status === "registration_open" || ls.status === "scheduled")
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .slice(0, 3);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Pick up where you left off, see what's assigned, and track your overall progress." />
+
+      {cont ? (
+        <section className="ds-card mb-6 p-5 tint-brand">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted">Continue learning</p>
+              <h2 className="mt-1 text-xl font-bold">{courseTitle(cont.refId)}</h2>
+              {nextModule ? <p className="mt-1 text-sm text-muted">Next: {nextModule.title} · {nextModule.durationMinutes} min</p> : null}
+              <div className="progress-track mt-3 h-2 max-w-md"><div className="progress-fill" style={{ width: `${cont.progress}%` }} /></div>
+              <p className="mt-1 text-xs text-muted">{cont.progress}% complete</p>
+            </div>
+            <Link href={`/app/signatrain/courses/${cont.refId}`} className="ds-button ds-button-primary inline-flex px-5 py-2.5">
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+              Continue
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      <div className="stagger mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <MiniStat label="Completed" value={String(completed)} tint="tint-emerald" />
+        <MiniStat label="Active courses" value={String(active)} tint="tint-blue" />
+        <MiniStat label="Certificates" value={String(certs)} tint="tint-violet" />
+        <MiniStat label="Overdue" value={String(overdue)} tint={overdue > 0 ? "tint-rose" : "tint-brand"} />
+        <MiniStat label="Avg. score" value="89%" tint="tint-cyan" />
+      </div>
+
+      {programAsg.length > 0 ? (
+        <section className="mb-8">
+          <h2 className="mb-3 text-lg font-bold">Assigned programs</h2>
+          <div className="stagger grid gap-4 md:grid-cols-2">
+            {programAsg.map((a) => (
+              <Link key={a.id} href={`/app/signatrain/programs/${a.refId}`} className="ds-card ds-card-interactive block p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2"><Award className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">{programTitle(a.refId)}</h3></div>
+                  <StatusChip value={a.status} />
+                </div>
+                <div className="progress-track mt-3 h-2"><div className="progress-fill" style={{ width: `${a.progress}%` }} /></div>
+                <p className="mt-1 text-xs text-muted">{a.progress}% complete{a.dueAt ? ` · due ${formatDate(a.dueAt)}` : ""}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-lg font-bold">Assigned courses</h2>
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Course</th><th>Status</th><th>Progress</th><th>Certificate</th><th>Due</th></tr></thead>
+            <tbody>
+              {courseAsg.map((a) => {
+                const m = cMeta(a.refId);
+                return (
+                  <tr key={a.id}>
+                    <td><Link href={`/app/signatrain/courses/${a.refId}`} className="font-bold text-[color:var(--brand-accent)] hover:underline">{courseTitle(a.refId)}</Link></td>
+                    <td><StatusChip value={a.status} /></td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div className="progress-track h-2 w-24"><div className="progress-fill" style={{ width: `${a.progress}%` }} /></div>
+                        <span className="text-xs text-muted">{a.progress}%</span>
+                      </div>
+                    </td>
+                    <td>{m?.certificate ? <span className="inline-flex items-center gap-1 text-sm"><Award className="h-3.5 w-3.5" aria-hidden="true" />Yes</span> : <span className="text-sm text-muted">No</span>}</td>
+                    <td className="text-sm text-muted">{a.dueAt ? formatDate(a.dueAt) : "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {upcoming.length > 0 ? (
+        <section>
+          <h2 className="mb-3 text-lg font-bold">Upcoming live sessions</h2>
+          <div className="stagger grid gap-3 md:grid-cols-3">
+            {upcoming.map((ls) => (
+              <article key={ls.id} className="ds-card p-4 tint-cyan">
+                <p className="font-bold">{ls.title}</p>
+                <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted"><CalendarDays className="h-4 w-4" aria-hidden="true" />{formatDateTime(ls.startsAt)}</p>
+                <p className="mt-1 text-xs text-muted">{ls.durationMinutes} min · {SESSION_TYPE_LABELS[ls.type]}</p>
+                <Link href={`/app/signatrain/live/${ls.id}`} className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">View details<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+/* ----------------------------- Course overview ---------------------------- */
+
+function CourseOverviewView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const courseId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const course = store.courses.find((c) => c.id === courseId);
+  const meta = courseMetaList.find((m) => m.courseId === courseId);
+  const asg = stAssignments.find((a) => a.userId === activeUser?.id && a.refId === courseId);
+  const progress = asg?.progress ?? 0;
+  const realModules = stModules.filter((m) => m.courseId === courseId).sort((a, b) => a.order - b.order);
+  const firstModule = realModules[0];
+
+  if (!course) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <BookOpen className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Course not found</h1>
+          <Link href="/app/signatrain/library" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to library</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const moduleRows = realModules.length
+    ? realModules.map((m) => ({ title: m.title, type: m.contentBlocks[0]?.split("_")[0] ?? "content", durationMinutes: 0, id: m.id }))
+    : (meta?.moduleTitles ?? []).map((m, i) => ({ ...m, id: `m${i}` }));
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Everything in this course: what it covers, the modules, and how to earn the certificate." />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">{course.title}</h2>
+            <p className="mt-1 text-sm text-muted">{course.topic} · {meta?.audienceLabel ?? course.audience}{meta?.level ? ` · ${meta.level}` : ""}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <StatusChip value={asg?.status ?? course.status} />
+            {meta?.certificate ? <span className="tint-chip tint-emerald px-2 py-0.5 text-xs uppercase tracking-wide">Certificate</span> : null}
+          </div>
+        </div>
+        <div className="progress-track mt-4 h-2 max-w-md"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+        <p className="mt-1 text-xs text-muted">{progress}% complete</p>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Modules</dt><dd className="mt-0.5 text-sm">{moduleRows.length}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Duration</dt><dd className="mt-0.5 text-sm">{meta?.durationMinutes ?? "—"} min</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Assigned by</dt><dd className="mt-0.5 text-sm">{meta?.assignedBy ?? "—"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Due date</dt><dd className="mt-0.5 text-sm">{meta?.dueAt ? formatDate(meta.dueAt) : "—"}</dd></div>
+        </dl>
+        <div className="mt-4">
+          {firstModule ? (
+            <Link href={`/app/signatrain/learn/${courseId}/${firstModule.id}`} className="ds-button ds-button-primary inline-flex px-5 py-2.5">
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+              {progress > 0 ? "Continue course" : "Start course"}
+            </Link>
+          ) : (
+            <span className="ds-button ds-button-secondary inline-flex px-5 py-2.5 opacity-60">Content coming soon</span>
+          )}
+        </div>
+      </section>
+
+      {meta?.description ? <section className="ds-card mb-6 p-5"><h3 className="font-bold">About this course</h3><p className="mt-2 text-sm text-muted">{meta.description}</p></section> : null}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h3 className="mb-3 text-lg font-bold">Curriculum</h3>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {moduleRows.map((m, i) => (
+              <div key={m.id} className="flex items-center justify-between gap-3 p-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-accent)] text-xs font-bold text-white">{i + 1}</span>
+                  <div>
+                    <p className="font-semibold">{m.title}</p>
+                    <p className="text-xs uppercase tracking-wide text-muted">{m.type}{m.durationMinutes ? ` · ${m.durationMinutes} min` : ""}</p>
+                  </div>
+                </div>
+                {realModules[i] ? (
+                  <Link href={`/app/signatrain/learn/${courseId}/${realModules[i].id}`} className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">Open</Link>
+                ) : (
+                  <Circle className="h-4 w-4 text-muted" aria-hidden="true" />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="space-y-6">
+          {meta?.objectives?.length ? (
+            <div>
+              <div className="mb-2 flex items-center gap-2"><Target className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Learning objectives</h3></div>
+              <ul className="ds-card space-y-2 p-4 text-sm">
+                {meta.objectives.map((o) => <li key={o} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{o}</li>)}
+              </ul>
+            </div>
+          ) : null}
+          {meta?.certificate && meta.certificateCriteria.length ? (
+            <div>
+              <div className="mb-2 flex items-center gap-2"><Award className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Certificate criteria</h3></div>
+              <ul className="ds-card space-y-2 p-4 text-sm">
+                {meta.certificateCriteria.map((cc) => <li key={cc} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{cc}</li>)}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- Learning player ---------------------------- */
+
+function LearningPlayerView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const parts = pathname.split("/");
+  const moduleId = decodeURIComponent(parts[parts.length - 1] ?? "");
+  const courseId = decodeURIComponent(parts[parts.length - 2] ?? "");
+  const { store } = useDemoStore();
+  const course = store.courses.find((c) => c.id === courseId);
+  const modules = stModules.filter((m) => m.courseId === courseId).sort((a, b) => a.order - b.order);
+  const idx = modules.findIndex((m) => m.id === moduleId);
+  const mod = modules[idx];
+  const prev = idx > 0 ? modules[idx - 1] : undefined;
+  const next = idx >= 0 && idx < modules.length - 1 ? modules[idx + 1] : undefined;
+
+  const quiz = moduleQuizzes.find((q) => q.moduleId === moduleId);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [graded, setGraded] = useState(false);
+
+  if (!course || !mod) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <PlayCircle className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Lesson not found</h1>
+          <Link href="/app/signatrain/library" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to library</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const blocks = mod.contentBlocks;
+  const hasVideo = blocks.some((b) => b.startsWith("video"));
+  const hasReading = blocks.some((b) => b.startsWith("doc") || b.startsWith("text"));
+  const video = stVideos.find((v) => blocks.includes(v.id));
+  const score = quiz ? Math.round((quiz.questions.filter((q, i) => answers[i] === q.answer).length / quiz.questions.length) * 100) : 0;
+
+  return (
+    <div className="content-shell">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">{course.title}</p>
+          <h1 className="page-title text-2xl font-bold">{mod.title}</h1>
+        </div>
+        <Link href={`/app/signatrain/courses/${courseId}`} className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">Course overview</Link>
+      </div>
+      <div className="progress-track mb-6 h-2"><div className="progress-fill" style={{ width: `${Math.round(((idx + 1) / modules.length) * 100)}%` }} /></div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {hasVideo ? (
+            <section className="ds-card overflow-hidden">
+              <div className="flex aspect-video items-center justify-center bg-[color:var(--brand-shell,#0f1f3a)]">
+                <PlayCircle className="h-16 w-16 text-white/80" aria-hidden="true" />
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold">{video?.title ?? "Lesson video"}</h3>
+                <p className="mt-1 text-xs text-muted">{video ? `${Math.round(video.durationSeconds / 60)} min` : ""}</p>
+                <p className="mt-3 text-sm text-muted">Transcript: In this lesson we walk through the key decision points and how to apply them on the job. Use the outline to revisit any section.</p>
+              </div>
+            </section>
+          ) : null}
+
+          {hasReading ? (
+            <section className="ds-card p-5">
+              <div className="mb-2 flex items-center gap-2"><BookOpen className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Reading</h3></div>
+              <p className="text-sm text-muted">This module includes a short reading with the core concepts, examples, and a downloadable reference. Review it before moving on.</p>
+            </section>
+          ) : null}
+
+          {quiz ? (
+            <section className="ds-card p-5">
+              <h3 className="font-bold">Knowledge check</h3>
+              <div className="mt-3 space-y-4">
+                {quiz.questions.map((q, qi) => (
+                  <div key={qi}>
+                    <p className="text-sm font-semibold">{qi + 1}. {q.q}</p>
+                    <div className="mt-2 space-y-1.5">
+                      {q.options.map((opt, oi) => {
+                        const selected = answers[qi] === oi;
+                        const correct = graded && oi === q.answer;
+                        const wrong = graded && selected && oi !== q.answer;
+                        return (
+                          <button key={oi} type="button" onClick={() => !graded && setAnswers((a) => ({ ...a, [qi]: oi }))}
+                            className={`ds-field block w-full px-3 py-2 text-left text-sm ${selected ? "tint-brand" : ""} ${correct ? "tint-emerald" : ""} ${wrong ? "tint-rose" : ""}`}>
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {graded ? <p className="mt-1 text-xs text-muted">{q.feedback}</p> : null}
+                  </div>
+                ))}
+              </div>
+              {graded ? (
+                <p className={`mt-4 font-bold ${score >= quiz.passScore ? "text-[color:var(--brand-accent)]" : "text-[color:var(--brand-warm)]"}`}>
+                  Score: {score}% — {score >= quiz.passScore ? "Passed" : `Need ${quiz.passScore}% to pass`}
+                </p>
+              ) : (
+                <button type="button" className="ds-button ds-button-primary mt-4 px-4 py-2 text-sm" onClick={() => setGraded(true)} disabled={Object.keys(answers).length < quiz.questions.length}>Submit answers</button>
+              )}
+            </section>
+          ) : null}
+
+          <div className="flex items-center justify-between">
+            {prev ? (
+              <Link href={`/app/signatrain/learn/${courseId}/${prev.id}`} className="ds-button ds-button-secondary inline-flex px-4 py-2 text-sm"><ChevronLeft className="h-4 w-4" aria-hidden="true" />Previous</Link>
+            ) : <span />}
+            {next ? (
+              <Link href={`/app/signatrain/learn/${courseId}/${next.id}`} className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm">Next<ChevronRight className="h-4 w-4" aria-hidden="true" /></Link>
+            ) : (
+              <Link href={`/app/signatrain/courses/${courseId}`} className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Finish</Link>
+            )}
+          </div>
+        </div>
+
+        <aside>
+          <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">Course outline</h3>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {modules.map((m, i) => (
+              <Link key={m.id} href={`/app/signatrain/learn/${courseId}/${m.id}`} className={`flex items-center gap-3 p-3 text-sm ${m.id === moduleId ? "font-bold" : ""}`}>
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${i <= idx ? "bg-[color:var(--brand-accent)] text-white" : "bg-[color:var(--surface-muted,#e5e7eb)] text-muted"}`}>{i + 1}</span>
+                {m.title}
+              </Link>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------- Standalone scenario -------------------------- */
+
+function ScenarioDetailView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store } = useDemoStore();
+  const scenarioId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const scenario = store.scenarios.find((sc) => sc.id === scenarioId);
+  const meta = scenarioMetaList.find((m) => m.scenarioId === scenarioId);
+  const [started, setStarted] = useState(false);
+  const [step, setStep] = useState(0);
+  const [choice, setChoice] = useState<number | null>(null);
+
+  if (!scenario) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <h1 className="page-title text-2xl font-bold">Scenario not found</h1>
+          <Link href="/app/signatrain/library" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2">Back to library</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const dp = meta?.decisionPoints ?? [];
+  const current = dp[step];
+  const chosen = choice !== null && current ? current.options[choice] : null;
+
+  const advance = () => {
+    if (step < dp.length - 1) { setStep(step + 1); setChoice(null); }
+    else { setStarted(false); setStep(0); setChoice(null); }
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Practice a realistic situation: make decisions, see the consequences, and get feedback." />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">{scenario.title}</h2>
+            <p className="mt-1 text-sm text-muted">{scenario.topic} · {scenario.audiences.join(" + ")}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {meta?.difficulty ? <span className="tint-chip tint-blue px-2 py-0.5 text-xs uppercase tracking-wide">{meta.difficulty}</span> : null}
+            <span className="text-sm text-muted">{scenario.durationMinutes} min</span>
+          </div>
+        </div>
+      </section>
+
+      {!started ? (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section className="ds-card p-5"><h3 className="font-bold">Scenario overview</h3><p className="mt-2 text-sm text-muted">{meta?.overview ?? scenario.summary}</p></section>
+            {meta?.structure?.length ? (
+              <section className="ds-card p-5">
+                <h3 className="font-bold">What this scenario includes</h3>
+                <ol className="mt-2 flex flex-wrap gap-2 text-xs">
+                  {meta.structure.map((st) => <li key={st} className="ds-pill px-2 py-1">{st}</li>)}
+                </ol>
+              </section>
+            ) : null}
+          </div>
+          <section>
+            {meta?.objectives?.length ? (
+              <>
+                <div className="mb-2 flex items-center gap-2"><Target className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">You will learn to</h3></div>
+                <ul className="ds-card space-y-2 p-4 text-sm">
+                  {meta.objectives.map((o) => <li key={o} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{o}</li>)}
+                </ul>
+              </>
+            ) : null}
+            <button type="button" className="ds-button ds-button-primary mt-4 inline-flex w-full justify-center px-5 py-2.5" onClick={() => { setStarted(true); setStep(0); setChoice(null); }} disabled={dp.length === 0}>
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+              {dp.length ? "Start scenario" : "Coming soon"}
+            </button>
+          </section>
+        </div>
+      ) : (
+        <section className="ds-card p-5">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Decision point {step + 1} of {dp.length}</p>
+          <h3 className="mt-1 text-lg font-bold">{current?.prompt}</h3>
+          <div className="mt-3 space-y-2">
+            {current?.options.map((opt, oi) => {
+              const isChosen = choice === oi;
+              return (
+                <button key={oi} type="button" onClick={() => setChoice(oi)}
+                  className={`ds-field block w-full px-3 py-2 text-left text-sm ${isChosen ? (opt.risk ? "tint-rose" : "tint-emerald") : ""}`}>
+                  {opt.text}
+                </button>
+              );
+            })}
+          </div>
+          {chosen ? (
+            <div className={`mt-4 ds-card p-4 ${chosen.risk ? "tint-rose" : "tint-emerald"}`}>
+              <p className="text-sm font-bold">{chosen.risk ? "Risky choice" : "Good choice"}</p>
+              <p className="mt-1 text-sm">{chosen.feedback}</p>
+              <button type="button" className="ds-button ds-button-primary mt-3 px-4 py-2 text-sm" onClick={advance}>
+                {step < dp.length - 1 ? "Next decision" : "Finish scenario"}
+              </button>
+            </div>
+          ) : null}
+        </section>
+      )}
+
+      {meta && meta.result.score > 0 ? (
+        <section className="ds-card mt-6 p-5">
+          <h3 className="font-bold">Your last result</h3>
+          <div className="mt-2 flex flex-wrap gap-6 text-sm">
+            <div><p className="text-xs uppercase tracking-wide text-muted">Score</p><p className="text-2xl font-extrabold">{meta.result.score}%</p></div>
+            <div><p className="text-xs uppercase tracking-wide text-muted">Strengths</p><p>{meta.result.strengths.join(", ") || "—"}</p></div>
+            <div><p className="text-xs uppercase tracking-wide text-muted">Risk areas</p><p>{meta.result.riskAreas.join(", ") || "—"}</p></div>
+          </div>
+          <p className="mt-3 text-sm text-muted">Recommended next: {meta.result.recommended}</p>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+/* ----------------------------- Program progress --------------------------- */
+
+function ProgramProgressView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const programId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const program = stPrograms.find((pr) => pr.id === programId);
+  const meta = programMetaList.find((m) => m.programId === programId);
+  const asg = stAssignments.find((a) => a.userId === activeUser?.id && a.refId === programId);
+  const progress = asg?.progress ?? 0;
+  const courseTitle = (id: string) => store.courses.find((c) => c.id === id)?.title ?? id;
+
+  if (!program) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <h1 className="page-title text-2xl font-bold">Program not found</h1>
+          <Link href="/app/signatrain" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2">Back to dashboard</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const doneSteps = meta?.timeline.filter((t) => t.done).length ?? 0;
+  const totalSteps = meta?.timeline.length ?? 0;
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Your progress across the whole program — modules, sessions, skills, and what to do next." />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-2"><Award className="h-6 w-6 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-2xl font-bold">{program.title}</h2></div>
+          <StatusChip value={asg?.status ?? "in_progress"} />
+        </div>
+        <div className="progress-track mt-4 h-2 max-w-md"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+        <p className="mt-1 text-xs text-muted">{progress}% complete · {doneSteps} of {totalSteps} steps done</p>
+        {meta?.description ? <p className="mt-3 text-sm text-muted">{meta.description}</p> : null}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h3 className="mb-3 text-lg font-bold">Program timeline</h3>
+          <div className="ds-card p-5">
+            <ul className="space-y-4">
+              {meta?.timeline.map((t, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  {t.done ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" /> : <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted" aria-hidden="true" />}
+                  <span className={`text-sm ${t.done ? "" : "text-muted"}`}>{t.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <h3 className="mb-3 mt-6 text-lg font-bold">Required courses</h3>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {program.requiredCourseIds.map((cid) => (
+              <div key={cid} className="flex items-center justify-between gap-3 p-4">
+                <span className="font-semibold">{courseTitle(cid)}</span>
+                <Link href={`/app/signatrain/courses/${cid}`} className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">Open</Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div>
+            <div className="mb-2 flex items-center gap-2"><Target className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Skill breakdown</h3></div>
+            <div className="ds-card space-y-2 p-4">
+              {meta?.skillAreas.map((sk) => (
+                <div key={sk.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span>{sk.name}</span>
+                  <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${skillTint(sk.level)}`}>{sk.level}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {meta?.recommended?.length ? (
+            <div>
+              <h3 className="mb-2 font-bold">Recommended next steps</h3>
+              <ul className="ds-card space-y-2 p-4 text-sm">
+                {meta.recommended.map((r) => <li key={r} className="flex items-start gap-2"><ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{r}</li>)}
+              </ul>
+            </div>
+          ) : null}
         </section>
       </div>
     </div>
