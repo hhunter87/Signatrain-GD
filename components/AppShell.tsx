@@ -1896,7 +1896,7 @@ function tintForAction(action: string, route: RouteDefinition): string {
 }
 
 function InlineActionView({ action, route }: { action: string; route: RouteDefinition }) {
-  const { store, activeUser, activeOrganization } = useDemoStore();
+  const { store, activeUser } = useDemoStore();
   const simulation = buildActionSimulation(action, route, store, activeUser?.id);
   const Icon = iconForAction(action, route);
   const tint = tintForAction(action, route);
@@ -1915,25 +1915,8 @@ function InlineActionView({ action, route }: { action: string; route: RouteDefin
           {simulation.items.length} {simulation.items.length === 1 ? "item" : "items"}
         </span>
       </div>
-      <div className="stagger grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="stagger">
         <ActionWorkflow action={action} route={route} />
-        <aside className="space-y-4">
-          <section className="ds-card p-4">
-            <h3 className="font-bold">Context</h3>
-            <dl className="mt-3 grid gap-2">
-              <Meta label="Persona" value={activeUser?.name ?? "Selected persona"} />
-              <Meta label="Organization" value={activeOrganization?.name ?? "Selected organization"} />
-              <Meta label="Screen" value={route.path} />
-            </dl>
-          </section>
-          <section className="ds-card p-4">
-            <h3 className="font-bold">Workflow status</h3>
-            <p className="mt-2 text-sm text-muted">
-              Walk through the steps on the left to simulate the full process — choose an option,
-              review the details, and confirm to see the recorded outcome.
-            </p>
-          </section>
-        </aside>
       </div>
     </section>
   );
@@ -1948,7 +1931,7 @@ function ActionSimulationModal({
   route: RouteDefinition;
   onClose: () => void;
 }) {
-  const { store, activeUser, activeOrganization } = useDemoStore();
+  const { store, activeUser } = useDemoStore();
   const simulation = buildActionSimulation(action, route, store, activeUser?.id);
   const Icon = iconForAction(action, route);
   const panelRef = useModalA11y(true, onClose);
@@ -1975,25 +1958,8 @@ function ActionSimulationModal({
             </button>
           </div>
         </div>
-        <div className="grid gap-5 p-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="p-5">
           <ActionWorkflow action={action} route={route} />
-          <aside className="space-y-4">
-            <section className="ds-card p-4">
-              <h3 className="font-bold">Context</h3>
-              <dl className="mt-3 grid gap-2">
-                <Meta label="Persona" value={activeUser?.name ?? "Selected persona"} />
-                <Meta label="Organization" value={activeOrganization?.name ?? "Selected organization"} />
-                <Meta label="Screen" value={route.path} />
-              </dl>
-            </section>
-            <section className="ds-card p-4">
-              <h3 className="font-bold">Workflow status</h3>
-              <p className="mt-2 text-sm text-muted">
-                Walk through the steps on the left to simulate the full process — choose an option,
-                review the details, and confirm to see the recorded outcome.
-              </p>
-            </section>
-          </aside>
         </div>
       </section>
     </div>
@@ -2172,7 +2138,7 @@ function ActionWorkflow({ action, route }: { action: string; route: RouteDefinit
         <>
           <h3 className="text-lg font-bold">Choose an option</h3>
           <p className="mt-1 text-sm text-muted">{simulation.summary}</p>
-          <div className="stagger mt-4 grid gap-2.5">
+          <div className="stagger mt-4 grid gap-2.5 md:grid-cols-2">
             {simulation.items.map((item) => (
               <button
                 key={`${item.title}-${item.detail}`}
