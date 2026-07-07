@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import gdDataJson from "@/mock-data/gd-data.json";
 import learningProgressJson from "@/mock-data/learning-progress.json";
 import signatrainContentJson from "@/mock-data/signatrain-content.json";
@@ -666,8 +667,8 @@ function GdOnboardingView({ route }: { route: RouteDefinition }) {
         ))}
       </div>
 
-      {modal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      {modal ? createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/40" onClick={closeModal} aria-hidden="true" />
           <div className="ds-card relative z-10 w-full max-w-lg p-6">
             <div className="mb-4 flex items-start justify-between gap-3">
@@ -734,7 +735,7 @@ function GdOnboardingView({ route }: { route: RouteDefinition }) {
             ) : null}
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </div>
   );
 }
@@ -2087,20 +2088,18 @@ function ReportsView({ route }: { route: RouteDefinition }) {
           <p className="mt-1 text-sm text-muted">{monthlyTotal} completions across 2026</p>
           <div className="mt-5">
             <div
-              className="flex items-end gap-1.5 border-b border-[color:var(--hairline,rgba(0,0,0,0.08))]"
+              className="tint-blue flex items-end gap-1.5 border-b border-[color:var(--hairline,rgba(0,0,0,0.08))]"
               style={{ height: 180 }}
             >
               {monthly.map((item) => (
                 <div
                   key={item.month}
                   title={`${item.month}: ${item.value} completions`}
-                  className="group flex h-full flex-1 flex-col items-center justify-end"
+                  className="flex h-full flex-1 flex-col items-center justify-end"
                 >
-                  <span className="mb-1 text-[10px] font-bold text-muted opacity-0 transition-opacity group-hover:opacity-100">
-                    {item.value}
-                  </span>
+                  <span className="mb-1 text-xs font-bold">{item.value}</span>
                   <div
-                    className="report-bar w-full rounded-t-md transition-all"
+                    className="report-bar w-full rounded-t-md"
                     style={{ height: `${Math.max((item.value / monthlyMax) * 100, 4)}%` }}
                   />
                 </div>
