@@ -1685,26 +1685,53 @@ function ProductsView() {
         <EmptyState title="No active products" body="This persona can use pricing or an admin workflow to activate products." />
       ) : (
         <div className="stagger grid gap-4 md:grid-cols-2">
-          {products.map((product) => (
-            <Link
-              key={product}
-              href={product === "gd" ? "/app/gd" : "/app/signatrain"}
-              onClick={() => switchProduct(product)}
-              className="ds-card group block p-6"
-            >
-              <span className="action-icon inline-flex h-11 w-11 items-center justify-center">
-                {product === "gd" ? (
-                  <Image src="/brand/gd/gd-icon.svg" alt="" width={22} height={22} unoptimized />
-                ) : (
-                  <GraduationCap className="h-5 w-5" aria-hidden="true" />
-                )}
-              </span>
-              <h2 className="mt-4 text-2xl font-bold">{productLabel(product)}</h2>
-              <p className="mt-2 text-muted">
-                Open the entitled {productLabel(product)} portal with navigation and route guards for this persona.
-              </p>
-            </Link>
-          ))}
+          {products.map((product) => {
+            const orgId = activeUser?.organizationId;
+            const plan = store.gdPlans.find((pl) => pl.organizationId === orgId);
+            const openRequests = store.legalRequests.filter(
+              (r) => r.organizationId === orgId && !["resolved", "converted_to_matter", "closed"].includes(r.status)
+            ).length;
+            const myCerts = store.certificates.filter((c) => c.userId === activeUser?.id).length;
+            const isGd = product === "gd";
+            return (
+              <Link
+                key={product}
+                href={isGd ? "/app/gd" : "/app/signatrain"}
+                onClick={() => switchProduct(product)}
+                className="ds-card group block p-6"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="action-icon inline-flex h-11 w-11 items-center justify-center">
+                    {isGd ? (
+                      <Image src="/brand/gd/gd-icon.svg" alt="" width={22} height={22} unoptimized />
+                    ) : (
+                      <GraduationCap className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="tint-chip tint-emerald px-2 py-0.5 text-xs font-bold uppercase tracking-wide">Active</span>
+                </div>
+                <h2 className="mt-4 text-2xl font-bold">{productLabel(product)}</h2>
+                <p className="mt-2 text-muted">
+                  {isGd
+                    ? "Legal requests, matter summaries, attorney scheduling, billing references, and the GD template library."
+                    : "Learning programs, scenario-based training, live sessions, cohorts, progress tracking, and certificates."}
+                </p>
+                <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  {isGd ? (
+                    <>
+                      <div><dt className="text-xs text-muted">Plan</dt><dd className="font-semibold">{plan ? plan.tier : "—"}</dd></div>
+                      <div><dt className="text-xs text-muted">Open requests</dt><dd className="font-semibold">{openRequests}</dd></div>
+                    </>
+                  ) : (
+                    <div><dt className="text-xs text-muted">Certificates</dt><dd className="font-semibold">{myCerts}</dd></div>
+                  )}
+                </dl>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]">
+                  {isGd ? "Open GD portal" : "Open Signatrain"}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

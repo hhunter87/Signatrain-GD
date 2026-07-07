@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Award,
+  Bell,
   BarChart3,
   BookOpen,
   BriefcaseBusiness,
@@ -33,6 +34,8 @@ import {
   Search,
   Send,
   Share2,
+  Settings,
+  Shield,
   Sparkles,
   UserPlus,
   Users,
@@ -44,6 +47,7 @@ import gdDataJson from "@/mock-data/gd-data.json";
 import learningProgressJson from "@/mock-data/learning-progress.json";
 import signatrainContentJson from "@/mock-data/signatrain-content.json";
 import sessionsCohortsJson from "@/mock-data/sessions-cohorts.json";
+import usersJson from "@/mock-data/users.json";
 import { isInternalUser } from "@/lib/access";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 import { useDemoStore } from "@/lib/store";
@@ -111,7 +115,11 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/signatrain/progress",
   "/admin/alerts",
   "/app/company/billing",
-  "/app/company/reports"
+  "/app/company/reports",
+  "/app/profile",
+  "/app/company",
+  "/app/company/users",
+  "/app/company/seats"
 ];
 
 export function hasCustomScreen(path: string): boolean {
@@ -172,6 +180,14 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <ProgressView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
+    case "/app/profile":
+      return <ProfileView route={route} />;
+    case "/app/company":
+      return <CompanyOverviewView route={route} />;
+    case "/app/company/users":
+      return <CompanyUsersView route={route} />;
+    case "/app/company/seats":
+      return <SeatsEntitlementsView route={route} />;
     case "/app/company/billing":
       return <BillingView route={route} />;
     case "/app/company/reports":
@@ -2034,6 +2050,7 @@ function ReportsView({ route }: { route: RouteDefinition }) {
           </tbody>
         </table>
       </section>
+      <CompanyReportExtras />
     </div>
   );
 }
@@ -3885,6 +3902,476 @@ function HrBotView({ route }: { route: RouteDefinition }) {
         </section>
       </div>
     </div>
+  );
+}
+
+
+/* ============================== Shared section ============================ */
+
+interface UserMeta {
+  userId: string;
+  department: string;
+  title: string;
+  phone: string;
+  lastLogin: string;
+  permissionLevel: string;
+  timezone: string;
+}
+const usersMetaList = usersJson.userMeta as unknown as UserMeta[];
+
+const ENTITLEMENT_LABELS: Record<string, string> = {
+  GD_CONCIERGE: "GD Concierge — legal client portal",
+  GD_ALL_ACCESS: "GD All Access — legal client portal",
+  SIGNATRAIN_HR: "Signatrain — HR learning",
+  SIGNATRAIN_MANAGER: "Signatrain — Manager learning",
+  LEGISLATIVE_TRACKING: "Legislative tracking",
+  BOT_ACCESS: "HR Bot access"
+};
+
+const ROLE_LEGEND: { role: string; can: string }[] = [
+  { role: "Company Admin", can: "Manage users, seats, settings, billing, and reports." },
+  { role: "Legal Admin", can: "Submit legal requests, view matter summaries, message GD." },
+  { role: "Billing Contact", can: "View billing overview, plan, and invoice references." },
+  { role: "HR / Training Admin", can: "Manage Signatrain seats, courses, cohorts, and training reports." },
+  { role: "Manager", can: "See their team's learning progress where permitted." },
+  { role: "Learner / Employee", can: "Use Signatrain, view own courses, progress, and certificates." },
+  { role: "Read-only Executive", can: "View overview, reports, and status; no edits or requests." }
+];
+
+/* ------------------------------ Profile ----------------------------------- */
+
+function ProfileView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser, activeOrganization } = useDemoStore();
+  const meta = usersMetaList.find((m) => m.userId === activeUser?.id);
+  const [phone, setPhone] = useState(meta?.phone ?? "");
+  const [timezone, setTimezone] = useState(meta?.timezone ?? "America/New_York");
+  const [twoFa, setTwoFa] = useState(true);
+  const [digest, setDigest] = useState("immediate_critical");
+  const [prefs, setPrefs] = useState<Record<string, string>>({});
+  const setPref = (k: string, v: string) => setPrefs((p) => ({ ...p, [k]: v }));
+
+  const gdCats = ["New attorney reply", "Legal request status", "Document requested", "Matter update", "Upcoming attorney meeting", "Billing update", "Project proposal ready"];
+  const stCats = ["New course assigned", "Course deadline approaching", "Overdue training", "Live session reminder", "Certificate earned", "Certificate expiring", "Cohort announcement"];
+  void store;
+
+  const NotifRow = ({ label }: { label: string }) => (
+    <div className="flex flex-wrap items-center justify-between gap-2 py-2">
+      <span className="text-sm">{label}</span>
+      <select className="ds-field px-2 py-1 text-xs" value={prefs[label] ?? "both"} onChange={(e) => setPref(label, e.target.value)}>
+        <option value="off">Off</option>
+        <option value="in_app">In-app</option>
+        <option value="email">Email</option>
+        <option value="both">In-app + email</option>
+      </select>
+    </div>
+  );
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage your personal profile, security, and how you want to be notified." />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-2">
+          <h2 className="text-lg font-bold">Profile information</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Name</label><p className="mt-1 text-sm">{activeUser?.name}</p></div>
+            <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Job title</label><p className="mt-1 text-sm">{meta?.title ?? activeUser?.title ?? "—"}</p></div>
+            <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Email <span className="text-muted">(managed by admin)</span></label><p className="mt-1 text-sm">{activeUser?.email}</p></div>
+            <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Company <span className="text-muted">(managed by admin)</span></label><p className="mt-1 text-sm">{activeOrganization?.name}</p></div>
+            <div><label className="text-xs font-bold uppercase tracking-wide text-muted">Department</label><p className="mt-1 text-sm">{meta?.department ?? "—"}</p></div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wide text-muted">Phone</label>
+              <input className="ds-field mt-1 w-full px-3 py-2 text-sm" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wide text-muted">Timezone</label>
+              <select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+                <option value="America/New_York">America/New_York</option>
+                <option value="America/Chicago">America/Chicago</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="Europe/Belgrade">Europe/Belgrade</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" className="ds-button ds-button-primary mt-4 px-4 py-2 text-sm">Save changes</button>
+        </section>
+
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><Shield className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Security</h2></div>
+          <div className="flex items-center justify-between py-2 text-sm">
+            <span>Two-factor authentication</span>
+            <button type="button" onClick={() => setTwoFa((v) => !v)} className={`ds-pill px-3 py-1 text-xs font-bold ${twoFa ? "tint-emerald" : ""}`}>{twoFa ? "On" : "Off"}</button>
+          </div>
+          <button type="button" className="ds-button ds-button-secondary mt-2 w-full px-4 py-2 text-sm">Change password</button>
+          <div className="mt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Active sessions</p>
+            <p className="mt-1 text-sm">This device · {meta?.timezone ?? "—"}</p>
+            <p className="text-xs text-muted">Last login {meta?.lastLogin ?? "—"}</p>
+          </div>
+        </section>
+      </div>
+
+      <section className="ds-card mt-6 p-5">
+        <div className="mb-3 flex items-center gap-2"><Bell className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Notification preferences</h2></div>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <label className="text-sm font-semibold">Digest</label>
+          <select className="ds-field px-3 py-2 text-sm" value={digest} onChange={(e) => setDigest(e.target.value)}>
+            <option value="immediate">Immediate notifications</option>
+            <option value="daily">Daily summary</option>
+            <option value="weekly">Weekly summary</option>
+            <option value="immediate_critical">Immediate — critical only</option>
+          </select>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div>
+            <h3 className="mb-1 text-sm font-bold uppercase tracking-wide text-muted">Greenwald Doherty</h3>
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))] px-4">
+              {gdCats.map((c) => <NotifRow key={c} label={c} />)}
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-1 text-sm font-bold uppercase tracking-wide text-muted">Signatrain</h3>
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))] px-4">
+              {stCats.map((c) => <NotifRow key={c} label={c} />)}
+            </div>
+          </div>
+        </div>
+        <button type="button" className="ds-button ds-button-primary mt-4 px-4 py-2 text-sm">Save notification settings</button>
+      </section>
+    </div>
+  );
+}
+
+/* --------------------------- Company overview ----------------------------- */
+
+function CompanyOverviewView({ route }: { route: RouteDefinition }) {
+  const { store, activeOrganization } = useDemoStore();
+  const orgId = activeOrganization?.id;
+  const ents = store.entitlements.filter((e) => e.organizationId === orgId && e.status === "active");
+  const has = (code: string) => ents.some((e) => e.code === code);
+  const orgUsers = store.users.filter((u) => u.organizationId === orgId);
+  const plan = store.gdPlans.find((pl) => pl.organizationId === orgId);
+  const detail = gdPlanDetails.find((pl) => pl.organizationId === orgId);
+  const openReq = store.legalRequests.filter((r) => r.organizationId === orgId && !["resolved", "converted_to_matter", "closed"].includes(r.status)).length;
+  const activeMatters = matterReferences.filter((m) => m.organizationId === orgId && !/closed|completed/i.test(m.status)).length;
+  const seatPools = store.seatPools.filter((sp) => sp.organizationId === orgId);
+  const learners = orgUsers.filter((u) => u.roles.some((r) => ["HRS", "MGR"].includes(r))).length;
+  const certs = store.certificates.filter((c) => orgUsers.some((u) => u.id === c.userId)).length;
+
+  const products = [
+    { label: "GD Client Portal", on: has("GD_CONCIERGE") || has("GD_ALL_ACCESS") },
+    { label: "Signatrain", on: has("SIGNATRAIN_HR") || has("SIGNATRAIN_MANAGER") },
+    { label: "Legislative Tracking", on: has("LEGISLATIVE_TRACKING") },
+    { label: "HR Bot", on: has("BOT_ACCESS") }
+  ];
+  const settings = [
+    "Who can submit legal requests", "Who can approve project requests", "Who can manage Signatrain seats",
+    "Who can view reports", "Who can view billing", "Default new-user role", "Allowed email domains"
+  ];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Company profile, enabled products, relationship summary, and administrative settings." />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-2">
+          <div className="mb-3 flex items-center gap-2"><Building2 className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Company profile</h2></div>
+          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Legal name", activeOrganization?.name],
+              ["Type", (activeOrganization as { type?: string } | undefined)?.type ?? "customer"],
+              ["Industry", (activeOrganization as { industry?: string } | undefined)?.industry ?? "—"],
+              ["Company size", `${(activeOrganization as { employeeCount?: number } | undefined)?.employeeCount ?? "—"} employees`],
+              ["Primary state", (activeOrganization as { primaryState?: string } | undefined)?.primaryState ?? "—"],
+              ["Users", String(orgUsers.length)]
+            ].map(([l, v]) => (
+              <div key={l as string}><dt className="text-xs font-bold uppercase tracking-wide text-muted">{l}</dt><dd className="mt-0.5 text-sm">{v}</dd></div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="ds-card p-5">
+          <h2 className="text-lg font-bold">Products enabled</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            {products.map((pr) => (
+              <li key={pr.label} className="flex items-center justify-between gap-3">
+                <span>{pr.label}</span>
+                <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${pr.on ? "tint-emerald" : "tint-amber"}`}>{pr.on ? "Active" : "Inactive"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><Scale className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Greenwald Doherty relationship</h2></div>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-3"><dt className="text-muted">Plan</dt><dd className="font-semibold">{detail?.planName ?? plan?.tier ?? "—"}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Primary contact</dt><dd>{detail?.primaryContactName ?? "—"}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Active legal requests</dt><dd>{openReq}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Active matters</dt><dd>{activeMatters}</dd></div>
+          </dl>
+        </section>
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Signatrain relationship</h2></div>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-3"><dt className="text-muted">Active learners</dt><dd>{learners}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Included seats</dt><dd>{seatPools.reduce((t, sp) => t + sp.capacity, 0)}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted">Certificates earned</dt><dd>{certs}</dd></div>
+          </dl>
+        </section>
+      </div>
+
+      <section className="ds-card mt-6 p-5">
+        <div className="mb-3 flex items-center gap-2"><Settings className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Company settings</h2></div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {settings.map((st) => (
+            <div key={st} className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--hairline,rgba(0,0,0,0.08))] px-3 py-2 text-sm">
+              <span>{st}</span>
+              <button type="button" className="text-xs font-bold text-[color:var(--brand-accent)]">Configure</button>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ---------------------------- Company users ------------------------------- */
+
+function CompanyUsersView({ route }: { route: RouteDefinition }) {
+  const { store, activeOrganization } = useDemoStore();
+  const orgId = activeOrganization?.id;
+  const baseUsers = store.users.filter((u) => u.organizationId === orgId);
+  const metaFor = (id: string) => usersMetaList.find((m) => m.userId === id);
+  const hasGd = store.entitlements.some((e) => e.organizationId === orgId && (e.code === "GD_CONCIERGE" || e.code === "GD_ALL_ACCESS") && e.status === "active");
+  const seatUserIds = new Set(
+    store.seatAssignments.filter((sa) => store.seatPools.some((sp) => sp.id === sa.seatPoolId && sp.organizationId === orgId)).map((sa) => sa.userId)
+  );
+  const productAccess = (u: { id: string; roles: string[] }) => {
+    const list: string[] = [];
+    if (hasGd && u.roles.some((r) => ["CO", "CHA", "GDCU"].includes(r))) list.push("GD");
+    if (seatUserIds.has(u.id) || u.roles.some((r) => ["HRS", "MGR"].includes(r))) list.push("Signatrain");
+    return list.length ? list.join(", ") : "—";
+  };
+
+  const [invited, setInvited] = useState<{ name: string; role: string }[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Learner / Employee");
+  const [notice, setNotice] = useState<string | null>(null);
+  const invite = () => {
+    if (!name.trim() || !email.trim()) return;
+    setInvited((v) => [...v, { name, role }]);
+    setNotice(`Invitation sent to ${email} (simulation).`);
+    setName(""); setEmail("");
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage the people in your company account and what each can access across GD and Signatrain." />
+
+      <section className="mb-6">
+        <div className="ds-card overflow-x-auto">
+          <table className="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Products</th><th>Status</th><th>Last login</th></tr></thead>
+            <tbody>
+              {baseUsers.map((u) => {
+                const m = metaFor(u.id);
+                return (
+                  <tr key={u.id}>
+                    <td className="font-semibold">{u.name}</td>
+                    <td className="text-sm text-muted">{u.email}</td>
+                    <td className="text-sm">{m?.permissionLevel ?? u.roles.join(", ")}</td>
+                    <td className="text-sm">{m?.department ?? "—"}</td>
+                    <td className="text-sm">{productAccess(u)}</td>
+                    <td><StatusChip value={u.status} /></td>
+                    <td className="text-sm text-muted">{m?.lastLogin ?? "—"}</td>
+                  </tr>
+                );
+              })}
+              {invited.map((iv, i) => (
+                <tr key={`inv${i}`}>
+                  <td className="font-semibold">{iv.name}</td>
+                  <td className="text-sm text-muted">—</td>
+                  <td className="text-sm">{iv.role}</td>
+                  <td className="text-sm">—</td>
+                  <td className="text-sm">—</td>
+                  <td><StatusChip value="invited" /></td>
+                  <td className="text-sm text-muted">—</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="ds-card p-5 lg:col-span-2">
+          <div className="mb-3 flex items-center gap-2"><UserPlus className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Invite a user</h2></div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input className="ds-field px-3 py-2 text-sm" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className="ds-field px-3 py-2 text-sm" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <select className="ds-field px-3 py-2 text-sm sm:col-span-2" value={role} onChange={(e) => setRole(e.target.value)}>
+              {ROLE_LEGEND.map((r) => <option key={r.role} value={r.role}>{r.role}</option>)}
+            </select>
+          </div>
+          <button type="button" className="ds-button ds-button-primary mt-3 inline-flex px-4 py-2 text-sm" onClick={invite} disabled={!name.trim() || !email.trim()}>
+            <Plus className="h-4 w-4" aria-hidden="true" />Send invite
+          </button>
+          {notice ? <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-[color:var(--brand-accent)]"><Mail className="h-3.5 w-3.5" aria-hidden="true" />{notice}</p> : null}
+        </section>
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><Shield className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Roles</h2></div>
+          <ul className="space-y-2 text-sm">
+            {ROLE_LEGEND.map((r) => <li key={r.role}><span className="font-semibold">{r.role}</span><span className="text-muted"> — {r.can}</span></li>)}
+          </ul>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------- Seats and entitlements ------------------------- */
+
+function SeatsEntitlementsView({ route }: { route: RouteDefinition }) {
+  const { store, activeOrganization } = useDemoStore();
+  const orgId = activeOrganization?.id;
+  const pools = store.seatPools.filter((sp) => sp.organizationId === orgId);
+  const assignedIn = (poolId: string) => store.seatAssignments.filter((sa) => sa.seatPoolId === poolId && sa.status === "active").length;
+  const ents = store.entitlements.filter((e) => e.organizationId === orgId);
+  const gdUsers = store.users.filter((u) => u.organizationId === orgId && u.roles.some((r) => ["CO", "CHA", "GDCU"].includes(r))).length;
+
+  const gdEnts = ents.filter((e) => e.code.startsWith("GD") || e.code === "LEGISLATIVE_TRACKING");
+  const stEnts = ents.filter((e) => e.code.startsWith("SIGNATRAIN") || e.code === "BOT_ACCESS");
+
+  const EntList = ({ items }: { items: typeof ents }) => (
+    <ul className="space-y-2 text-sm">
+      {items.map((e) => (
+        <li key={e.id} className="flex items-center justify-between gap-3">
+          <span>{ENTITLEMENT_LABELS[e.code] ?? e.code}</span>
+          <span className="text-xs text-muted">{e.source.replaceAll("_", " ")}</span>
+        </li>
+      ))}
+      {items.length === 0 ? <li className="text-muted">None</li> : null}
+    </ul>
+  );
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="What your company has purchased or been granted: seats, entitlements, and limits." />
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-bold">Signatrain seats</h2>
+        <div className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {pools.map((sp) => {
+            const used = assignedIn(sp.id);
+            const pct = sp.capacity ? Math.round((used / sp.capacity) * 100) : 0;
+            return (
+              <article key={sp.id} className="ds-card p-4">
+                <p className="font-semibold">{ENTITLEMENT_LABELS[sp.entitlementCode] ?? sp.entitlementCode}</p>
+                <p className="mt-1 text-sm text-muted">{used} of {sp.capacity} seats assigned · {sp.capacity - used} available</p>
+                <div className="progress-track mt-2 h-2"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
+                <p className="mt-1 text-xs text-muted">Source: {sp.source.replaceAll("_", " ")}</p>
+              </article>
+            );
+          })}
+          <article className="ds-card p-4 tint-blue">
+            <p className="font-semibold">GD portal users</p>
+            <p className="mt-1 text-sm text-muted">{gdUsers} users with legal portal access</p>
+          </article>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><Scale className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">GD entitlements</h2></div>
+          <EntList items={gdEnts} />
+        </section>
+        <section className="ds-card p-5">
+          <div className="mb-3 flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Signatrain entitlements</h2></div>
+          <EntList items={stEnts} />
+        </section>
+      </div>
+
+      <section className="ds-card mt-6 p-5">
+        <h2 className="text-lg font-bold">Request changes</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {["Request more seats", "Request additional Signatrain access", "Upgrade plan", "Add private cohort", "Request additional legal portal users"].map((cta) => (
+            <button key={cta} type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm">{cta}</button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* --------------------- Company reports: extra sections -------------------- */
+
+function CompanyReportExtras() {
+  const { store, activeOrganization } = useDemoStore();
+  const orgId = activeOrganization?.id;
+  const reqs = store.legalRequests.filter((r) => r.organizationId === orgId);
+  const openReq = reqs.filter((r) => !["resolved", "converted_to_matter", "closed"].includes(r.status)).length;
+  const closedReq = reqs.length - openReq;
+  const projects = gdProjectRequestsData.filter((pr) => pr.organizationId === orgId);
+  const matters = matterReferences.filter((m) => m.organizationId === orgId);
+  const activeMatters = matters.filter((m) => !/closed|completed/i.test(m.status)).length;
+  const byCategory = Array.from(new Set(reqs.map((r) => r.topic))).map((t) => ({ topic: t, count: reqs.filter((r) => r.topic === t).length }));
+
+  const pools = store.seatPools.filter((sp) => sp.organizationId === orgId);
+  const totalSeats = pools.reduce((t, sp) => t + sp.capacity, 0);
+  const assignedSeats = store.seatAssignments.filter((sa) => pools.some((sp) => sp.id === sa.seatPoolId) && sa.status === "active").length;
+
+  const actions = gdActionItems.filter((a) => a.organizationId === orgId);
+  const overdueTraining = stAssignments.filter((a) => a.status === "overdue").length;
+
+  return (
+    <>
+      <section className="mt-10">
+        <div className="mb-3 flex items-center gap-2"><Scale className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-xl font-bold">GD legal service report</h2></div>
+        <div className="stagger mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MiniStat label="Legal requests" value={String(reqs.length)} tint="tint-blue" />
+          <MiniStat label="Open / closed" value={`${openReq} / ${closedReq}`} tint="tint-amber" />
+          <MiniStat label="Active matters" value={String(activeMatters)} tint="tint-violet" />
+          <MiniStat label="Project requests" value={String(projects.length)} tint="tint-emerald" />
+        </div>
+        <div className="ds-card p-5">
+          <h3 className="font-bold">Requests by category</h3>
+          <div className="mt-3 space-y-2">
+            {byCategory.map((c) => (
+              <div key={c.topic} className="flex items-center justify-between gap-3 text-sm">
+                <span>{c.topic}</span>
+                <span className="font-semibold">{c.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center gap-2"><BarChart3 className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-xl font-bold">Usage &amp; entitlements</h2></div>
+        <div className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <MiniStat label="Signatrain seats" value={`${assignedSeats} / ${totalSeats}`} tint="tint-blue" />
+          <MiniStat label="Available seats" value={String(Math.max(0, totalSeats - assignedSeats))} tint="tint-emerald" />
+          <MiniStat label="Template downloads" value="3" tint="tint-cyan" />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-xl font-bold">Executive summary</h2></div>
+        <div className="ds-card p-5">
+          <h3 className="font-bold">Key action items</h3>
+          <ul className="mt-2 space-y-1.5 text-sm">
+            {overdueTraining > 0 ? <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-warm)]" aria-hidden="true" />{overdueTraining} learner(s) overdue on assigned training</li> : null}
+            {reqs.filter((r) => r.status === "waiting_for_client").length > 0 ? <li className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-warm)]" aria-hidden="true" />{reqs.filter((r) => r.status === "waiting_for_client").length} legal request(s) waiting on client documents</li> : null}
+            {actions.map((a) => <li key={a.id} className="flex items-start gap-2"><ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{a.title}</li>)}
+            <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{Math.max(0, totalSeats - assignedSeats)} unused Signatrain seat(s) available</li>
+          </ul>
+        </div>
+      </section>
+    </>
   );
 }
 

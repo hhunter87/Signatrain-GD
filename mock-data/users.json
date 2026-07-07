@@ -173,5 +173,52 @@
       "status": "active",
       "title": "HR Director"
     }
+  ],
+  "userMeta": [
+    {
+      "userId": "user_maya",
+      "department": "Executive / HR",
+      "title": "Company Owner",
+      "phone": "+1 (973) 555-0111",
+      "lastLogin": "2026-07-06",
+      "permissionLevel": "Company Admin",
+      "timezone": "America/New_York"
+    },
+    {
+      "userId": "user_jordan",
+      "department": "Legal Operations",
+      "title": "HR & Legal Admin",
+      "phone": "+1 (973) 555-0148",
+      "lastLogin": "2026-07-05",
+      "permissionLevel": "Legal Admin",
+      "timezone": "America/New_York"
+    },
+    {
+      "userId": "user_elena",
+      "department": "Human Resources",
+      "title": "HR Specialist",
+      "phone": "+1 (973) 555-0162",
+      "lastLogin": "2026-07-04",
+      "permissionLevel": "Learner",
+      "timezone": "America/New_York"
+    },
+    {
+      "userId": "user_marcus",
+      "department": "Operations",
+      "title": "Operations Manager",
+      "phone": "+1 (973) 555-0177",
+      "lastLogin": "2026-07-01",
+      "permissionLevel": "Manager",
+      "timezone": "America/New_York"
+    },
+    {
+      "userId": "user_avery",
+      "department": "Operations",
+      "title": "Shift Manager",
+      "phone": "+1 (973) 555-0184",
+      "lastLogin": "—",
+      "permissionLevel": "Manager",
+      "timezone": "America/New_York"
+    }
   ]
 }
