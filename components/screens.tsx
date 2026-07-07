@@ -21,6 +21,7 @@ import {
   ExternalLink,
   FileText,
   GraduationCap,
+  Inbox,
   ListChecks,
   LockKeyhole,
   Mail,
@@ -119,6 +120,13 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/signatrain/bot",
   "/app/signatrain/library",
   "/app/signatrain/progress",
+  "/admin/gd",
+  "/admin/gd/clients",
+  "/admin/gd/onboarding",
+  "/admin/gd/requests",
+  "/admin/gd/requests/[requestId]",
+  "/admin/gd/projects",
+  "/admin/gd/templates",
   "/admin/alerts",
   "/app/company/billing",
   "/app/company/reports",
@@ -189,6 +197,20 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <LibraryView route={route} />;
     case "/app/signatrain/progress":
       return <ProgressView route={route} />;
+    case "/admin/gd":
+      return <GdOpsDashboardView route={route} />;
+    case "/admin/gd/clients":
+      return <GdClientAdminView route={route} />;
+    case "/admin/gd/onboarding":
+      return <GdOnboardingOpsView route={route} />;
+    case "/admin/gd/requests":
+      return <GdRequestQueueView route={route} />;
+    case "/admin/gd/requests/[requestId]":
+      return <GdRequestTriageView route={route} pathname={pathname} />;
+    case "/admin/gd/projects":
+      return <GdProjectAdminView route={route} />;
+    case "/admin/gd/templates":
+      return <GdTemplateAdminView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
     case "/app/alerts":
@@ -4990,6 +5012,441 @@ function SubmitLegalRequestView({ route }: { route: RouteDefinition }) {
           <p className="text-xs text-muted">You'll receive a request number and expected response window after submitting.</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+
+/* ========================= GD Internal Admin ============================== */
+
+const GD_OWNER_BY_ORG: Record<string, string> = { org_acme: "user_rachel", org_harbor: "user_dana", org_northstar: "user_dana" };
+
+function useGdAdminData() {
+  const { store } = useDemoStore();
+  const userName = (id?: string) => store.users.find((u) => u.id === id)?.name ?? "Unassigned";
+  const clientOrgs = store.organizations.filter((o) => o.id !== "org_internal");
+  return { store, userName, clientOrgs };
+}
+
+/* --- GD operations dashboard --- */
+function GdOpsDashboardView({ route }: { route: RouteDefinition }) {
+  const { store, userName } = useGdAdminData();
+  const reqs = store.legalRequests;
+  const triage = reqs.filter((r) => ["submitted", "triage"].includes(r.status)).length;
+  const awaitingAttorney = reqs.filter((r) => ["assigned", "in_progress"].includes(r.status)).length;
+  const waitingClient = reqs.filter((r) => r.status === "waiting_for_client").length;
+  const onboardingClients = new Set(onboardingTasks.filter((t) => t.status !== "accepted").map((t) => t.organizationId)).size;
+  const projectsNeedScope = gdProjectRequestsData.filter((pr) => ["submitted", "under_scoping"].includes(pr.status)).length;
+  const templatesPending = gdTemplates.filter((t) => t.status !== "published").length;
+
+  const workload = [
+    { name: "Dana Brooks", role: "Operations", count: onboardingClients + gdProjectRequestsData.length },
+    { name: "Rachel Kim", role: "Legal review", count: reqs.filter((r) => r.assignedAttorneyUserId === "user_rachel").length + gdProjectRequestsData.filter((pr) => pr.assignedAttorneyUserId === "user_rachel").length },
+    { name: "Sam Carter", role: "Content review", count: templatesPending + store.alerts.filter((a) => a.status !== "published").length }
+  ];
+  const urgent = reqs.filter((r) => r.priority === "high" || r.urgency === "urgent");
+  const activity = [...gdActivity].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);
+
+  const quick = [
+    { label: "Legal request queue", href: "/admin/gd/requests", icon: Inbox },
+    { label: "Onboarding operations", href: "/admin/gd/onboarding", icon: ListChecks },
+    { label: "Client administration", href: "/admin/gd/clients", icon: Building2 },
+    { label: "Project requests", href: "/admin/gd/projects", icon: BriefcaseBusiness },
+    { label: "Templates", href: "/admin/gd/templates", icon: FileText },
+    { label: "Alert pipeline", href: "/admin/alerts", icon: Scale }
+  ];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="GD operations cockpit — what needs triage, who owns what, and what's urgent across all clients." />
+      <div className="stagger mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <MiniStat label="Awaiting triage" value={String(triage)} tint="tint-amber" />
+        <MiniStat label="Awaiting attorney" value={String(awaitingAttorney)} tint="tint-blue" />
+        <MiniStat label="Waiting on client" value={String(waitingClient)} tint="tint-violet" />
+        <MiniStat label="Onboarding in progress" value={String(onboardingClients)} tint="tint-cyan" />
+        <MiniStat label="Projects need scope" value={String(projectsNeedScope)} tint="tint-amber" />
+        <MiniStat label="Templates pending" value={String(templatesPending)} tint={templatesPending ? "tint-rose" : "tint-emerald"} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-lg font-bold">Urgent items</h2>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {urgent.length === 0 ? <p className="p-4 text-sm text-muted">Nothing urgent right now.</p> : urgent.map((r) => (
+              <Link key={r.id} href={`/admin/gd/requests/${r.id}`} className="flex flex-wrap items-center justify-between gap-3 p-4 hover:bg-[color:var(--surface-hover,rgba(0,0,0,0.03))]">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-warm)]" aria-hidden="true" />
+                  <div><p className="font-semibold">{r.subject}</p><p className="text-xs text-muted">{store.organizations.find((o) => o.id === r.organizationId)?.name} · {r.topic}</p></div>
+                </div>
+                <div className="flex items-center gap-2"><StatusChip value={r.priority} /><StatusChip value={r.status} /></div>
+              </Link>
+            ))}
+          </div>
+
+          <h2 className="mb-3 mt-6 text-lg font-bold">Recent activity</h2>
+          <div className="ds-card p-5">
+            <ul className="space-y-3">
+              {activity.map((a) => (
+                <li key={a.id} className="flex items-start gap-3"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand-accent)]" aria-hidden="true" /><div><p className="text-sm">{a.text}</p><p className="text-xs text-muted">{formatDateTime(a.at)}</p></div></li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div>
+            <h2 className="mb-3 text-lg font-bold">Workload by owner</h2>
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+              {workload.map((w) => (
+                <div key={w.name} className="flex items-center justify-between gap-3 p-3 text-sm"><div><p className="font-semibold">{w.name}</p><p className="text-xs text-muted">{w.role}</p></div><span className="tint-chip tint-blue px-2 py-0.5 text-xs font-bold">{w.count} open</span></div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-3 text-lg font-bold">Quick actions</h2>
+            <div className="ds-card p-2">
+              {quick.map((q) => (
+                <Link key={q.href} href={q.href} className="flex items-center gap-2.5 rounded-lg p-2.5 text-sm font-semibold hover:bg-[color:var(--surface-hover,rgba(0,0,0,0.03))]"><q.icon className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />{q.label}<ChevronRight className="ml-auto h-4 w-4 text-muted" aria-hidden="true" /></Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* --- GD client administration --- */
+function GdClientAdminView({ route }: { route: RouteDefinition }) {
+  const { store, userName, clientOrgs } = useGdAdminData();
+  const [query, setQuery] = useState("");
+  const rows = clientOrgs
+    .filter((o) => o.name.toLowerCase().includes(query.trim().toLowerCase()))
+    .map((o) => {
+      const plan = store.gdPlans.find((pl) => pl.organizationId === o.id);
+      const reqs = store.legalRequests.filter((r) => r.organizationId === o.id);
+      const openReq = reqs.filter((r) => !["resolved", "converted_to_matter", "closed"].includes(r.status)).length;
+      const matters = matterReferences.filter((m) => m.organizationId === o.id && !/closed|completed/i.test(m.status)).length;
+      const st = store.entitlements.some((e) => e.organizationId === o.id && e.code.startsWith("SIGNATRAIN") && e.status === "active");
+      const tasks = onboardingTasks.filter((t) => t.organizationId === o.id);
+      const onbPct = tasks.length ? Math.round((tasks.filter((t) => t.status === "accepted").length / tasks.length) * 100) : null;
+      const owner = GD_OWNER_BY_ORG[o.id];
+      const status = (o as { status?: string }).status ?? "active";
+      return { o, plan, openReq, matters, st, onbPct, owner, status };
+    });
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage GD clients — portal access, contacts, ownership, and status." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search clients" className="w-56 bg-transparent outline-none" /></label>
+        <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create client</button>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Company</th><th>Status</th><th>Plan</th><th>GD owner</th><th>Onboarding</th><th>Open requests</th><th>Active matters</th><th>Signatrain</th></tr></thead>
+          <tbody>
+            {rows.map(({ o, plan, openReq, matters, st, onbPct, owner, status }) => (
+              <tr key={o.id}>
+                <td className="font-semibold">{o.name}</td>
+                <td><StatusChip value={status} /></td>
+                <td className="text-sm">{plan ? plan.tier : "—"}</td>
+                <td className="text-sm">{userName(owner)}</td>
+                <td className="text-sm">{onbPct === null ? "—" : `${onbPct}%`}</td>
+                <td className="text-sm">{openReq}</td>
+                <td className="text-sm">{matters}</td>
+                <td className="text-sm">{st ? "Yes" : "No"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-muted">Select a client to manage profile, contacts, portal users, products, and onboarding (account management — not legal work).</p>
+    </div>
+  );
+}
+
+/* --- Onboarding operations --- */
+function GdOnboardingOpsView({ route }: { route: RouteDefinition }) {
+  const { store, userName, clientOrgs } = useGdAdminData();
+  const rows = clientOrgs.map((o) => {
+    const tasks = onboardingTasks.filter((t) => t.organizationId === o.id);
+    if (tasks.length === 0) return null;
+    const done = tasks.filter((t) => t.status === "accepted").length;
+    const missing = tasks.filter((t) => t.status !== "accepted" && t.requirement === "required").length;
+    const pct = Math.round((done / tasks.length) * 100);
+    const status = pct === 100 ? "Completed" : pct === 0 ? "Not started" : tasks.some((t) => t.status === "submitted" || t.status === "in_review") ? "Internal review" : "In progress";
+    return { o, tasks, done, missing, pct, status };
+  }).filter(Boolean) as { o: (typeof clientOrgs)[number]; tasks: OnboardingTask[]; done: number; missing: number; pct: number; status: string }[];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Track every client's onboarding — what's late, what's received, and what blocks activation." />
+      <div className="ds-card mb-6 overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Client</th><th>Status</th><th>Completion</th><th>Missing required</th><th>Owner</th><th>Target go-live</th></tr></thead>
+          <tbody>
+            {rows.map(({ o, missing, pct, status }) => (
+              <tr key={o.id}>
+                <td className="font-semibold">{o.name}</td>
+                <td><StatusChip value={status} /></td>
+                <td><div className="flex items-center gap-2"><div className="progress-track h-2 w-24"><div className="progress-fill" style={{ width: `${pct}%` }} /></div><span className="text-xs text-muted">{pct}%</span></div></td>
+                <td className="text-sm">{missing}</td>
+                <td className="text-sm">{userName("user_dana")}</td>
+                <td className="text-sm text-muted">2026-01-20</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {rows.map(({ o, tasks }) => (
+        <section key={o.id} className="mb-6">
+          <h2 className="mb-3 text-lg font-bold">{o.name} — checklist review</h2>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {tasks.map((t) => (
+              <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                <div className="flex items-center gap-3">
+                  {t.status === "accepted" ? <CheckCircle2 className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /> : <Circle className="h-4 w-4 text-muted" aria-hidden="true" />}
+                  <div><p className="text-sm font-semibold">{t.title}</p><p className="text-xs text-muted">{t.section} · {t.requirement}</p></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusChip value={t.status} />
+                  {t.status !== "accepted" ? <button type="button" className="ds-button ds-button-secondary px-2.5 py-1 text-xs">Mark reviewed</button> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Send reminder to client", "Request missing document", "Approve onboarding step", "Complete onboarding"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}
+          </div>
+        </section>
+      ))}
+      {rows.length === 0 ? <p className="text-muted">No onboarding in progress.</p> : null}
+    </div>
+  );
+}
+
+/* --- Legal request work queue --- */
+function GdRequestQueueView({ route }: { route: RouteDefinition }) {
+  const { store, userName } = useGdAdminData();
+  const [status, setStatus] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const [owner, setOwner] = useState("all");
+  const [query, setQuery] = useState("");
+  const orgName = (id: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  const lastUpdate = (rid: string) => {
+    const t = store.legalMessages.filter((m) => m.requestId === rid).map((m) => m.createdAt).sort();
+    return t.length ? t[t.length - 1] : undefined;
+  };
+  const rows = store.legalRequests.filter((r) => {
+    if (status !== "all" && r.status !== status) return false;
+    if (priority !== "all" && r.priority !== priority) return false;
+    if (owner === "unassigned" && r.assignedAttorneyUserId) return false;
+    if (owner !== "all" && owner !== "unassigned" && r.assignedAttorneyUserId !== owner) return false;
+    if (query.trim() && !`${r.subject} ${r.topic}`.toLowerCase().includes(query.trim().toLowerCase())) return false;
+    return true;
+  });
+  const daysSince = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="The internal inbox for every client legal request — triage, assign, and track SLA." />
+      <div className="stagger mb-4 grid gap-4 sm:grid-cols-4">
+        <MiniStat label="Total" value={String(store.legalRequests.length)} tint="tint-brand" />
+        <MiniStat label="Needs triage" value={String(store.legalRequests.filter((r) => ["submitted", "triage"].includes(r.status)).length)} tint="tint-amber" />
+        <MiniStat label="Waiting on client" value={String(store.legalRequests.filter((r) => r.status === "waiting_for_client").length)} tint="tint-violet" />
+        <MiniStat label="High priority" value={String(store.legalRequests.filter((r) => r.priority === "high").length)} tint="tint-rose" />
+      </div>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" className="w-44 bg-transparent outline-none" /></label>
+        <select className="ds-field px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>{["all", "submitted", "triage", "assigned", "in_progress", "waiting_for_client", "resolved", "closed"].map((o) => <option key={o} value={o}>{o === "all" ? "All statuses" : o.replaceAll("_", " ")}</option>)}</select>
+        <select className="ds-field px-3 py-2 text-sm" value={priority} onChange={(e) => setPriority(e.target.value)}>{["all", "low", "medium", "high"].map((o) => <option key={o} value={o}>{o === "all" ? "All priorities" : o}</option>)}</select>
+        <select className="ds-field px-3 py-2 text-sm" value={owner} onChange={(e) => setOwner(e.target.value)}><option value="all">All owners</option><option value="unassigned">Unassigned</option><option value="user_rachel">Rachel Kim</option><option value="user_dana">Dana Brooks</option></select>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Request</th><th>Client</th><th>Category</th><th>Priority</th><th>Status</th><th>Owner</th><th>SLA age</th><th>Updated</th></tr></thead>
+          <tbody>
+            {rows.map((r) => {
+              const upd = lastUpdate(r.id) ?? r.createdAt;
+              return (
+                <tr key={r.id}>
+                  <td><Link href={`/admin/gd/requests/${r.id}`} className="font-bold text-[color:var(--brand-accent)] hover:underline">{r.subject}</Link></td>
+                  <td className="text-sm">{orgName(r.organizationId)}</td>
+                  <td className="text-sm text-muted">{r.topic}</td>
+                  <td><StatusChip value={r.priority} /></td>
+                  <td><StatusChip value={r.status} /></td>
+                  <td className="text-sm">{r.assignedAttorneyUserId ? userName(r.assignedAttorneyUserId) : "—"}</td>
+                  <td className="text-sm text-muted">{daysSince(r.createdAt)}d</td>
+                  <td className="text-sm text-muted">{formatDate(upd)}</td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 ? <tr><td colSpan={8} className="p-6 text-center text-muted">No requests match these filters.</td></tr> : null}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* --- Legal request triage workspace --- */
+function GdRequestTriageView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store } = useGdAdminData();
+  const requestId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const request = store.legalRequests.find((r) => r.id === requestId);
+  const userName = (id?: string) => store.users.find((u) => u.id === id)?.name ?? "Team member";
+  const orgName = (id?: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  const [note, setNote] = useState("");
+  const [reply, setReply] = useState("");
+  const [nextAction, setNextAction] = useState("answer");
+  const [risk, setRisk] = useState("medium");
+
+  if (!request) {
+    return <div className="narrow-shell"><section className="ds-card p-6"><h1 className="page-title text-2xl font-bold">Request not found</h1><Link href="/admin/gd/requests" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2">Back to queue</Link></section></div>;
+  }
+  const messages = store.legalMessages.filter((m) => m.requestId === request.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Triage workspace — assess, classify, communicate, and decide the next step." />
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 className="text-2xl font-bold">{request.subject}</h2><p className="mt-1 text-sm text-muted">{orgName(request.organizationId)} · {request.topic} · submitted by {userName(request.submittedByUserId)}</p></div>
+          <div className="flex flex-wrap gap-2"><StatusChip value={request.status} /><StatusChip value={request.priority} />{request.privacy === "restricted" ? <StatusChip value="restricted" /> : null}</div>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Client-submitted information</h3>
+            <p className="mt-2 text-sm text-muted">{request.description}</p>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Urgency</dt><dd>{request.urgency.replaceAll("_", " ")}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Requested privacy</dt><dd>{request.privacy.replaceAll("_", " ")}</dd></div>
+            </dl>
+          </section>
+
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Client communication</h3>
+            <div className="mt-3 space-y-3">
+              {messages.map((m) => (
+                <div key={m.id} className={`ds-card p-3 ${m.visibility === "internal_only" ? "note-internal" : ""}`}>
+                  <div className="flex justify-between gap-2"><p className="text-sm font-bold">{userName(m.authorUserId)}</p><p className="text-xs text-muted">{formatDateTime(m.createdAt)}</p></div>
+                  {m.visibility === "internal_only" ? <p className="mt-1 text-xs font-bold uppercase text-[color:var(--brand-warm)]">Internal note</p> : null}
+                  <p className="mt-1 text-sm">{m.body}</p>
+                </div>
+              ))}
+            </div>
+            <textarea className="ds-field mt-3 w-full px-3 py-2 text-sm" rows={2} placeholder="Reply to client…" value={reply} onChange={(e) => setReply(e.target.value)} />
+            <button type="button" className="ds-button ds-button-primary mt-2 px-4 py-2 text-sm" disabled={!reply.trim()}><Send className="h-4 w-4" aria-hidden="true" />Send client reply</button>
+          </section>
+
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Document review</h3>
+            <p className="mt-2 text-sm text-muted">No documents attached to this request in the portal.</p>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Triage</h3>
+            <label className="mt-3 block text-xs font-bold uppercase tracking-wide text-muted">Risk level</label>
+            <select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={risk} onChange={(e) => setRisk(e.target.value)}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+            <label className="mt-3 block text-xs font-bold uppercase tracking-wide text-muted">Recommended next action</label>
+            <select className="ds-field mt-1 w-full px-3 py-2 text-sm" value={nextAction} onChange={(e) => setNextAction(e.target.value)}>
+              <option value="answer">Answer as simple request</option>
+              <option value="info">Ask client for more info</option>
+              <option value="assign">Assign attorney</option>
+              <option value="matter">Convert to matter</option>
+              <option value="project">Convert to project request</option>
+              <option value="call">Schedule attorney call</option>
+              <option value="close">Close (duplicate / out of scope)</option>
+            </select>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Internal note</h3>
+            <textarea className="ds-field mt-2 w-full px-3 py-2 text-sm" rows={3} placeholder="Visible to GD team only" value={note} onChange={(e) => setNote(e.target.value)} />
+            <button type="button" className="ds-button ds-button-secondary mt-2 px-3 py-1.5 text-sm" disabled={!note.trim()}>Save note</button>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Workflow actions</h3>
+            <div className="mt-2 flex flex-col gap-2">
+              {["Assign to attorney", "Request client info", "Convert to matter", "Create project request", "Mark waiting on client", "Mark completed", "Close request"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}
+            </div>
+          </section>
+        </div>
+      </div>
+      <div className="mt-6"><Link href="/admin/gd/requests" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to queue</Link></div>
+    </div>
+  );
+}
+
+/* --- Project request administration --- */
+function GdProjectAdminView({ route }: { route: RouteDefinition }) {
+  const { store, userName } = useGdAdminData();
+  const orgName = (id: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage flat-fee project requests — scope, proposal, approval, and delivery." />
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Project</th><th>Client</th><th>Type</th><th>Status</th><th>Attorney</th><th>Submitted</th></tr></thead>
+          <tbody>
+            {gdProjectRequestsData.map((pr) => (
+              <tr key={pr.id}>
+                <td className="font-semibold">{pr.title}</td>
+                <td className="text-sm">{orgName(pr.organizationId)}</td>
+                <td className="text-sm text-muted">{pr.type}</td>
+                <td><StatusChip value={pr.status} /></td>
+                <td className="text-sm">{pr.assignedAttorneyUserId ? userName(pr.assignedAttorneyUserId) : "—"}</td>
+                <td className="text-sm text-muted">{formatDate(pr.createdAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <section className="ds-card mt-6 p-5">
+        <h2 className="text-lg font-bold">Scoping &amp; proposal</h2>
+        <p className="mt-1 text-sm text-muted">Select a project to define scope, deliverables, exclusions, timeline, and flat-fee terms, then send a proposal for client approval.</p>
+        <div className="mt-3 flex flex-wrap gap-2">{["Assign attorney", "Prepare scope", "Send proposal", "Mark approved", "Mark in progress", "Mark delivered"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+      </section>
+    </div>
+  );
+}
+
+/* --- Template administration --- */
+function GdTemplateAdminView({ route }: { route: RouteDefinition }) {
+  const [status, setStatus] = useState("all");
+  const rows = gdTemplates.filter((t) => status === "all" || (status === "published" ? t.status === "published" : t.status !== "published"));
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Internal CMS for the GD template library — draft, legal review, publish, and versioning." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <select className="ds-field px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">All statuses</option><option value="published">Published</option><option value="draft">In progress</option></select>
+        <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create template</button>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Template</th><th>Category</th><th>Status</th><th>Owner</th><th>Reviewer</th><th>Client visibility</th><th>Updated</th></tr></thead>
+          <tbody>
+            {rows.map((t) => (
+              <tr key={t.id}>
+                <td className="font-semibold">{t.title}</td>
+                <td className="text-sm text-muted">{t.category}</td>
+                <td><StatusChip value={t.status} /></td>
+                <td className="text-sm">Sam Carter</td>
+                <td className="text-sm">Rachel Kim</td>
+                <td className="text-sm">{t.audiencePlans.join(", ")}</td>
+                <td className="text-sm text-muted">{t.lastUpdated ? formatDate(t.lastUpdated) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-muted">Workflow: Sam drafts → Rachel legal review → Dana publishes to the client library. Templates carry a periodic review date.</p>
     </div>
   );
 }
