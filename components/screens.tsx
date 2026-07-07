@@ -127,6 +127,13 @@ const CUSTOM_SCREEN_PATHS = [
   "/admin/gd/requests/[requestId]",
   "/admin/gd/projects",
   "/admin/gd/templates",
+  "/admin/signatrain",
+  "/admin/signatrain/content",
+  "/admin/signatrain/content/[contentId]",
+  "/admin/signatrain/sessions",
+  "/admin/signatrain/cohorts",
+  "/admin/signatrain/learners",
+  "/admin/signatrain/certificates",
   "/admin/alerts",
   "/app/company/billing",
   "/app/company/reports",
@@ -211,6 +218,20 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <GdProjectAdminView route={route} />;
     case "/admin/gd/templates":
       return <GdTemplateAdminView route={route} />;
+    case "/admin/signatrain":
+      return <StOpsDashboardView route={route} />;
+    case "/admin/signatrain/content":
+      return <StContentCatalogView route={route} />;
+    case "/admin/signatrain/content/[contentId]":
+      return <StContentEditorView route={route} pathname={pathname} />;
+    case "/admin/signatrain/sessions":
+      return <StSessionAdminView route={route} />;
+    case "/admin/signatrain/cohorts":
+      return <StCohortAdminView route={route} />;
+    case "/admin/signatrain/learners":
+      return <StLearnerAdminView route={route} />;
+    case "/admin/signatrain/certificates":
+      return <StCertificateAdminView route={route} />;
     case "/admin/alerts":
       return <AlertPipelineView route={route} />;
     case "/app/alerts":
@@ -5447,6 +5468,358 @@ function GdTemplateAdminView({ route }: { route: RouteDefinition }) {
         </table>
       </div>
       <p className="mt-3 text-xs text-muted">Workflow: Sam drafts → Rachel legal review → Dana publishes to the client library. Templates carry a periodic review date.</p>
+    </div>
+  );
+}
+
+
+/* ====================== SignaTrain Internal Admin ========================= */
+
+function StOpsDashboardView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const learners = store.users.filter((u) => u.roles.some((r) => ["HRS", "MGR"].includes(r)));
+  const orgs = new Set(learners.map((u) => u.organizationId)).size;
+  const publishedContent = [...store.courses, ...store.scenarios].filter((c) => c.status === "published").length;
+  const inReview = [...store.courses, ...store.scenarios].filter((c) => c.status !== "published").length;
+  const upcoming = store.liveSessions.filter((ls) => ["registration_open", "scheduled"].includes(ls.status)).length;
+  const activeCohorts = stCohorts.filter((c) => c.status === "active").length;
+  const certsIssued = store.certificates.filter((c) => c.status === "issued").length;
+  const overdue = stAssignments.filter((a) => a.status === "overdue").length;
+
+  const alerts = [
+    upcoming > 0 ? `${upcoming} live session(s) scheduled — confirm materials are final` : null,
+    inReview > 0 ? `${inReview} content item(s) pending review` : null,
+    overdue > 0 ? `${overdue} learner(s) overdue on assigned training` : null,
+    "1 user invited but not yet activated"
+  ].filter(Boolean) as string[];
+
+  const pipeline = ["draft", "in_review", "approved", "published", "archived"].map((st) => ({
+    st,
+    count: [...store.courses, ...store.scenarios].filter((c) => c.status === st).length
+  }));
+
+  const quick = [
+    { label: "Content catalog", href: "/admin/signatrain/content", icon: FileText },
+    { label: "Sessions", href: "/admin/signatrain/sessions", icon: Video },
+    { label: "Cohorts", href: "/admin/signatrain/cohorts", icon: Users },
+    { label: "Learners", href: "/admin/signatrain/learners", icon: GraduationCap },
+    { label: "Certificates", href: "/admin/signatrain/certificates", icon: Award }
+  ];
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Signatrain operations — content, learners, sessions, cohorts, and certificates at a glance." />
+      <div className="stagger mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <MiniStat label="Active learners" value={String(learners.length)} tint="tint-blue" />
+        <MiniStat label="Organizations" value={String(orgs)} tint="tint-brand" />
+        <MiniStat label="Published content" value={String(publishedContent)} tint="tint-emerald" />
+        <MiniStat label="Pending review" value={String(inReview)} tint={inReview ? "tint-amber" : "tint-emerald"} />
+        <MiniStat label="Upcoming sessions" value={String(upcoming)} tint="tint-cyan" />
+        <MiniStat label="Certificates issued" value={String(certsIssued)} tint="tint-violet" />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 text-lg font-bold">Operational alerts</h2>
+          <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+            {alerts.map((a) => (
+              <div key={a} className="flex items-start gap-2.5 p-3.5 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-warm)]" aria-hidden="true" />{a}</div>
+            ))}
+          </div>
+          <h2 className="mb-3 mt-6 text-lg font-bold">Content pipeline</h2>
+          <div className="ds-card grid grid-cols-2 gap-3 p-5 sm:grid-cols-5">
+            {pipeline.map((p2) => (
+              <div key={p2.st} className="text-center"><p className="text-2xl font-extrabold">{p2.count}</p><p className="text-xs uppercase tracking-wide text-muted">{p2.st.replaceAll("_", " ")}</p></div>
+            ))}
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-3 text-lg font-bold">Quick actions</h2>
+          <div className="ds-card p-2">
+            {quick.map((q) => (
+              <Link key={q.href} href={q.href} className="flex items-center gap-2.5 rounded-lg p-2.5 text-sm font-semibold hover:bg-[color:var(--surface-hover,rgba(0,0,0,0.03))]"><q.icon className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" />{q.label}<ChevronRight className="ml-auto h-4 w-4 text-muted" aria-hidden="true" /></Link>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* --- Content catalog administration --- */
+function StContentCatalogView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const [type, setType] = useState("all");
+  const [query, setQuery] = useState("");
+  const items = [
+    ...store.courses.map((c) => ({ id: c.id, title: c.title, type: "Course", topic: c.topic, audience: c.audience, status: c.status, href: `/admin/signatrain/content/${c.id}` })),
+    ...store.scenarios.map((c) => ({ id: c.id, title: c.title, type: "Scenario", topic: c.topic, audience: c.audiences.join(" + "), status: c.status, href: `/admin/signatrain/content/${c.id}` }))
+  ].filter((i) => (type === "all" || i.type === type) && (query.trim() === "" || i.title.toLowerCase().includes(query.trim().toLowerCase())));
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Every Signatrain content item — drafts, in review, published, and archived." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-3">
+          <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search content" className="w-48 bg-transparent outline-none" /></label>
+          <select className="ds-field px-3 py-2 text-sm" value={type} onChange={(e) => setType(e.target.value)}><option value="all">All types</option><option value="Course">Course</option><option value="Scenario">Scenario</option></select>
+        </div>
+        <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create content</button>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Title</th><th>Type</th><th>Topic</th><th>Audience</th><th>Status</th><th>Owner</th><th>Reviewer</th></tr></thead>
+          <tbody>
+            {items.map((i) => (
+              <tr key={i.id}>
+                <td><Link href={i.href} className="font-bold text-[color:var(--brand-accent)] hover:underline">{i.title}</Link></td>
+                <td className="text-sm">{i.type}</td>
+                <td className="text-sm text-muted">{i.topic}</td>
+                <td className="text-sm">{i.audience}</td>
+                <td><StatusChip value={i.status} /></td>
+                <td className="text-sm">Alex Morgan</td>
+                <td className="text-sm">Priya Shah</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* --- Content editor and review --- */
+function StContentEditorView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store } = useDemoStore();
+  const id = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const course = store.courses.find((c) => c.id === id);
+  const scenario = store.scenarios.find((c) => c.id === id);
+  const cMeta = courseMetaList.find((m) => m.courseId === id);
+  const sMeta = scenarioMetaList.find((m) => m.scenarioId === id);
+  const modules = stModules.filter((m) => m.courseId === id).sort((a, b) => a.order - b.order);
+  const [note, setNote] = useState("");
+  const title = course?.title ?? scenario?.title ?? "Content";
+  const type = course ? "Course" : scenario ? "Scenario" : "Content";
+
+  if (!course && !scenario) {
+    return <div className="narrow-shell"><section className="ds-card p-6"><h1 className="page-title text-2xl font-bold">Content not found</h1><Link href="/admin/signatrain/content" className="ds-button ds-button-primary mt-4 inline-flex px-4 py-2">Back to catalog</Link></section></div>;
+  }
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Content editor and review workspace — metadata, structure, review notes, and publishing." />
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 className="text-2xl font-bold">{title}</h2><p className="mt-1 text-sm text-muted">{type} · v1.0 · owner Alex Morgan</p></div>
+          <StatusChip value={course?.status ?? scenario?.status ?? "draft"} />
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Metadata</h3>
+            <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Topic</dt><dd className="text-sm">{course?.topic ?? scenario?.topic}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Audience</dt><dd className="text-sm">{cMeta?.audienceLabel ?? scenario?.audiences.join(" + ")}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Difficulty</dt><dd className="text-sm">{cMeta?.level ?? sMeta?.difficulty ?? "—"}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-muted">Certificate eligible</dt><dd className="text-sm">{cMeta?.certificate ? "Yes" : "No"}</dd></div>
+            </dl>
+          </section>
+
+          <section className="ds-card p-5">
+            <h3 className="font-bold">{course ? "Modules" : "Decision points"}</h3>
+            {course ? (
+              <ol className="mt-3 space-y-2 text-sm">
+                {(modules.length ? modules.map((m) => m.title) : (cMeta?.moduleTitles ?? []).map((m) => m.title)).map((t, i) => (
+                  <li key={i} className="flex items-center gap-2"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--brand-accent)] text-xs font-bold text-white">{i + 1}</span>{t}</li>
+                ))}
+              </ol>
+            ) : (
+              <ol className="mt-3 space-y-3 text-sm">
+                {(sMeta?.decisionPoints ?? []).map((dp, i) => (
+                  <li key={i}><p className="font-semibold">{i + 1}. {dp.prompt}</p><ul className="mt-1 space-y-0.5 pl-4 text-muted">{dp.options.map((o, oi) => <li key={oi}>{o.risk ? "⚠ " : "✓ "}{o.text}</li>)}</ul></li>
+                ))}
+              </ol>
+            )}
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Review</h3>
+            <textarea className="ds-field mt-2 w-full px-3 py-2 text-sm" rows={4} placeholder="Content accuracy, tone, instructional design, required changes…" value={note} onChange={(e) => setNote(e.target.value)} />
+            <button type="button" className="ds-button ds-button-secondary mt-2 px-3 py-1.5 text-sm" disabled={!note.trim()}>Add review note</button>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Versioning</h3>
+            <ul className="mt-2 space-y-1.5 text-sm text-muted"><li>v1.0 — published (current)</li><li>v0.9 — approved</li><li>v0.8 — draft</li></ul>
+          </section>
+          <section className="ds-card p-5">
+            <h3 className="font-bold">Publishing</h3>
+            <div className="mt-2 flex flex-col gap-2">{["Preview as learner", "Submit for review", "Approve", "Publish", "Unpublish", "Archive"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+          </section>
+        </div>
+      </div>
+      <div className="mt-6"><Link href="/admin/signatrain/content" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to catalog</Link></div>
+    </div>
+  );
+}
+
+/* --- Session administration --- */
+function StSessionAdminView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const regCount = (sid: string) => stRegistrations.filter((r) => r.sessionId === sid).length;
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Administer live sessions — schedule, registration, attendance, materials, and recordings." />
+      <div className="mb-4 flex justify-end"><button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create session</button></div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Session</th><th>Type</th><th>Date</th><th>Facilitator</th><th>Registered</th><th>Status</th><th>Recording</th></tr></thead>
+          <tbody>
+            {[...store.liveSessions].sort((a, b) => a.startsAt.localeCompare(b.startsAt)).map((ls) => {
+              const meta = sessionMetaList.find((m) => m.sessionId === ls.id);
+              return (
+                <tr key={ls.id}>
+                  <td className="font-semibold">{ls.title}</td>
+                  <td className="text-sm">{SESSION_TYPE_LABELS[ls.type]}</td>
+                  <td className="text-sm text-muted">{formatDateTime(ls.startsAt)}</td>
+                  <td className="text-sm">{meta?.facilitatorName ?? "—"}</td>
+                  <td className="text-sm">{regCount(ls.id)}{meta ? ` / ${meta.capacity}` : ""}</td>
+                  <td><StatusChip value={ls.status} /></td>
+                  <td className="text-sm text-muted">{ls.recordingStatus.replaceAll("_", " ")}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <section className="ds-card mt-6 p-5">
+        <h2 className="text-lg font-bold">Session actions</h2>
+        <div className="mt-2 flex flex-wrap gap-2">{["Open/close registration", "Add learners", "Send reminder", "Mark attendance", "Upload recording", "Issue completion credit"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+      </section>
+    </div>
+  );
+}
+
+/* --- Cohort administration --- */
+function StCohortAdminView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const orgName = (id: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Administer private cohorts — participants, schedule, progress, and certificates." />
+      <div className="mb-4 flex justify-end"><button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Create cohort</button></div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Cohort</th><th>Organization</th><th>Facilitator</th><th>Participants</th><th>Progress</th><th>Status</th></tr></thead>
+          <tbody>
+            {stCohorts.map((c) => {
+              const meta = cohortMetaList.find((m) => m.cohortId === c.id);
+              return (
+                <tr key={c.id}>
+                  <td className="font-semibold">{c.name}</td>
+                  <td className="text-sm">{orgName(c.organizationId)}</td>
+                  <td className="text-sm">{meta?.facilitatorName ?? "—"}</td>
+                  <td className="text-sm">{meta?.participantsCount ?? c.participantUserIds.length}</td>
+                  <td><div className="flex items-center gap-2"><div className="progress-track h-2 w-24"><div className="progress-fill" style={{ width: `${meta?.progress ?? 0}%` }} /></div><span className="text-xs text-muted">{meta?.progress ?? 0}%</span></div></td>
+                  <td><StatusChip value={c.status} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <section className="ds-card mt-6 p-5">
+        <h2 className="text-lg font-bold">Cohort actions</h2>
+        <div className="mt-2 flex flex-wrap gap-2">{["Assign program", "Add sessions", "Add / import learners", "Send announcement", "Extend deadlines", "Issue certificates", "Close cohort"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+      </section>
+    </div>
+  );
+}
+
+/* --- Learner administration --- */
+function StLearnerAdminView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const [query, setQuery] = useState("");
+  const orgName = (id: string) => store.organizations.find((o) => o.id === id)?.name ?? id;
+  const learners = store.users.filter((u) => u.roles.some((r) => ["HRS", "MGR"].includes(r)) && u.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const meta = (id: string) => usersMetaList.find((m) => m.userId === id);
+  const progById = (uid: string) => {
+    const list = stAssignments.filter((a) => a.userId === uid && a.kind === "course");
+    return list.length ? Math.round(list.reduce((t, a) => t + a.progress, 0) / list.length) : 0;
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage learners — assignments, progress, certificates, and seats." />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm"><Search className="h-4 w-4 opacity-60" aria-hidden="true" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search learners" className="w-56 bg-transparent outline-none" /></label>
+        <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Plus className="h-4 w-4" aria-hidden="true" />Invite learner</button>
+      </div>
+      <div className="ds-card overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Learner</th><th>Organization</th><th>Assigned</th><th>Progress</th><th>Certificates</th><th>Last login</th><th>Status</th></tr></thead>
+          <tbody>
+            {learners.map((u) => (
+              <tr key={u.id}>
+                <td><p className="font-semibold">{u.name}</p><p className="text-xs text-muted">{u.email}</p></td>
+                <td className="text-sm">{orgName(u.organizationId)}</td>
+                <td className="text-sm">{stAssignments.filter((a) => a.userId === u.id).length}</td>
+                <td><div className="flex items-center gap-2"><div className="progress-track h-2 w-20"><div className="progress-fill" style={{ width: `${progById(u.id)}%` }} /></div><span className="text-xs text-muted">{progById(u.id)}%</span></div></td>
+                <td className="text-sm">{store.certificates.filter((c) => c.userId === u.id).length}</td>
+                <td className="text-sm text-muted">{meta(u.id)?.lastLogin ?? "—"}</td>
+                <td><StatusChip value={u.status} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-xs text-muted">Learner actions (assign content, assign to cohort, reset progress, extend deadline, deactivate) are recorded in the audit log. Reset progress should be used carefully.</p>
+    </div>
+  );
+}
+
+/* --- Certificate administration --- */
+function StCertificateAdminView({ route }: { route: RouteDefinition }) {
+  const { store } = useDemoStore();
+  const userName = (id: string) => store.users.find((u) => u.id === id)?.name ?? id;
+  const orgOf = (uid: string) => store.organizations.find((o) => o.id === store.users.find((u) => u.id === uid)?.organizationId)?.name ?? "—";
+  const detail = (id: string) => certDetailsList.find((d) => d.certId === id);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Manage certificates — issuance, revocation, templates, and rules. Every change is audited." />
+      <div className="ds-card mb-6 overflow-x-auto">
+        <table className="data-table">
+          <thead><tr><th>Certificate</th><th>Learner</th><th>Organization</th><th>Issued</th><th>Expires</th><th>Status</th><th>Verification ID</th></tr></thead>
+          <tbody>
+            {store.certificates.map((c) => (
+              <tr key={c.id}>
+                <td className="font-semibold">{c.title}</td>
+                <td className="text-sm">{userName(c.userId)}</td>
+                <td className="text-sm">{orgOf(c.userId)}</td>
+                <td className="text-sm text-muted">{formatDate(c.issuedAt)}</td>
+                <td className="text-sm text-muted">{detail(c.id) ? formatDate(detail(c.id)!.expiresAt) : "—"}</td>
+                <td><StatusChip value={c.status} /></td>
+                <td className="text-sm text-muted">{c.verificationSlug}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="ds-card p-5">
+          <h2 className="text-lg font-bold">Certificate templates</h2>
+          <ul className="mt-2 space-y-1.5 text-sm text-muted"><li>Course completion certificate</li><li>Cohort completion certificate</li><li>Live session attendance certificate</li><li>Compliance training certificate</li></ul>
+        </section>
+        <section className="ds-card p-5">
+          <h2 className="text-lg font-bold">Issuance &amp; rules</h2>
+          <p className="mt-1 text-sm text-muted">Rules per type: required modules, passing score, attendance, expiration, renewal, manual approval.</p>
+          <div className="mt-3 flex flex-wrap gap-2">{["Issue manually", "Revoke", "Reissue", "Correct learner name", "Verify ID"].map((a) => <button key={a} type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm">{a}</button>)}</div>
+        </section>
+      </div>
     </div>
   );
 }
