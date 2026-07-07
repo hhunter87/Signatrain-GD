@@ -429,6 +429,8 @@ function ProductSwitcher({
 
 function useModalA11y(active: boolean, onClose: () => void) {
   const ref = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!active) {
@@ -454,7 +456,7 @@ function useModalA11y(active: boolean, onClose: () => void) {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab") {
@@ -480,7 +482,7 @@ function useModalA11y(active: boolean, onClose: () => void) {
       document.removeEventListener("keydown", handleKey);
       previouslyFocused?.focus();
     };
-  }, [active, onClose]);
+  }, [active]);
 
   return ref;
 }
