@@ -211,5 +211,29 @@
       "assignedBy": "HR Admin",
       "progress": 0
     }
+  ],
+  "certDetails": [
+    {
+      "certId": "CERT-ST-2026-0007",
+      "issuer": "Signatrain",
+      "expiresAt": "2027-05-30",
+      "verificationId": "CERT-ST-2026-0007",
+      "score": 91,
+      "durationMinutes": 40,
+      "instructor": "Alex Morgan",
+      "modulesCompleted": 3,
+      "renewalNote": "Renewal training becomes available 30 days before expiration."
+    },
+    {
+      "certId": "CERT-ST-2026-0011",
+      "issuer": "Signatrain",
+      "expiresAt": "2027-06-15",
+      "verificationId": "CERT-ST-2026-0011",
+      "score": 88,
+      "durationMinutes": 45,
+      "instructor": "Alex Morgan",
+      "modulesCompleted": 6,
+      "renewalNote": "Renewal training becomes available 30 days before expiration."
+    }
   ]
 }

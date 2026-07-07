@@ -1003,5 +1003,75 @@
         }
       ]
     }
+  ],
+  "botPrompts": [
+    {
+      "prompt": "An employee complained about their manager. What training should I review?",
+      "answer": "Start with the 'Employee Complaint Intake' scenario, then review the 'Documentation and Escalation' module. If this relates to a real complaint, escalate to your HR contact before taking action.",
+      "links": [
+        {
+          "label": "Employee Complaint Intake",
+          "href": "/app/signatrain/scenarios/scenario_complaint_intake"
+        },
+        {
+          "label": "New HR Bootcamp",
+          "href": "/app/signatrain/courses/course_hr_bootcamp"
+        }
+      ]
+    },
+    {
+      "prompt": "How should a manager document a workplace complaint?",
+      "answer": "Capture facts, dates, and next steps — not opinions. The 'Documentation and Escalation' module walks through a defensible approach. For a real complaint, coordinate with HR.",
+      "links": [
+        {
+          "label": "Manager Communication Training",
+          "href": "/app/signatrain/courses/course_manager_comms"
+        }
+      ]
+    },
+    {
+      "prompt": "Which course covers retaliation risk?",
+      "answer": "Retaliation awareness is covered in the HR path and practiced in the retaliation scenario. Review both to strengthen your judgment.",
+      "links": [
+        {
+          "label": "Employment Law Essentials",
+          "href": "/app/signatrain/courses/course_employment_law"
+        },
+        {
+          "label": "HR Risk Scenarios",
+          "href": "/app/signatrain/courses/course_hr_risk"
+        }
+      ]
+    },
+    {
+      "prompt": "Where can I find my harassment prevention certificate?",
+      "answer": "Your certificates live under 'My certificates', where you can download or share them and see any renewal dates.",
+      "links": [
+        {
+          "label": "My certificates",
+          "href": "/app/signatrain/certificates"
+        }
+      ]
+    },
+    {
+      "prompt": "What should I do before a difficult performance conversation?",
+      "answer": "Prepare with the 'A Sensitive Performance Conversation' scenario and the Manager Communication course. Document your plan and expected outcomes beforehand.",
+      "links": [
+        {
+          "label": "Sensitive Performance Conversation",
+          "href": "/app/signatrain/scenarios/scenario_sensitive_convo"
+        }
+      ]
+    },
+    {
+      "prompt": "Which policy template applies to remote work?",
+      "answer": "The Remote Work Policy training explains the policy; the GD template library has a matching template you can adapt.",
+      "links": [
+        {
+          "label": "Remote Work Policy Training",
+          "href": "/app/signatrain/courses/course_remote_policy"
+        }
+      ]
+    }
   ]
 }

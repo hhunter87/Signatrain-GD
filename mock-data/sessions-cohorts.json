@@ -54,7 +54,35 @@
         "user_alex"
       ],
       "zoomReference": "zoom-demo-0900",
-      "recordingStatus": "recording_pending"
+      "recordingStatus": "recording_published"
+    },
+    {
+      "id": "session_investigations_workshop",
+      "title": "Workplace Investigations: Practical Basics",
+      "type": "HR_MASTERCLASS",
+      "audience": "HR",
+      "startsAt": "2026-07-23T16:00:00Z",
+      "durationMinutes": 90,
+      "status": "registration_open",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-1003",
+      "recordingStatus": "none"
+    },
+    {
+      "id": "session_difficult_convos",
+      "title": "Difficult Conversations for Managers",
+      "type": "MANAGER_CORE",
+      "audience": "MANAGER",
+      "startsAt": "2026-07-28T15:00:00Z",
+      "durationMinutes": 90,
+      "status": "registration_open",
+      "facultyUserIds": [
+        "user_alex"
+      ],
+      "zoomReference": "zoom-demo-2002",
+      "recordingStatus": "none"
     }
   ],
   "cohorts": [
@@ -99,6 +127,212 @@
       "scheduledMinutes": 120,
       "attendedMinutes": 108,
       "completion": true
+    }
+  ],
+  "sessionMeta": [
+    {
+      "sessionId": "session_masterclass_termination",
+      "description": "A live masterclass on making defensible termination decisions when the facts are still uncertain.",
+      "agenda": [
+        "Introduction and objectives",
+        "Common termination mistakes",
+        "Live scenario discussion",
+        "Documentation and escalation",
+        "Q&A",
+        "Next steps"
+      ],
+      "whoShouldAttend": [
+        "HR",
+        "Compliance officers",
+        "People leaders"
+      ],
+      "prep": [
+        "Pre-reading: termination checklist",
+        "A recent (anonymized) situation to discuss"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 50,
+      "seatsAvailable": 12,
+      "certificateCredit": true
+    },
+    {
+      "sessionId": "session_roundtable_retaliation",
+      "description": "An interactive roundtable analyzing a retaliation case and how to spot protected activity.",
+      "agenda": [
+        "Case setup",
+        "Group discussion",
+        "Risk signals",
+        "Practical guardrails",
+        "Q&A"
+      ],
+      "whoShouldAttend": [
+        "HR",
+        "Managers"
+      ],
+      "prep": [
+        "Review the retaliation scenario",
+        "Bring questions"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 40,
+      "seatsAvailable": 8,
+      "certificateCredit": true
+    },
+    {
+      "sessionId": "session_manager_feedback",
+      "description": "Managers practice giving feedback under pressure with guided examples and discussion.",
+      "agenda": [
+        "Warm-up",
+        "Feedback models",
+        "Live role-play",
+        "Documentation",
+        "Q&A"
+      ],
+      "whoShouldAttend": [
+        "Managers",
+        "Team leads"
+      ],
+      "prep": [
+        "Complete Manager Core module 1",
+        "Think of a real feedback situation"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 30,
+      "seatsAvailable": 4,
+      "certificateCredit": true
+    },
+    {
+      "sessionId": "session_past_masterclass",
+      "description": "A recorded masterclass on hiring decisions and the risks hidden in common shortcuts.",
+      "agenda": [
+        "Hiring decision framework",
+        "Bias traps",
+        "Documentation",
+        "Q&A"
+      ],
+      "whoShouldAttend": [
+        "HR",
+        "Hiring managers"
+      ],
+      "prep": [
+        "None"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 50,
+      "seatsAvailable": 0,
+      "certificateCredit": true
+    },
+    {
+      "sessionId": "session_investigations_workshop",
+      "description": "A practical workshop on opening and scoping a workplace investigation.",
+      "agenda": [
+        "Intake and scope",
+        "Confidentiality",
+        "First steps",
+        "Documentation",
+        "Q&A"
+      ],
+      "whoShouldAttend": [
+        "HR",
+        "Compliance officers"
+      ],
+      "prep": [
+        "Review the investigation intake scenario"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 40,
+      "seatsAvailable": 20,
+      "certificateCredit": true
+    },
+    {
+      "sessionId": "session_difficult_convos",
+      "description": "Managers rehearse difficult conversations with structure and empathy.",
+      "agenda": [
+        "Preparation",
+        "Opening the conversation",
+        "Handling reactions",
+        "Follow-up documentation",
+        "Q&A"
+      ],
+      "whoShouldAttend": [
+        "Managers",
+        "Team leads"
+      ],
+      "prep": [
+        "List a conversation you're preparing for"
+      ],
+      "facilitatorName": "Alex Morgan",
+      "capacity": 30,
+      "seatsAvailable": 18,
+      "certificateCredit": false
+    }
+  ],
+  "cohortMeta": [
+    {
+      "cohortId": "cohort_acme_2026",
+      "startDate": "2026-07-06",
+      "endDate": "2026-08-17",
+      "facilitatorName": "Alex Morgan",
+      "currentWeek": 2,
+      "participantsCount": 8,
+      "progress": 35,
+      "nextSessionId": "session_manager_feedback",
+      "schedule": [
+        {
+          "week": 1,
+          "label": "Introduction + baseline assessment",
+          "done": true
+        },
+        {
+          "week": 2,
+          "label": "Complaint handling scenarios",
+          "done": false
+        },
+        {
+          "week": 3,
+          "label": "Documentation and escalation",
+          "done": false
+        },
+        {
+          "week": 4,
+          "label": "Live workshop",
+          "done": false
+        },
+        {
+          "week": 5,
+          "label": "Final assessment",
+          "done": false
+        },
+        {
+          "week": 6,
+          "label": "Debrief and certificates",
+          "done": false
+        }
+      ],
+      "assignments": [
+        {
+          "title": "Complete complaint intake scenario",
+          "status": "in_progress"
+        },
+        {
+          "title": "Attend Session 2: Feedback Under Pressure",
+          "status": "not_started"
+        },
+        {
+          "title": "Answer weekly reflection question",
+          "status": "not_started"
+        }
+      ],
+      "announcements": [
+        {
+          "at": "2026-07-06T09:00:00Z",
+          "text": "Welcome to the Acme Manager Cohort! Week 1 materials are available."
+        },
+        {
+          "at": "2026-07-08T12:00:00Z",
+          "text": "Reminder: complete the baseline assessment before Session 2."
+        }
+      ]
     }
   ]
 }

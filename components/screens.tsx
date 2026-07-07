@@ -23,6 +23,7 @@ import {
   ListChecks,
   LockKeyhole,
   Mail,
+  MessageCircle,
   Paperclip,
   Phone,
   PlayCircle,
@@ -31,6 +32,7 @@ import {
   Target,
   Search,
   Send,
+  Share2,
   Sparkles,
   UserPlus,
   Users,
@@ -41,6 +43,7 @@ import { useState } from "react";
 import gdDataJson from "@/mock-data/gd-data.json";
 import learningProgressJson from "@/mock-data/learning-progress.json";
 import signatrainContentJson from "@/mock-data/signatrain-content.json";
+import sessionsCohortsJson from "@/mock-data/sessions-cohorts.json";
 import { isInternalUser } from "@/lib/access";
 import { canViewLegalMessage, visibleLegalRequestsForUser } from "@/lib/privacy";
 import { useDemoStore } from "@/lib/store";
@@ -100,6 +103,10 @@ const CUSTOM_SCREEN_PATHS = [
   "/app/signatrain/scenarios/[scenarioId]",
   "/app/signatrain/programs/[programId]",
   "/app/signatrain/live",
+  "/app/signatrain/live/[sessionId]",
+  "/app/signatrain/cohorts/[cohortId]",
+  "/app/signatrain/certificates",
+  "/app/signatrain/bot",
   "/app/signatrain/library",
   "/app/signatrain/progress",
   "/admin/alerts",
@@ -151,6 +158,14 @@ export function CustomScreen({ route, pathname }: { route: RouteDefinition; path
       return <ProgramProgressView route={route} pathname={pathname} />;
     case "/app/signatrain/live":
       return <LiveCatalogView route={route} />;
+    case "/app/signatrain/live/[sessionId]":
+      return <LiveSessionDetailView route={route} pathname={pathname} />;
+    case "/app/signatrain/cohorts/[cohortId]":
+      return <PrivateCohortView route={route} pathname={pathname} />;
+    case "/app/signatrain/certificates":
+      return <MyCertificatesView route={route} />;
+    case "/app/signatrain/bot":
+      return <HrBotView route={route} />;
     case "/app/signatrain/library":
       return <LibraryView route={route} />;
     case "/app/signatrain/progress":
@@ -1078,19 +1093,56 @@ const SESSION_TYPE_LABELS: Record<LiveSession["type"], string> = {
 
 function LiveCatalogView({ route }: { route: RouteDefinition }) {
   const { store } = useDemoStore();
-  const sessions = [...store.liveSessions].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const [type, setType] = useState("all");
+  const [audience, setAudience] = useState("all");
+  const [availability, setAvailability] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const sessions = [...store.liveSessions]
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .filter((sn) => {
+      if (type !== "all" && sn.type !== type) return false;
+      if (audience !== "all" && sn.audience !== audience) return false;
+      if (availability === "upcoming" && !["registration_open", "scheduled"].includes(sn.status)) return false;
+      if (availability === "replay" && sn.recordingStatus !== "recording_published") return false;
+      if (query.trim() && !sn.title.toLowerCase().includes(query.trim().toLowerCase())) return false;
+      return true;
+    });
 
   return (
     <div className="content-shell">
-      <ScreenHeading
-        route={route}
-        description="Upcoming live sessions. Completion requires at least 90% attendance."
-      />
-      <div className="stagger grid gap-4 md:grid-cols-2">
-        {sessions.map((session) => (
-          <SessionCard key={session.id} session={session} />
-        ))}
+      <ScreenHeading route={route} description="Upcoming live sessions and replays. Completion requires at least 90% attendance." />
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="ds-field inline-flex items-center gap-2 px-3 py-2 text-sm">
+          <Search className="h-4 w-4 opacity-60" aria-hidden="true" />
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search sessions" className="w-48 bg-transparent outline-none" />
+        </label>
+        <select className="ds-field px-3 py-2 text-sm" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="all">All types</option>
+          <option value="HR_MASTERCLASS">HR Masterclass</option>
+          <option value="RISK_ROUNDTABLE">Risk Roundtable</option>
+          <option value="MANAGER_CORE">Manager Core</option>
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={audience} onChange={(e) => setAudience(e.target.value)}>
+          <option value="all">All roles</option>
+          <option value="HR">HR</option>
+          <option value="MANAGER">Manager</option>
+        </select>
+        <select className="ds-field px-3 py-2 text-sm" value={availability} onChange={(e) => setAvailability(e.target.value)}>
+          <option value="all">All</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="replay">Replay available</option>
+        </select>
       </div>
+      {sessions.length === 0 ? (
+        <p className="text-muted">No sessions match these filters.</p>
+      ) : (
+        <div className="stagger grid gap-4 md:grid-cols-2">
+          {sessions.map((session) => (
+            <SessionCard key={session.id} session={session} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1099,6 +1151,7 @@ function SessionCard({ session }: { session: LiveSession }) {
   const { recordSimulation } = useDemoStore();
   const [state, setState] = useState<"idle" | "confirm" | "registered">("idle");
   const canRegister = ["registration_open", "scheduled"].includes(session.status);
+  const meta = sessionMetaList.find((m) => m.sessionId === session.id);
 
   const register = () => {
     recordSimulation({
@@ -1136,8 +1189,14 @@ function SessionCard({ session }: { session: LiveSession }) {
           {session.durationMinutes} min
         </span>
       </div>
-      {session.zoomReference ? (
-        <p className="mt-2 text-xs text-muted">Zoom reference: {session.zoomReference} (simulated)</p>
+      {meta ? (
+        <div className="mt-2 space-y-0.5 text-xs text-muted">
+          <p>Facilitator: {meta.facilitatorName}</p>
+          <p>
+            {meta.seatsAvailable > 0 ? `${meta.seatsAvailable} seats available` : "No open seats"}
+            {meta.certificateCredit ? " · Certificate credit" : ""}
+          </p>
+        </div>
       ) : null}
       <div className="mt-4">
         {state === "registered" ? (
@@ -1170,6 +1229,13 @@ function SessionCard({ session }: { session: LiveSession }) {
           <p className="text-xs text-muted">Registration is not open for this session.</p>
         )}
       </div>
+      <Link
+        href={`/app/signatrain/live/${session.id}`}
+        className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]"
+      >
+        View details
+        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </Link>
     </article>
   );
 }
@@ -1275,88 +1341,122 @@ function LibraryView({ route }: { route: RouteDefinition }) {
 
 function ProgressView({ route }: { route: RouteDefinition }) {
   const { store, activeUser } = useDemoStore();
-  const myEnrollments = enrollments.filter((enrollment) => enrollment.userId === activeUser?.id);
-  const myVideos = videoProgress.filter((progress) => progress.userId === activeUser?.id);
-  const myCertificates = store.certificates.filter(
-    (certificate) => certificate.userId === activeUser?.id
-  );
-  const completedVideos = myVideos.filter((video) => video.completed).length;
+  const myEnrollments = enrollments.filter((e) => e.userId === activeUser?.id);
+  const myVideos = videoProgress.filter((v) => v.userId === activeUser?.id);
+  const myCertificates = store.certificates.filter((c) => c.userId === activeUser?.id);
+  const myAssignments = stAssignments.filter((a) => a.userId === activeUser?.id);
+  const myProgram = myAssignments.find((a) => a.kind === "program");
+  const pMeta = myProgram ? programMetaList.find((m) => m.programId === myProgram.refId) : undefined;
 
-  const courseTitle = (courseId: string) =>
-    store.courses.find((course) => course.id === courseId)?.title ?? courseId;
+  const completedCourses = myAssignments.filter((a) => a.kind === "course" && a.status === "completed").length;
+  const activeCourses = myAssignments.filter((a) => a.kind === "course" && a.status === "in_progress").length;
+  const overdue = myAssignments.filter((a) => a.status === "overdue").length;
+  const courseTitle = (id: string) => store.courses.find((c) => c.id === id)?.title ?? id;
+  void myEnrollments;
+
+  const history = myAssignments
+    .filter((a) => a.kind === "course")
+    .map((a) => {
+      const cert = myCertificates.find((c) => c.courseId === a.refId);
+      return { id: a.id, title: courseTitle(a.refId), status: a.status, score: cert || a.status === "completed" ? "Passed" : "—", completed: cert ? cert.issuedAt : undefined };
+    });
 
   return (
     <div className="content-shell">
-      <ScreenHeading
-        route={route}
-        description="Personal learning record: course enrollment, unique watch coverage, and certificates."
-      />
-      <div className="stagger mb-6 grid gap-4 sm:grid-cols-3">
-        <MiniStat label="Enrolled courses" value={String(myEnrollments.length)} tint="tint-blue" />
-        <MiniStat
-          label="Videos completed"
-          value={`${completedVideos}/${myVideos.length}`}
-          tint="tint-violet"
-        />
-        <MiniStat label="Certificates" value={String(myCertificates.length)} tint="tint-emerald" />
+      <ScreenHeading route={route} description="Your personal learning record across the whole platform." />
+      <div className="stagger mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <MiniStat label="Completed courses" value={String(completedCourses)} tint="tint-emerald" />
+        <MiniStat label="Active courses" value={String(activeCourses)} tint="tint-blue" />
+        <MiniStat label="Certificates" value={String(myCertificates.length)} tint="tint-violet" />
+        <MiniStat label="Overdue" value={String(overdue)} tint={overdue > 0 ? "tint-rose" : "tint-brand"} />
+        <MiniStat label="Avg. score" value="89%" tint="tint-cyan" />
       </div>
-      {myEnrollments.length === 0 && myVideos.length === 0 ? (
+
+      {history.length === 0 && myVideos.length === 0 ? (
         <section className="ds-card p-6 text-center">
           <h2 className="text-xl font-bold">No learning activity yet</h2>
-          <p className="mt-2 text-muted">This persona has no enrollments or video progress.</p>
+          <p className="mt-2 text-muted">This persona has no assignments or video progress.</p>
         </section>
       ) : (
         <>
-          <section className="ds-card p-5">
-            <h2 className="text-xl font-bold">Courses</h2>
-            <div className="stagger mt-4 space-y-3">
-              {myEnrollments.map((enrollment) => (
-                <div key={enrollment.id} className="ds-card-muted flex flex-wrap items-center justify-between gap-3 p-3">
-                  <div>
-                    <p className="font-bold">{courseTitle(enrollment.courseId)}</p>
-                    {enrollment.startedAt ? (
-                      <p className="text-xs text-muted">Started {formatDate(enrollment.startedAt)}</p>
-                    ) : null}
-                  </div>
-                  <StatusChip value={enrollment.status} />
+          <section className="mb-6">
+            <h2 className="mb-3 text-lg font-bold">Training history</h2>
+            <div className="ds-card overflow-x-auto">
+              <table className="data-table">
+                <thead><tr><th>Training</th><th>Status</th><th>Score</th><th>Completed</th></tr></thead>
+                <tbody>
+                  {history.map((h) => (
+                    <tr key={h.id}>
+                      <td className="font-semibold">{h.title}</td>
+                      <td><StatusChip value={h.status} /></td>
+                      <td className="text-sm">{h.score}</td>
+                      <td className="text-sm text-muted">{h.completed ? formatDate(h.completed) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <section className="lg:col-span-2">
+              <h2 className="mb-3 text-lg font-bold">Video watch coverage</h2>
+              <div className="ds-card p-5 tint-violet">
+                <p className="text-sm text-muted">Completion is recorded at 95% unique watch coverage.</p>
+                <div className="stagger mt-4 space-y-4">
+                  {myVideos.map((video) => {
+                    const percent = Math.round(video.percent * 100);
+                    return (
+                      <div key={video.id}>
+                        <div className="mb-1.5 flex items-center justify-between text-sm">
+                          <span className="font-semibold">{video.videoId.replaceAll("_", " ")}</span>
+                          <span className={`text-xs font-bold ${video.completed ? "text-[color:var(--tint)]" : "text-muted"}`}>
+                            {video.completed ? "Completed" : `${percent}% — below threshold`}
+                          </span>
+                        </div>
+                        <div className="progress-track"><div className="progress-fill" style={{ width: `${percent}%` }} /></div>
+                      </div>
+                    );
+                  })}
+                  {myVideos.length === 0 ? <p className="text-sm text-muted">No video progress yet.</p> : null}
                 </div>
-              ))}
-            </div>
-          </section>
-          <section className="ds-card mt-6 p-5 tint-violet">
-            <h2 className="text-xl font-bold">Video watch coverage</h2>
-            <p className="mt-1 text-sm text-muted">
-              Completion is recorded at 95% unique watch coverage.
-            </p>
-            <div className="stagger mt-4 space-y-4">
-              {myVideos.map((video) => {
-                const percent = Math.round(video.percent * 100);
-                return (
-                  <div key={video.id}>
-                    <div className="mb-1.5 flex items-center justify-between text-sm">
-                      <span className="font-semibold">{video.videoId.replaceAll("_", " ")}</span>
-                      <span className={`text-xs font-bold ${video.completed ? "text-[color:var(--tint)]" : "text-muted"}`}>
-                        {video.completed ? "Completed" : `${percent}% — below threshold`}
-                      </span>
-                    </div>
-                    <div className="progress-track">
-                      <div className="progress-fill" style={{ width: `${percent}%` }} />
-                    </div>
+              </div>
+            </section>
+
+            <section className="space-y-6">
+              {pMeta ? (
+                <div>
+                  <div className="mb-2 flex items-center gap-2"><Target className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">Skill areas</h2></div>
+                  <div className="ds-card space-y-2 p-4">
+                    {pMeta.skillAreas.map((sk) => (
+                      <div key={sk.name} className="flex items-center justify-between gap-3 text-sm">
+                        <span>{sk.name}</span>
+                        <span className={`tint-chip px-2 py-0.5 text-xs uppercase tracking-wide ${skillTint(sk.level)}`}>{sk.level}</span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          </section>
+                </div>
+              ) : null}
+              {pMeta?.recommended?.length ? (
+                <div>
+                  <h2 className="mb-2 text-lg font-bold">Recommended learning</h2>
+                  <ul className="ds-card space-y-2 p-4 text-sm">
+                    {pMeta.recommended.map((r) => <li key={r} className="flex items-start gap-2"><ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{r}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          </div>
+
           {myCertificates.length > 0 ? (
             <section className="ds-card mt-6 p-5">
-              <h2 className="text-xl font-bold">Certificates</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-bold">Certificates</h2>
+                <Link href="/app/signatrain/certificates" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">View all</Link>
+              </div>
               <div className="stagger mt-4 grid gap-3 md:grid-cols-2">
                 {myCertificates.map((certificate) => (
-                  <Link
-                    key={certificate.id}
-                    href={`/certificate/${certificate.id}`}
-                    className="certificate-card block p-4"
-                  >
+                  <Link key={certificate.id} href="/app/signatrain/certificates" className="certificate-card block p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="page-eyebrow text-xs font-bold uppercase tracking-wide">Certificate</p>
@@ -3379,6 +3479,409 @@ function ProgramProgressView({ route, pathname }: { route: RouteDefinition; path
               </ul>
             </div>
           ) : null}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================== SignaTrain: Phase B ========================== */
+
+interface SessionMeta {
+  sessionId: string;
+  description: string;
+  agenda: string[];
+  whoShouldAttend: string[];
+  prep: string[];
+  facilitatorName: string;
+  capacity: number;
+  seatsAvailable: number;
+  certificateCredit: boolean;
+}
+interface CohortRec {
+  id: string;
+  name: string;
+  organizationId: string;
+  status: string;
+  participantUserIds: string[];
+  sessionIds: string[];
+  specialScenarioIds: string[];
+  brandingMode: string;
+}
+interface Registration { id: string; sessionId: string; userId: string; status: string; zoomRegistrationId: string }
+interface Attendance { id: string; sessionId: string; userId: string; scheduledMinutes: number; attendedMinutes: number; completion: boolean }
+interface CohortMeta {
+  cohortId: string;
+  startDate: string;
+  endDate: string;
+  facilitatorName: string;
+  currentWeek: number;
+  participantsCount: number;
+  progress: number;
+  nextSessionId: string;
+  schedule: { week: number; label: string; done: boolean }[];
+  assignments: { title: string; status: string }[];
+  announcements: { at: string; text: string }[];
+}
+interface BotPromptRec { prompt: string; answer: string; links: { label: string; href: string }[] }
+interface CertDetail {
+  certId: string;
+  issuer: string;
+  expiresAt: string;
+  verificationId: string;
+  score: number;
+  durationMinutes: number;
+  instructor: string;
+  modulesCompleted: number;
+  renewalNote: string;
+}
+
+const sessionMetaList = sessionsCohortsJson.sessionMeta as unknown as SessionMeta[];
+const stCohorts = sessionsCohortsJson.cohorts as unknown as CohortRec[];
+const stRegistrations = sessionsCohortsJson.registrations as unknown as Registration[];
+const stAttendance = sessionsCohortsJson.attendance as unknown as Attendance[];
+const cohortMetaList = sessionsCohortsJson.cohortMeta as unknown as CohortMeta[];
+const botPromptList = signatrainContentJson.botPrompts as unknown as BotPromptRec[];
+const certDetailsList = learningProgressJson.certDetails as unknown as CertDetail[];
+
+/* --------------------------- Live-session detail -------------------------- */
+
+function LiveSessionDetailView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const sessionId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const session = store.liveSessions.find((ls) => ls.id === sessionId);
+  const meta = sessionMetaList.find((m) => m.sessionId === sessionId);
+  const existingReg = stRegistrations.find((r) => r.sessionId === sessionId && r.userId === activeUser?.id);
+  const attendance = stAttendance.find((a) => a.sessionId === sessionId && a.userId === activeUser?.id);
+  const [registered, setRegistered] = useState(existingReg?.status === "registered");
+
+  if (!session) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <Video className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Session not found</h1>
+          <Link href="/app/signatrain/live" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to catalog</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const faculty = session.facultyUserIds.map((id) => store.users.find((u) => u.id === id)?.name).filter(Boolean).join(", ") || meta?.facilitatorName || "Facilitator";
+  const isCompleted = session.status === "completed";
+  const canRegister = ["registration_open", "scheduled"].includes(session.status);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="Live-session details, agenda, preparation, and registration." />
+
+      <section className="ds-card mb-6 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold">{session.title}</h2>
+            <p className="mt-1 text-sm text-muted">{SESSION_TYPE_LABELS[session.type]} · {session.audience}</p>
+          </div>
+          <StatusChip value={session.status} />
+        </div>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">When</dt><dd className="mt-0.5 text-sm">{formatDateTime(session.startsAt)}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Duration</dt><dd className="mt-0.5 text-sm">{session.durationMinutes} min</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Facilitator</dt><dd className="mt-0.5 text-sm">{faculty}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Seats</dt><dd className="mt-0.5 text-sm">{meta ? `${meta.seatsAvailable} of ${meta.capacity} open` : "—"}</dd></div>
+        </dl>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          {isCompleted ? (
+            session.recordingStatus === "recording_published" ? (
+              <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><PlayCircle className="h-4 w-4" aria-hidden="true" />Watch replay</button>
+            ) : <span className="text-sm text-muted">Recording not yet available.</span>
+          ) : registered ? (
+            <>
+              <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm"><Video className="h-4 w-4" aria-hidden="true" />Join session</button>
+              <button type="button" className="ds-button ds-button-secondary px-4 py-2 text-sm" onClick={() => setRegistered(false)}>Cancel registration</button>
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-accent)]"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />You're registered</span>
+            </>
+          ) : canRegister ? (
+            <button type="button" className="ds-button ds-button-primary inline-flex px-4 py-2 text-sm" onClick={() => setRegistered(true)}><CalendarDays className="h-4 w-4" aria-hidden="true" />Register</button>
+          ) : <span className="text-sm text-muted">Registration is not open.</span>}
+          {meta?.certificateCredit ? <span className="tint-chip tint-emerald px-2 py-0.5 text-xs uppercase tracking-wide">Certificate credit</span> : null}
+        </div>
+      </section>
+
+      {meta ? (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section className="ds-card p-5"><h3 className="font-bold">About this session</h3><p className="mt-2 text-sm text-muted">{meta.description}</p></section>
+            <section className="ds-card p-5">
+              <h3 className="font-bold">Agenda</h3>
+              <ol className="mt-2 space-y-1.5 text-sm">
+                {meta.agenda.map((a, i) => <li key={a} className="flex gap-2"><span className="text-muted">{i + 1}.</span>{a}</li>)}
+              </ol>
+            </section>
+            {isCompleted ? (
+              <section className="ds-card p-5">
+                <h3 className="font-bold">After the session</h3>
+                <ul className="mt-2 space-y-1.5 text-sm text-muted">
+                  <li>Attendance: {attendance ? `${attendance.attendedMinutes}/${attendance.scheduledMinutes} min — ${attendance.completion ? "counts toward completion" : "below threshold"}` : "Not recorded"}</li>
+                  <li>Resources and session notes are available with the replay.</li>
+                </ul>
+                <button type="button" className="ds-button ds-button-secondary mt-3 px-4 py-2 text-sm">Leave feedback</button>
+              </section>
+            ) : null}
+          </div>
+          <section className="space-y-6">
+            <div>
+              <div className="mb-2 flex items-center gap-2"><Users className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Who should attend</h3></div>
+              <ul className="ds-card space-y-1.5 p-4 text-sm">{meta.whoShouldAttend.map((w) => <li key={w}>{w}</li>)}</ul>
+            </div>
+            <div>
+              <div className="mb-2 flex items-center gap-2"><BookOpen className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Preparation</h3></div>
+              <ul className="ds-card space-y-1.5 p-4 text-sm">{meta.prep.map((w) => <li key={w} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" />{w}</li>)}</ul>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      <div className="mt-6"><Link href="/app/signatrain/live" className="text-sm font-bold text-[color:var(--brand-accent)] hover:underline">← Back to catalog</Link></div>
+    </div>
+  );
+}
+
+/* ------------------------------ Private cohort ---------------------------- */
+
+function PrivateCohortView({ route, pathname }: { route: RouteDefinition; pathname: string }) {
+  const { store, activeUser } = useDemoStore();
+  const cohortId = decodeURIComponent(pathname.split("/").pop() ?? "");
+  const cohort = stCohorts.find((c) => c.id === cohortId);
+  const meta = cohortMetaList.find((m) => m.cohortId === cohortId);
+  const org = store.organizations.find((o) => o.id === cohort?.organizationId);
+  const internal = isInternalUser(activeUser);
+  const nextSession = meta ? store.liveSessions.find((ls) => ls.id === meta.nextSessionId) : undefined;
+  const [question, setQuestion] = useState("");
+  const [asked, setAsked] = useState(false);
+
+  if (!cohort) {
+    return (
+      <div className="narrow-shell">
+        <section className="ds-card p-6">
+          <Users className="h-8 w-8 opacity-40" aria-hidden="true" />
+          <h1 className="page-title mt-3 text-2xl font-bold">Cohort not found</h1>
+          <Link href="/app/signatrain" className="ds-button ds-button-primary mt-5 inline-flex px-4 py-2">Back to dashboard</Link>
+        </section>
+      </div>
+    );
+  }
+
+  const roster = cohort.participantUserIds.map((id) => store.users.find((u) => u.id === id)).filter(Boolean);
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="A private, company cohort moving through the program together." />
+
+      <section className="ds-card mb-6 p-5">
+        <h2 className="text-2xl font-bold">{cohort.name}</h2>
+        <p className="mt-1 text-sm text-muted">{org?.name ?? "Company"} · Facilitator {meta?.facilitatorName ?? "—"}</p>
+        <dl className="mt-4 grid gap-3 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Dates</dt><dd className="mt-0.5 text-sm">{meta ? `${formatDate(meta.startDate)} – ${formatDate(meta.endDate)}` : "—"}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Participants</dt><dd className="mt-0.5 text-sm">{meta?.participantsCount ?? roster.length}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Current week</dt><dd className="mt-0.5 text-sm">Week {meta?.currentWeek ?? 1}</dd></div>
+          <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Next session</dt><dd className="mt-0.5 text-sm">{nextSession ? formatDate(nextSession.startsAt) : "—"}</dd></div>
+        </dl>
+        {meta ? <><div className="progress-track mt-4 h-2 max-w-md"><div className="progress-fill" style={{ width: `${meta.progress}%` }} /></div><p className="mt-1 text-xs text-muted">{meta.progress}% program progress</p></> : null}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2 space-y-6">
+          <div>
+            <h3 className="mb-3 text-lg font-bold">Schedule</h3>
+            <div className="ds-card p-5">
+              <ul className="space-y-4">
+                {meta?.schedule.map((w) => (
+                  <li key={w.week} className="flex items-start gap-3">
+                    {w.done ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-accent)]" aria-hidden="true" /> : <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted" aria-hidden="true" />}
+                    <span className={`text-sm ${w.done ? "" : "text-muted"}`}>Week {w.week}: {w.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-lg font-bold">Assignments</h3>
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+              {meta?.assignments.map((a) => (
+                <div key={a.title} className="flex items-center justify-between gap-3 p-4">
+                  <span className="text-sm font-semibold">{a.title}</span>
+                  <StatusChip value={a.status} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-lg font-bold">Announcements & Q&amp;A</h3>
+            <div className="ds-card p-5">
+              <ul className="space-y-3">
+                {meta?.announcements.map((an, i) => (
+                  <li key={i} className="text-sm"><p>{an.text}</p><p className="text-xs text-muted">{formatDateTime(an.at)}</p></li>
+                ))}
+              </ul>
+              <div className="mt-4 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-4">
+                {asked ? (
+                  <p className="inline-flex items-center gap-1.5 text-sm text-[color:var(--brand-accent)]"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Question sent to the facilitator (simulation).</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <input className="ds-field flex-1 px-3 py-2 text-sm" placeholder="Ask the facilitator a question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+                    <button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={() => setAsked(true)} disabled={!question.trim()}><Send className="h-4 w-4" aria-hidden="true" />Ask</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-2 flex items-center gap-2"><Users className="h-4 w-4 text-[color:var(--brand-accent)]" aria-hidden="true" /><h3 className="font-bold">Participants</h3></div>
+          {internal ? (
+            <div className="ds-card divide-y divide-[color:var(--hairline,rgba(0,0,0,0.08))]">
+              {roster.map((u) => (
+                <div key={u!.id} className="flex items-center justify-between gap-3 p-3 text-sm">
+                  <span className="font-semibold">{u!.name}</span>
+                  <span className="text-xs text-muted">{u!.roles.join(", ")}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="ds-card p-4 text-sm text-muted">
+              You can see your own participation. The full roster is visible to facilitators and administrators.
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ My certificates --------------------------- */
+
+function MyCertificatesView({ route }: { route: RouteDefinition }) {
+  const { store, activeUser } = useDemoStore();
+  const certs = store.certificates.filter((c) => c.userId === activeUser?.id);
+  const detailFor = (id: string) => certDetailsList.find((d) => d.certId === id);
+  const courseTitle = (id?: string) => store.courses.find((c) => c.id === id)?.title;
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="View, download, and share your certificates, and see when renewal is due." />
+      {certs.length === 0 ? (
+        <section className="ds-card p-6 text-center">
+          <Award className="mx-auto h-8 w-8 opacity-40" aria-hidden="true" />
+          <h2 className="mt-3 text-xl font-bold">No certificates yet</h2>
+          <p className="mt-2 text-muted">Complete an assigned course to earn your first certificate.</p>
+        </section>
+      ) : (
+        <div className="stagger grid gap-4 md:grid-cols-2">
+          {certs.map((cert) => {
+            const d = detailFor(cert.id);
+            return (
+              <article key={cert.id} className="ds-card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2"><Award className="h-6 w-6 text-[color:var(--brand-accent)]" aria-hidden="true" /><h2 className="text-lg font-bold">{cert.title}</h2></div>
+                  <StatusChip value={cert.status} />
+                </div>
+                <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
+                  <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Issuer</dt><dd className="mt-0.5">{d?.issuer ?? "Signatrain"}</dd></div>
+                  <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Completed</dt><dd className="mt-0.5">{formatDate(cert.issuedAt)}</dd></div>
+                  <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Expires</dt><dd className="mt-0.5">{d ? formatDate(d.expiresAt) : "—"}</dd></div>
+                  <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Certificate ID</dt><dd className="mt-0.5">{cert.id}</dd></div>
+                  {d ? <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Score</dt><dd className="mt-0.5">{d.score}%</dd></div> : null}
+                  {courseTitle(cert.courseId) ? <div><dt className="text-xs font-bold uppercase tracking-wide text-muted">Course</dt><dd className="mt-0.5">{courseTitle(cert.courseId)}</dd></div> : null}
+                </dl>
+                {d ? <p className="mt-3 text-xs text-muted">{d.renewalNote}</p> : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button type="button" className="ds-button ds-button-primary px-3 py-1.5 text-sm"><Download className="h-4 w-4" aria-hidden="true" />Download PDF</button>
+                  <button type="button" className="ds-button ds-button-secondary px-3 py-1.5 text-sm"><Share2 className="h-4 w-4" aria-hidden="true" />Share link</button>
+                  <Link href={`/certificate/${cert.id}`} className="ds-button ds-button-secondary inline-flex px-3 py-1.5 text-sm">Verify</Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------- HR bot embed ----------------------------- */
+
+interface BotMessage { role: "user" | "bot"; text: string; links?: { label: string; href: string }[] }
+
+function HrBotView({ route }: { route: RouteDefinition }) {
+  const intro: BotMessage = {
+    role: "bot",
+    text: "Ask a workplace training or HR compliance question. I can help you find relevant learning resources, explain general policy concepts, and suggest when to escalate to HR or legal. I'm a learning assistant, not a substitute for legal advice."
+  };
+  const [messages, setMessages] = useState<BotMessage[]>([intro]);
+  const [input, setInput] = useState("");
+
+  const answerFor = (text: string): BotMessage => {
+    const match = botPromptList.find((b) => b.prompt.toLowerCase() === text.toLowerCase())
+      ?? botPromptList.find((b) => text.toLowerCase().split(" ").some((w) => w.length > 4 && b.prompt.toLowerCase().includes(w)));
+    if (match) return { role: "bot", text: match.answer, links: match.links };
+    return {
+      role: "bot",
+      text: "I can point you to relevant training and explain general concepts. If this relates to a real situation, escalate to your HR contact or legal team before acting. This assistant does not provide legal advice.",
+      links: [{ label: "Browse the content library", href: "/app/signatrain/library" }]
+    };
+  };
+
+  const send = (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+    setMessages((m) => [...m, { role: "user", text: t }, answerFor(t)]);
+    setInput("");
+  };
+
+  return (
+    <div className="content-shell">
+      <ScreenHeading route={route} description="A learning and HR-support assistant embedded in Signatrain. It suggests training and when to escalate — it does not give legal advice." />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2">
+          <div className="ds-card flex h-[28rem] flex-col p-5">
+            <div className="flex-1 space-y-3 overflow-y-auto">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-[color:var(--brand-accent)] text-white" : "ds-card-muted"}`}>
+                    {m.role === "bot" ? <span className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted"><MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />Assistant</span> : null}
+                    <p className={m.role === "bot" ? "mt-0.5" : ""}>{m.text}</p>
+                    {m.links?.length ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {m.links.map((l) => <Link key={l.href} href={l.href} className="ds-pill inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[color:var(--brand-accent)]">{l.label}<ArrowRight className="h-3 w-3" aria-hidden="true" /></Link>)}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-[color:var(--hairline,rgba(0,0,0,0.08))] pt-3">
+              <input className="ds-field flex-1 px-3 py-2 text-sm" placeholder="Ask a question…" value={input} onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") send(input); }} />
+              <button type="button" className="ds-button ds-button-primary px-4 py-2 text-sm" onClick={() => send(input)} disabled={!input.trim()}><Send className="h-4 w-4" aria-hidden="true" />Send</button>
+            </div>
+          </div>
+          <p className="mt-3 flex items-start gap-2 text-xs text-muted">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            This assistant does not provide legal advice or assess liability. For real situations, escalate to HR or your legal team.
+          </p>
+        </section>
+
+        <section>
+          <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">Try asking</h3>
+          <div className="space-y-2">
+            {botPromptList.map((b) => (
+              <button key={b.prompt} type="button" onClick={() => send(b.prompt)} className="ds-card ds-card-interactive block w-full p-3 text-left text-sm">
+                {b.prompt}
+              </button>
+            ))}
+          </div>
         </section>
       </div>
     </div>
